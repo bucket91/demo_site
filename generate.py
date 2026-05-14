@@ -71,7 +71,7 @@ def generate_sidebar(categories, current_file):
 
 COMMENTS_ENABLED = True
 
-COMMENTS_HTML = '''  <div id="comments-section">
+COMMENTS_BLOCK = '''  <div id="comments-section">
     <h3>Comments</h3>
     <div id="comments-list"></div>
     <form id="comment-form">
@@ -80,18 +80,23 @@ COMMENTS_HTML = '''  <div id="comments-section">
       <button type="submit">Post Comment</button>
     </form>
   </div>
-  <script src="comments.js"></script>
 '''
+
+COMMENTS_HTML = COMMENTS_BLOCK + '  <script src="comments.js"></script>\n'
 
 def cleanup_old(content):
     content = re.sub(r'<div id="giscus-comments".*?</div>\s*', '', content, flags=re.DOTALL)
     content = re.sub(r'<script src="https://giscus\.app.*?</script>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'<div id="comments-section">.*?<script src="comments\.js"></script>\s*</div>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'<script src="comments\.js"></script>\s*', '', content)
+    # Strip any existing comment sections (may be stacked, no script tag between them)
+    while 'id="comments-section"' in content:
+        content = content.replace(COMMENTS_BLOCK, '')
+    content = re.sub(r'\s*<script src="comments\.js"></script>\s*', '', content)
     return content
 
 def ensure_comments(content):
     if not COMMENTS_ENABLED:
+        return content
+    if 'id="comments-section"' in content:
         return content
     content = content.replace('</main>', '</main>\n' + COMMENTS_HTML)
     return content
