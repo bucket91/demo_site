@@ -32,32 +32,32 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setWindowTitle("Site Generator")
         self.setMinimumSize(520, 640)
         self.setStyleSheet("""
-            QMainWindow { background: #1a1a2e; }
+            QMainWindow { background: #1e1e1e; }
             QLabel { color: #eee; }
-            QLabel.hint { color: #a8b2d1; font-size: 11px; }
+            QLabel.hint { color: #999; font-size: 11px; }
             QLineEdit, QTextEdit {
-                background: #0f3460; color: #eee; border: 1px solid #16213e;
+                background: #333; color: #eee; border: 1px solid #2a2a2a;
                 border-radius: 6px; padding: 6px 10px; font-size: 13px;
             }
-            QLineEdit:focus, QTextEdit:focus { border-color: #533483; }
+            QLineEdit:focus, QTextEdit:focus { border-color: #555; }
             QCheckBox {
                 color: #eee; font-size: 13px; spacing: 8px;
             }
             QCheckBox::indicator {
                 width: 18px; height: 18px; border-radius: 4px;
-                background: #0f3460; border: 1px solid #533483;
+                background: #333; border: 1px solid #555;
             }
-            QCheckBox::indicator:checked { background: #533483; }
+            QCheckBox::indicator:checked { background: #555; }
             QPushButton {
-                background: #533483; color: #fff; border: none;
+                background: #555; color: #fff; border: none;
                 border-radius: 8px; padding: 10px 24px; font-size: 14px;
                 font-weight: bold;
             }
-            QPushButton:hover { background: #6c3fa3; }
-            QPushButton:pressed { background: #44286a; }
+            QPushButton:hover { background: #666; }
+            QPushButton:pressed { background: #4a4a4a; }
             QPushButton:disabled { background: #333; color: #666; }
             QTextEdit.log {
-                background: #0f3460; color: #a8b2d1;
+                background: #333; color: #999;
                 font-family: monospace; font-size: 12px;
                 border-radius: 8px; padding: 8px; border: none;
             }
@@ -71,7 +71,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # header
         header = QtWidgets.QFrame()
-        header.setStyleSheet("background: #16213e; padding: 16px;")
+        header.setStyleSheet("background: #2a2a2a; padding: 16px;")
         hl = QtWidgets.QVBoxLayout(header)
         hl.setContentsMargins(20, 12, 20, 12)
 
@@ -80,7 +80,7 @@ class MainWindow(QtWidgets.QMainWindow):
         hl.addWidget(title)
 
         subtitle = QtWidgets.QLabel(SITE_DIR)
-        subtitle.setStyleSheet("color: #a8b2d1; font-size: 11px;")
+        subtitle.setStyleSheet("color: #999; font-size: 11px;")
         hl.addWidget(subtitle)
 
         layout.addWidget(header)
@@ -89,11 +89,11 @@ class MainWindow(QtWidgets.QMainWindow):
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
-        scroll.setStyleSheet("QScrollArea { background: #1a1a2e; border: none; }"
-                             "QScrollBar:vertical { background: #16213e; width: 10px; }"
-                             "QScrollBar::handle:vertical { background: #533483; border-radius: 5px; }")
+        scroll.setStyleSheet("QScrollArea { background: #1e1e1e; border: none; }"
+                             "QScrollBar:vertical { background: #2a2a2a; width: 10px; }"
+                             "QScrollBar::handle:vertical { background: #555; border-radius: 5px; }")
         body = QtWidgets.QWidget()
-        body.setStyleSheet("background: #1a1a2e;")
+        body.setStyleSheet("background: #1e1e1e;")
         body_layout = QtWidgets.QVBoxLayout(body)
         body_layout.setContentsMargins(20, 10, 20, 10)
         body_layout.setSpacing(4)
@@ -111,7 +111,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fl.addWidget(lbl)
             line = QtWidgets.QFrame()
             line.setFrameShape(QtWidgets.QFrame.HLine)
-            line.setStyleSheet("color: #0f3460;")
+            line.setStyleSheet("color: #333;")
             fl.addWidget(line)
             body_layout.addWidget(f)
 
@@ -121,7 +121,7 @@ class MainWindow(QtWidgets.QMainWindow):
             fl.setContentsMargins(0, 6, 0, 0)
             fl.setSpacing(2)
             lbl = QtWidgets.QLabel(label)
-            lbl.setStyleSheet("color: #a8b2d1; font-size: 11px;")
+            lbl.setStyleSheet("color: #999; font-size: 11px;")
             fl.addWidget(lbl)
             inp = QtWidgets.QLineEdit()
             inp.setText(self.cfg.get(key, ''))
@@ -152,7 +152,7 @@ class MainWindow(QtWidgets.QMainWindow):
         # log output
         body_layout.addSpacing(8)
         log_label = QtWidgets.QLabel("Output")
-        log_label.setStyleSheet("color: #a8b2d1; font-size: 11px;")
+        log_label.setStyleSheet("color: #999; font-size: 11px;")
         body_layout.addWidget(log_label)
 
         self.log = QtWidgets.QTextEdit()
@@ -163,7 +163,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # bottom bar
         bottom = QtWidgets.QFrame()
-        bottom.setStyleSheet("background: #16213e; padding: 12px 20px;")
+        bottom.setStyleSheet("background: #2a2a2a; padding: 12px 20px;")
         bl = QtWidgets.QHBoxLayout(bottom)
         bl.setContentsMargins(20, 12, 20, 12)
 
