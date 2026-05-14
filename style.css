@@ -85,6 +85,30 @@ nav a {
   z-index: 1000;
   overflow-y: auto;
 }
+
+.sidebar-owner {
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #333;
+}
+.owner-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.6rem;
+  border: 2px solid #555;
+}
+.owner-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #eee;
+  margin-bottom: 0.25rem;
+}
+.owner-bio {
+  font-size: 0.8rem;
+  color: #999;
+}
 .sidebar.open { transform: translateX(0); }
 
 .sidebar-top {
@@ -146,6 +170,67 @@ nav a {
   align-items: center;
   background: var(--hero-bg);
   transition: background 0.3s;
+}
+
+.home-hero {
+  text-align: center;
+  padding: 2.5rem 1rem 1.5rem;
+}
+.home-hero h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.home-tagline {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.home-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+.home-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+.home-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+  color: var(--label);
+}
+.home-card ul {
+  list-style: none;
+}
+.home-card li {
+  margin-bottom: 0.4rem;
+}
+.home-card a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.home-card a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.home-demo {
+  text-align: center;
+  padding: 1rem 1rem 2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.home-demo a {
+  color: var(--accent);
 }
 
 footer {

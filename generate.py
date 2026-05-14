@@ -16,6 +16,9 @@ def load_config():
         "git_user_email": "",
         "git_commit_message": "update site via generator",
         "git_auto_push": True,
+        "owner_name": "",
+        "owner_bio": "",
+        "owner_avatar": "",
     }
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -71,7 +74,19 @@ def rel_path(from_file, to_absolute):
     return os.path.relpath(to_full, from_dir)
 
 def generate_sidebar(categories, current_file):
-    html = '      <div class="sidebar-top">\n'
+    owner_name = CONFIG.get("owner_name", "")
+    owner_bio = CONFIG.get("owner_bio", "")
+    owner_avatar = CONFIG.get("owner_avatar", "")
+    html = ''
+    if owner_name:
+        html += '      <div class="sidebar-owner">\n'
+        if owner_avatar:
+            html += f'        <img src="{owner_avatar}" alt="{owner_name}" class="owner-avatar">\n'
+        html += f'        <div class="owner-name">{owner_name}</div>\n'
+        if owner_bio:
+            html += f'        <div class="owner-bio">{owner_bio}</div>\n'
+        html += '      </div>\n'
+    html += '      <div class="sidebar-top">\n'
     html += '        <h2>Menu</h2>\n'
     html += '        <button class="close-btn" onclick="toggleSidebar()">&times;</button>\n'
     html += '      </div>\n'
