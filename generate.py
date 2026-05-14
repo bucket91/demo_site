@@ -216,7 +216,18 @@ def make_nav(filepath):
     return f'<a href="{home}">Home</a>'
 
 def make_homepage_content(categories):
-    html = '''<div class="home-hero">
+    owner_name = CONFIG.get("owner_name", "")
+    owner_bio = CONFIG.get("owner_bio", "")
+    owner_avatar = CONFIG.get("owner_avatar", "")
+    html = '<div class="home-owner">\n'
+    if owner_avatar:
+        html += f'  <img src="{owner_avatar}" alt="{owner_name}" class="home-owner-avatar">\n'
+    if owner_name:
+        html += f'  <div class="home-owner-name">{owner_name}</div>\n'
+    if owner_bio:
+        html += f'  <div class="home-owner-bio">{owner_bio}</div>\n'
+    html += '</div>\n'
+    html += '''<div class="home-hero">
   <h1>Welcome</h1>
   <p class="home-tagline">Explore the site</p>
 </div>

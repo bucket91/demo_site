@@ -172,9 +172,32 @@ nav a {
   transition: background 0.3s;
 }
 
+.home-owner {
+  text-align: center;
+  padding: 2rem 1rem 0.5rem;
+}
+.home-owner-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #555;
+  margin-bottom: 0.5rem;
+}
+.home-owner-name {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.home-owner-bio {
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 0.2rem;
+}
+
 .home-hero {
   text-align: center;
-  padding: 2.5rem 1rem 1.5rem;
+  padding: 1rem 1rem 1.5rem;
 }
 .home-hero h1 {
   font-size: 2rem;
