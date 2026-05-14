@@ -83,8 +83,15 @@ COMMENTS_HTML = '''  <div id="comments-section">
   <script src="comments.js"></script>
 '''
 
+def cleanup_old(content):
+    content = re.sub(r'<div id="giscus-comments".*?</div>\s*', '', content, flags=re.DOTALL)
+    content = re.sub(r'<script src="https://giscus\.app.*?</script>\s*', '', content, flags=re.DOTALL)
+    content = re.sub(r'<div id="comments-section">.*?<script src="comments\.js"></script>\s*</div>\s*', '', content, flags=re.DOTALL)
+    content = re.sub(r'<script src="comments\.js"></script>\s*', '', content)
+    return content
+
 def ensure_comments(content):
-    if not COMMENTS_ENABLED or 'comments-section' in content:
+    if not COMMENTS_ENABLED:
         return content
     content = content.replace('</main>', '</main>\n' + COMMENTS_HTML)
     return content
@@ -110,15 +117,15 @@ def update_html(filepath, sidebar_html):
     with open(filepath) as f:
         content = f.read()
 
-    pattern = r'(<aside class="sidebar" id="sidebar">\s*).*?(\s*</aside>)'
-    new_content = re.sub(pattern, lambda m: m.group(1) + '\n' + sidebar_html + m.group(2), content, count=1, flags=re.DOTALL)
+    content = cleanup_old(content)
 
-    if new_content == content:
-        return False
-    new_content = ensure_comments(new_content)
-    new_content = ensure_script(new_content)
+    pattern = r'(<aside class="sidebar" id="sidebar">\s*).*?(\s*</aside>)'
+    content = re.sub(pattern, lambda m: m.group(1) + '\n' + sidebar_html + m.group(2), content, count=1, flags=re.DOTALL)
+
+    content = ensure_comments(content)
+    content = ensure_script(content)
     with open(filepath, 'w') as f:
-        f.write(new_content)
+        f.write(content)
     return True
 
 def main():
