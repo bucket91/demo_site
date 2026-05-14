@@ -1,18 +1,18 @@
-const SUPABASE_URL = 'https://oorgvolgpoapoediiuxy.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5';
+const SUPABASE_URL = {url!r};
+const SUPABASE_ANON_KEY = {key!r};
 
 (function() {
   var section = document.getElementById('comments-section');
   var page = section ? section.getAttribute('data-page') : '/';
 
   async function loadComments() {
-    const res = await fetch(
+    var res = await fetch(
       SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
       { headers: { apikey: SUPABASE_ANON_KEY } }
     );
     if (!res.ok) return;
-    const comments = await res.json();
-    const list = document.getElementById('comments-list');
+    var comments = await res.json();
+    var list = document.getElementById('comments-list');
     if (!list) return;
     if (comments.length === 0) {
       list.innerHTML = '<p class="no-comments">No comments yet.</p>';

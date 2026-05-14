@@ -1,8 +1,24 @@
 #!/usr/bin/env python3
-import re, os, glob
+import re, os, glob, json
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
+CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+
+def load_config():
+    default = {
+        "supabase_url": "",
+        "supabase_anon_key": "",
+        "comments_enabled": True,
+        "git_commit_message": "update site via generator",
+        "git_auto_push": True,
+    }
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE) as f:
+            return {**default, **json.load(f)}
+    return default
+
+CONFIG = load_config()
 
 def parse_ref(filepath):
     categories = []
@@ -35,7 +51,6 @@ def parse_ref(filepath):
                 if s.startswith('{Name:'):
                     name = s.split('"')[1]
                     i += 1
-                    # next line should be File:
                     fl = lines[i].strip()
                     file_path = fl.split('"')[1]
                     entries.append((name, file_path))
@@ -69,8 +84,6 @@ def generate_sidebar(categories, current_file):
         html += '      </div>\n'
     return html
 
-COMMENTS_ENABLED = True
-
 COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
     <h3>Comments</h3>
     <div id="comments-list"></div>
@@ -81,6 +94,82 @@ COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
     </form>
   </div>
 '''
+
+def write_comments_js():
+    url = CONFIG.get("supabase_url", "")
+    key = CONFIG.get("supabase_anon_key", "")
+    js = '''const SUPABASE_URL = {url!r};
+const SUPABASE_ANON_KEY = {key!r};
+
+(function() {
+  var section = document.getElementById('comments-section');
+  var page = section ? section.getAttribute('data-page') : '/';
+
+  async function loadComments() {
+    var res = await fetch(
+      SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
+      { headers: { apikey: SUPABASE_ANON_KEY } }
+    );
+    if (!res.ok) return;
+    var comments = await res.json();
+    var list = document.getElementById('comments-list');
+    if (!list) return;
+    if (comments.length === 0) {
+      list.innerHTML = '<p class="no-comments">No comments yet.</p>';
+      return;
+    }
+    list.innerHTML = comments.map(function(c) {
+      return '<div class="comment">' +
+        '<div class="comment-header">' +
+          '<strong>' + esc(c.name) + '</strong>' +
+          '<span class="comment-date">' + new Date(c.created_at).toLocaleDateString() + '</span>' +
+        '</div>' +
+        '<p>' + esc(c.body) + '</p>' +
+      '</div>';
+    }).join('');
+  }
+
+  async function submitComment(e) {
+    e.preventDefault();
+    var nameInput = document.getElementById('comment-name');
+    var bodyInput = document.getElementById('comment-body');
+    var name = nameInput.value.trim();
+    var body = bodyInput.value.trim();
+    if (!name || !body) return;
+    var btn = e.target.querySelector('button');
+    btn.disabled = true;
+    await fetch(SUPABASE_URL + '/rest/v1/comments', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        apikey: SUPABASE_ANON_KEY,
+        Prefer: 'return=representation'
+      },
+      body: JSON.stringify({ page: page, name: name, body: body })
+    });
+    nameInput.value = '';
+    bodyInput.value = '';
+    btn.disabled = false;
+    loadComments();
+  }
+
+  function esc(s) {
+    var d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('comment-form');
+    if (form) {
+      form.addEventListener('submit', submitComment);
+      loadComments();
+    }
+  });
+})();
+'''
+    with open(os.path.join(SITE_DIR, 'comments.js'), 'w') as f:
+        f.write(js)
 
 def remove_balanced(content, start):
     i = content.index('>', start) + 1
@@ -117,7 +206,7 @@ def cleanup_old(content):
     return content
 
 def ensure_comments(content, filepath):
-    if not COMMENTS_ENABLED:
+    if not CONFIG.get("comments_enabled", True):
         return content
     if 'id="comments-section"' in content:
         return content
@@ -188,13 +277,16 @@ def update_html(filepath, sidebar_html):
         f.write(content)
     return True
 
-def main():
+def generate_all(log_func=print):
     if not os.path.exists(REF_FILE):
-        print(f"Reference file not found: {REF_FILE}")
-        return
+        log_func(f"Reference file not found: {REF_FILE}")
+        return False
+
+    CONFIG.update(load_config())
+    write_comments_js()
 
     categories = parse_ref(REF_FILE)
-    print(f"Parsed {len(categories)} categories from reference.txt")
+    log_func(f"Parsed {len(categories)} categories from reference.txt")
 
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
@@ -202,10 +294,32 @@ def main():
         sidebar_html = generate_sidebar(categories, fp)
         if update_html(fp, sidebar_html):
             rel = os.path.relpath(fp, SITE_DIR)
-            print(f"  Updated: {rel}")
+            log_func(f"  Updated: {rel}")
             updated += 1
 
-    print(f"\nDone. {updated} files updated.")
+    log_func(f"\nDone. {updated} files updated.")
+    return True
+
+def git_commit_push(log_func=print):
+    msg = CONFIG.get("git_commit_message", "update site via generator")
+    auto = CONFIG.get("git_auto_push", True)
+    try:
+        import subprocess
+        subprocess.run(["git", "add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
+        r = subprocess.run(["git", "commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
+        if r.returncode == 0:
+            log_func(r.stdout.strip())
+        else:
+            log_func(r.stderr.strip())
+        if auto:
+            r2 = subprocess.run(["git", "push"], cwd=SITE_DIR, capture_output=True, text=True)
+            log_func(r2.stdout.strip() or r2.stderr.strip())
+    except Exception as e:
+        log_func(f"Git error: {e}")
+
+def main():
+    generate_all()
+    git_commit_push()
 
 if __name__ == "__main__":
     main()
