@@ -4,18 +4,6 @@ import re, os, glob
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 
-# ── Giscus config ──────────────────────────────────────────────
-# Replace with your actual repo + category info from giscus.app
-GISCUS = {
-    "enabled":    True,
-    "repo":       "YOUR_OWNER/YOUR_REPO",     # e.g. "mhd/mysite"
-    "repo_id":    "YOUR_REPO_ID",             # get from giscus.app
-    "category":   "General",                  # your Discussion category
-    "category_id":"YOUR_CATEGORY_ID",         # get from giscus.app
-    "mapping":    "pathname",
-    "theme":      "preferred_color_scheme",
-}
-
 def parse_ref(filepath):
     categories = []
     with open(filepath) as f:
@@ -98,29 +86,6 @@ def ensure_script(content):
     content = content.replace('</body>', script + '\n</body>')
     return content
 
-def ensure_giscus(content):
-    if not GISCUS["enabled"] or 'giscus' in content:
-        return content
-    html = '\n  <div id="giscus-comments" style="max-width:800px;margin:2rem auto;padding:0 1rem">\n'
-    html += f'    <script src="https://giscus.app/client.js"\n'
-    html += f'            data-repo="{GISCUS["repo"]}"\n'
-    html += f'            data-repo-id="{GISCUS["repo_id"]}"\n'
-    html += f'            data-category="{GISCUS["category"]}"\n'
-    html += f'            data-category-id="{GISCUS["category_id"]}"\n'
-    html += f'            data-mapping="{GISCUS["mapping"]}"\n'
-    html += f'            data-strict="0"\n'
-    html += f'            data-reactions-enabled="1"\n'
-    html += f'            data-emit-metadata="0"\n'
-    html += f'            data-input-position="bottom"\n'
-    html += f'            data-theme="{GISCUS["theme"]}"\n'
-    html += f'            data-lang="en"\n'
-    html += f'            crossorigin="anonymous"\n'
-    html += f'            async>\n'
-    html += f'    </script>\n'
-    html += '  </div>\n'
-    content = content.replace('</main>', '</main>\n' + html)
-    return content
-
 def update_html(filepath, sidebar_html):
     with open(filepath) as f:
         content = f.read()
@@ -131,7 +96,6 @@ def update_html(filepath, sidebar_html):
     if new_content == content:
         return False
     new_content = ensure_script(new_content)
-    new_content = ensure_giscus(new_content)
     with open(filepath, 'w') as f:
         f.write(new_content)
     return True
