@@ -2,6 +2,6 @@
   "supabase_url": "https://oorgvolgpoapoediiuxy.supabase.co",
   "supabase_anon_key": "sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5",
   "comments_enabled": true,
-  "git_commit_message": "update site via generator",
-  "git_auto_push": true
+  "git_commit_message": "update via gui test",
+  "git_auto_push": false
 }
