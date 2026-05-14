@@ -2,7 +2,8 @@ const SUPABASE_URL = 'https://oorgvolgpoapoediiuxy.supabase.co';
 const SUPABASE_ANON_KEY = 'sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5';
 
 (function() {
-  const page = window.location.pathname.replace(/\.html$/, '') || '/';
+  var section = document.getElementById('comments-section');
+  var page = section ? section.getAttribute('data-page') : '/';
 
   async function loadComments() {
     const res = await fetch(

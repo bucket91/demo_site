@@ -71,7 +71,7 @@ def generate_sidebar(categories, current_file):
 
 COMMENTS_ENABLED = True
 
-COMMENTS_BLOCK = '''  <div id="comments-section">
+COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
     <h3>Comments</h3>
     <div id="comments-list"></div>
     <form id="comment-form">
@@ -82,23 +82,25 @@ COMMENTS_BLOCK = '''  <div id="comments-section">
   </div>
 '''
 
-COMMENTS_HTML = COMMENTS_BLOCK + '  <script src="comments.js"></script>\n'
-
 def cleanup_old(content):
     content = re.sub(r'<div id="giscus-comments".*?</div>\s*', '', content, flags=re.DOTALL)
     content = re.sub(r'<script src="https://giscus\.app.*?</script>\s*', '', content, flags=re.DOTALL)
-    # Strip any existing comment sections (may be stacked, no script tag between them)
     while 'id="comments-section"' in content:
-        content = content.replace(COMMENTS_BLOCK, '')
-    content = re.sub(r'\s*<script src="comments\.js"></script>\s*', '', content)
+        content = re.sub(r'<div id="comments-section".*?</div>\s*', '', content, count=1, flags=re.DOTALL)
+    content = re.sub(r'\s*<script src=".*?comments\.js"></script>\s*', '', content)
     return content
 
-def ensure_comments(content):
+def ensure_comments(content, filepath):
     if not COMMENTS_ENABLED:
         return content
     if 'id="comments-section"' in content:
         return content
-    content = content.replace('</main>', '</main>\n' + COMMENTS_HTML)
+    rel = os.path.relpath(os.path.join(SITE_DIR, 'comments.js'), os.path.dirname(os.path.abspath(filepath)))
+    page = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
+    page = page.replace('/index.html', '/').replace('.html', '')
+    block = COMMENTS_BLOCK.replace('{page}', page)
+    html = block + '  <script src="' + rel + '"></script>\n'
+    content = content.replace('</main>', '</main>\n' + html)
     return content
 
 THEME_TOGGLE = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>\n'
@@ -154,7 +156,7 @@ def update_html(filepath, sidebar_html):
     content = re.sub(pattern, lambda m: m.group(1) + '\n' + sidebar_html + m.group(2), content, count=1, flags=re.DOTALL)
 
     content = ensure_toggle(content)
-    content = ensure_comments(content)
+    content = ensure_comments(content, filepath)
     content = ensure_script(content)
     with open(filepath, 'w') as f:
         f.write(content)

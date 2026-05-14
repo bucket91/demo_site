@@ -31,6 +31,8 @@
       
       
       
+      
+      
       <div class="sidebar-top">
         <h2>Menu</h2>
         <button class="close-btn" onclick="toggleSidebar()">&times;</button>
@@ -69,6 +71,8 @@
 
 
 
+
+
     </aside>
 
     <main>
@@ -77,7 +81,7 @@
         <p>Built with HTML & CSS.</p>
       </section>
     </main>
-  <div id="comments-section">
+  <div id="comments-section" data-page="/">
     <h3>Comments</h3>
     <div id="comments-list"></div>
     <form id="comment-form">
@@ -87,7 +91,18 @@
     </form>
   </div>
   <script src="comments.js"></script>
-<footer>
+
+  <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div><form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div><footer>
     <p>&copy; 2026</p>
   </footer>
 
