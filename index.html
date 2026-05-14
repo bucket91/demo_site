@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Template Website</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+    <h1>Welcome</h1>
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">About</a>
+      <a href="#">Contact</a>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      
+      <div class="sidebar-top">
+        <h2>Menu</h2>
+        <button class="close-btn" onclick="toggleSidebar()">&times;</button>
+      </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          Blog <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="blog/blog1.html">Post1</a></li>
+          <li><a href="blog/blog2.html">Post2</a></li>
+          <li><a href="blog/blog3.html">Post3</a></li>
+          <li><a href="blog/blog4.html">Post4</a></li>
+          <li><a href="blog/blog5.html">Post5</a></li>
+        </ul>
+      </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          Grammar <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="grammar/grammar1.html">Post1</a></li>
+          <li><a href="grammar/grammar2.html">Post2</a></li>
+          <li><a href="grammar/grammar3.html">Post3</a></li>
+          <li><a href="grammar/grammar4.html">Post4</a></li>
+          <li><a href="grammar/grammar5.html">Post5</a></li>
+        </ul>
+      </div>
+
+    </aside>
+
+    <main>
+      <section class="hero">
+        <h2>Template Website</h2>
+        <p>Built with HTML & CSS.</p>
+      </section>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    function toggleCategory(header) {
+      header.classList.toggle('active');
+      header.querySelector('.arrow').classList.toggle('open');
+      header.nextElementSibling.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>

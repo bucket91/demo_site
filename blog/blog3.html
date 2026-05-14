@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blog 3</title>
+  <link rel="stylesheet" href="../style.css">
+</head>
+<body>
+  <header>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+    <h1>Blog 3</h1>
+    <nav><a href="../index.html">Home</a></nav>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      
+      <div class="sidebar-top">
+        <h2>Menu</h2>
+        <button class="close-btn" onclick="toggleSidebar()">&times;</button>
+      </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          Blog <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="blog1.html">Post1</a></li>
+          <li><a href="blog2.html">Post2</a></li>
+          <li><a href="blog3.html">Post3</a></li>
+          <li><a href="blog4.html">Post4</a></li>
+          <li><a href="blog5.html">Post5</a></li>
+        </ul>
+      </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          Grammar <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="../grammar/grammar1.html">Post1</a></li>
+          <li><a href="../grammar/grammar2.html">Post2</a></li>
+          <li><a href="../grammar/grammar3.html">Post3</a></li>
+          <li><a href="../grammar/grammar4.html">Post4</a></li>
+          <li><a href="../grammar/grammar5.html">Post5</a></li>
+        </ul>
+      </div>
+
+    </aside>
+    <main>
+      <section class="hero">
+        <h2>Blog Post 3</h2>
+        <p>Placeholder content for blog 3.</p>
+      </section>
+    </main>
+  </div>
+  <footer><p>&copy; 2026</p></footer>
+  <script>
+    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+    function toggleCategory(h){h.classList.toggle('active');h.querySelector('.arrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+  </script>
+</body>
+</html>
