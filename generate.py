@@ -3,7 +3,6 @@ import re, os, glob, json
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
-REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
 def load_config():
@@ -27,45 +26,24 @@ def load_config():
 
 CONFIG = load_config()
 
-def parse_ref(filepath):
+def scan_categories():
     categories = []
-    with open(filepath) as f:
-        lines = f.readlines()
-
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        indent = len(line) - len(line.lstrip('\t'))
-        stripped = line.strip()
-
-        if not stripped:
-            i += 1
+    skip = {'.git', '__pycache__', 'node_modules'}
+    for item in sorted(os.listdir(SITE_DIR)):
+        dirpath = os.path.join(SITE_DIR, item)
+        if not os.path.isdir(dirpath) or item in skip:
             continue
-
-        if indent == 1:
-            cat_name = stripped
-            entries = []
-            i += 1
-            while i < len(lines):
-                l = lines[i]
-                ind = len(l) - len(l.lstrip('\t'))
-                s = l.strip()
-                if not s:
-                    i += 1
-                    continue
-                if ind < 2:
-                    break
-                if s.startswith('{Name:'):
-                    name = s.split('"')[1]
-                    i += 1
-                    fl = lines[i].strip()
-                    file_path = fl.split('"')[1]
-                    entries.append((name, file_path))
-                i += 1
-            categories.append((cat_name, entries))
-        else:
-            i += 1
-
+        html_files = sorted(glob.glob(os.path.join(dirpath, "*.html")))
+        if not html_files:
+            continue
+        cat_name = item.capitalize()
+        entries = []
+        for fp in html_files:
+            name = os.path.splitext(os.path.basename(fp))[0]
+            name = name.replace('-', ' ').replace('_', ' ').title()
+            rel_fp = '/' + os.path.relpath(fp, SITE_DIR).replace('\\', '/')
+            entries.append((name, rel_fp))
+        categories.append((cat_name, entries))
     return categories
 
 def rel_path(from_file, to_absolute):
@@ -214,6 +192,27 @@ def make_nav(filepath):
     home = os.path.join(rel, 'index.html').replace('\\', '/')
     return f'<a href="{home}">Home</a>'
 
+def make_homepage_content(categories):
+    html = '''<div class="home-hero">
+  <h1>Welcome</h1>
+  <p class="home-tagline">Explore the site</p>
+</div>
+<div class="home-sections">
+'''
+    for cat_name, entries in categories:
+        html += f'''  <div class="home-card">
+    <h2>{cat_name}</h2>
+    <ul>
+'''
+        for name, file_path in entries:
+            rel = file_path.lstrip('/')
+            html += f'      <li><a href="{rel}">{name}</a></li>\n'
+        html += '''    </ul>
+  </div>
+'''
+    html += '</div>'
+    return html
+
 def build_page(filepath, categories):
     with open(filepath) as f:
         src = f.read()
@@ -222,7 +221,8 @@ def build_page(filepath, categories):
         return False
 
     title = extract_title(src)
-    content = extract_main(src)
+    is_home = os.path.basename(filepath) == 'index.html'
+    content = make_homepage_content(categories) if is_home else extract_main(src)
     sidebar = generate_sidebar(categories, filepath)
     nav = make_nav(filepath)
     comments_block, comments_js_path = make_comments_block(filepath)
@@ -247,15 +247,11 @@ def build_page(filepath, categories):
     return True
 
 def generate_all(log_func=print):
-    if not os.path.exists(REF_FILE):
-        log_func(f"Reference file not found: {REF_FILE}")
-        return False
-
     CONFIG.update(load_config())
     write_comments_js()
 
-    categories = parse_ref(REF_FILE)
-    log_func(f"Parsed {len(categories)} categories from reference.txt")
+    categories = scan_categories()
+    log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")
 
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
