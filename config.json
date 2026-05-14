@@ -6,8 +6,5 @@
   "git_user_name": "bucket91",
   "git_user_email": "bucket91@users.noreply.github.com",
   "git_commit_message": "update site via generator",
-  "git_auto_push": true,
-  "owner_name": "bucket91",
-  "owner_bio": "Writer & developer",
-  "owner_avatar": ""
+  "git_auto_push": true
 }
