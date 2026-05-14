@@ -3,6 +3,7 @@ import re, os, glob, json
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
+REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
 def load_config():
@@ -26,7 +27,27 @@ def load_config():
 
 CONFIG = load_config()
 
+def parse_ref_names():
+    ref = {}
+    if not os.path.exists(REF_FILE):
+        return ref
+    with open(REF_FILE) as f:
+        lines = f.readlines()
+    i = 0
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.strip()
+        if stripped.startswith('{Name:'):
+            name = stripped.split('"')[1]
+            i += 1
+            fl = lines[i].strip()
+            file_path = fl.split('"')[1]
+            ref[file_path] = name
+        i += 1
+    return ref
+
 def scan_categories():
+    ref_names = parse_ref_names()
     categories = []
     skip = {'.git', '__pycache__', 'node_modules'}
     for item in sorted(os.listdir(SITE_DIR)):
@@ -39,9 +60,11 @@ def scan_categories():
         cat_name = item.capitalize()
         entries = []
         for fp in html_files:
-            name = os.path.splitext(os.path.basename(fp))[0]
-            name = name.replace('-', ' ').replace('_', ' ').title()
             rel_fp = '/' + os.path.relpath(fp, SITE_DIR).replace('\\', '/')
+            name = ref_names.get(rel_fp)
+            if not name:
+                name = os.path.splitext(os.path.basename(fp))[0]
+                name = name.replace('-', ' ').replace('_', ' ').title()
             entries.append((name, rel_fp))
         categories.append((cat_name, entries))
     return categories
