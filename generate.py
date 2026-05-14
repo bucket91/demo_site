@@ -69,6 +69,26 @@ def generate_sidebar(categories, current_file):
         html += '      </div>\n'
     return html
 
+COMMENTS_ENABLED = True
+
+COMMENTS_HTML = '''  <div id="comments-section">
+    <h3>Comments</h3>
+    <div id="comments-list"></div>
+    <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div>
+  <script src="comments.js"></script>
+'''
+
+def ensure_comments(content):
+    if not COMMENTS_ENABLED or 'comments-section' in content:
+        return content
+    content = content.replace('</main>', '</main>\n' + COMMENTS_HTML)
+    return content
+
 def ensure_script(content):
     if 'toggleCategory' in content:
         return content
@@ -95,6 +115,7 @@ def update_html(filepath, sidebar_html):
 
     if new_content == content:
         return False
+    new_content = ensure_comments(new_content)
     new_content = ensure_script(new_content)
     with open(filepath, 'w') as f:
         f.write(new_content)
