@@ -10,6 +10,9 @@ def load_config():
         "supabase_url": "",
         "supabase_anon_key": "",
         "comments_enabled": True,
+        "git_remote_url": "",
+        "git_user_name": "",
+        "git_user_email": "",
         "git_commit_message": "update site via generator",
         "git_auto_push": True,
     }
@@ -303,16 +306,28 @@ def generate_all(log_func=print):
 def git_commit_push(log_func=print):
     msg = CONFIG.get("git_commit_message", "update site via generator")
     auto = CONFIG.get("git_auto_push", True)
+    url = CONFIG.get("git_remote_url", "")
+    name = CONFIG.get("git_user_name", "")
+    email = CONFIG.get("git_user_email", "")
     try:
         import subprocess
+        if name:
+            subprocess.run(["git", "config", "user.name", name], cwd=SITE_DIR, capture_output=True)
+        if email:
+            subprocess.run(["git", "config", "user.email", email], cwd=SITE_DIR, capture_output=True)
+        if url:
+            r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
+            if r.returncode != 0 or r.stdout.strip() != url:
+                subprocess.run(["git", "remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
+                subprocess.run(["git", "remote", "add", "origin", url], cwd=SITE_DIR, capture_output=True)
         subprocess.run(["git", "add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
         r = subprocess.run(["git", "commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
         if r.returncode == 0:
             log_func(r.stdout.strip())
         else:
             log_func(r.stderr.strip())
-        if auto:
-            r2 = subprocess.run(["git", "push"], cwd=SITE_DIR, capture_output=True, text=True)
+        if auto and url:
+            r2 = subprocess.run(["git", "push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:
         log_func(f"Git error: {e}")

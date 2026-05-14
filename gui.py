@@ -37,19 +37,33 @@ HTML = """<!DOCTYPE html>
   <h1>Site Generator</h1>
   <p class="sub" id="cwd">/home/mhd/site</p>
 
-  <label>Supabase URL</label>
+  <h2 style="margin-top:1.5rem;font-size:1rem;border-bottom:1px solid #0f3460;padding-bottom:0.5rem">Supabase</h2>
+
+  <label>Project URL</label>
   <input type="url" id="supabase_url" placeholder="https://xxx.supabase.co">
 
-  <label>Supabase Anon Key</label>
+  <label>Anon Key</label>
   <input type="text" id="supabase_anon_key" placeholder="eyJ... or sb_publishable_...">
-
-  <label>Git Commit Message</label>
-  <input type="text" id="git_commit_message" placeholder="update site via generator">
 
   <div class="row">
     <input type="checkbox" id="comments_enabled" checked>
     <label for="comments_enabled">Enable comments</label>
   </div>
+
+  <h2 style="margin-top:1.5rem;font-size:1rem;border-bottom:1px solid #0f3460;padding-bottom:0.5rem">GitHub</h2>
+
+  <label>Remote URL</label>
+  <input type="url" id="git_remote_url" placeholder="https://github.com/user/repo.git">
+
+  <label>Git User Name</label>
+  <input type="text" id="git_user_name" placeholder="Your GitHub username">
+
+  <label>Git User Email</label>
+  <input type="text" id="git_user_email" placeholder="user@users.noreply.github.com">
+
+  <label>Commit Message</label>
+  <input type="text" id="git_commit_message" placeholder="update site via generator">
+
   <div class="row">
     <input type="checkbox" id="git_auto_push" checked>
     <label for="git_auto_push">Auto push to GitHub</label>
@@ -68,6 +82,9 @@ function loadConfig() {
   fetch('/config').then(function(r) { return r.json(); }).then(function(cfg) {
     document.getElementById('supabase_url').value = cfg.supabase_url || '';
     document.getElementById('supabase_anon_key').value = cfg.supabase_anon_key || '';
+    document.getElementById('git_remote_url').value = cfg.git_remote_url || '';
+    document.getElementById('git_user_name').value = cfg.git_user_name || '';
+    document.getElementById('git_user_email').value = cfg.git_user_email || '';
     document.getElementById('git_commit_message').value = cfg.git_commit_message || 'update site via generator';
     document.getElementById('comments_enabled').checked = cfg.comments_enabled !== false;
     document.getElementById('git_auto_push').checked = cfg.git_auto_push !== false;
@@ -79,6 +96,9 @@ function saveConfig() {
   return {
     supabase_url: document.getElementById('supabase_url').value,
     supabase_anon_key: document.getElementById('supabase_anon_key').value,
+    git_remote_url: document.getElementById('git_remote_url').value,
+    git_user_name: document.getElementById('git_user_name').value,
+    git_user_email: document.getElementById('git_user_email').value,
     git_commit_message: document.getElementById('git_commit_message').value,
     comments_enabled: document.getElementById('comments_enabled').checked,
     git_auto_push: document.getElementById('git_auto_push').checked
