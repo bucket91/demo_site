@@ -11,37 +11,10 @@
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
     <h1>Grammar 3</h1>
     <nav><a href="../index.html">Home</a></nav>
-          <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
-
+        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
   </header>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <div class="sidebar-top">
         <h2>Menu</h2>
         <button class="close-btn" onclick="toggleSidebar()">&times;</button>
@@ -72,34 +45,9 @@
         </ul>
       </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </aside>
     <main>
-      <section class="hero">
+<section class="hero">
         <h2>Grammar Lesson 3</h2>
         <p>Placeholder content for grammar 3.</p>
       </section>
@@ -114,12 +62,20 @@
     </form>
   </div>
   <script src="../comments.js"></script>
-</div></div><footer><p>&copy; 2026</p></footer>
+  </div>
+  <footer>
+    <p>&copy; 2026</p>
+  </footer>
   <script>
-    function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
-    function toggleCategory(h){h.classList.toggle('active');h.querySelector('.arrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    function toggleCategory(header) {
+      header.classList.toggle('active');
+      header.querySelector('.arrow').classList.toggle('open');
+      header.nextElementSibling.classList.toggle('open');
+    }
   </script>
-
   <script>
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
@@ -134,17 +90,6 @@
         if (btn) btn.textContent = '\u{1F319}';
       }
     })();
-  </script>
-
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
   </script>
 </body>
 </html>

@@ -2,6 +2,7 @@
 import re, os, glob, json
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
@@ -87,17 +88,6 @@ def generate_sidebar(categories, current_file):
         html += '      </div>\n'
     return html
 
-COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
-    <h3>Comments</h3>
-    <div id="comments-list"></div>
-    <form id="comment-form">
-      <input id="comment-name" type="text" placeholder="Your name" required>
-      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
-      <button type="submit">Post Comment</button>
-    </form>
-  </div>
-'''
-
 def write_comments_js():
     url = CONFIG.get("supabase_url", "")
     key = CONFIG.get("supabase_anon_key", "")
@@ -174,110 +164,71 @@ const SUPABASE_ANON_KEY = $KEY;
     with open(os.path.join(SITE_DIR, 'comments.js'), 'w') as f:
         f.write(js)
 
-def remove_balanced(content, start):
-    i = content.index('>', start) + 1
-    depth = 1
-    while i < len(content):
-        if content[i:i+6] == '</div>':
-            depth -= 1
-            i += 6
-            if depth == 0:
-                return content[:start] + content[i:]
-        elif content[i:i+4] == '<div' and content[i+4] in ' \t\n\r>':
-            depth += 1
-            i += 4
-        else:
-            i += 1
-    return content[:start]
+def extract_main(html):
+    m = re.search(r'<main>(.*?)</main>', html, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return html.strip()
 
-def cleanup_old(content):
-    content = re.sub(r'<div id="giscus-comments".*?</div>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'<script src="https://giscus\.app.*?</script>\s*', '', content, flags=re.DOTALL)
-    while True:
-        idx = content.find('<div id="comments-section"')
-        if idx == -1:
-            break
-        content = remove_balanced(content, idx)
-    content = re.sub(r'\s*<div id="comments-list".*?</div>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'\s*<form id="comment-form">.*?</form>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'\s*<script src=".*?comments\.js"></script>\s*', '', content)
-    content = re.sub(r'\s*<h3>Comments</h3>\s*', '', content)
-    content = re.sub(r'\s*<input id="comment-name".*?>\s*', '', content)
-    content = re.sub(r'\s*<textarea id="comment-body".*?</textarea>\s*', '', content, flags=re.DOTALL)
-    content = re.sub(r'\s*<button[^>]*>Post Comment</button>\s*', '', content)
-    content = re.sub(r'</div>\s*(?=<form id="comment-form")', '', content)
-    return content
+def extract_title(html):
+    m = re.search(r'<title>(.*?)</title>', html, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return "Page"
 
-def ensure_comments(content, filepath):
+def make_comments_block(filepath):
     if not CONFIG.get("comments_enabled", True):
-        return content
-    if 'id="comments-section"' in content:
-        return content
-    rel = os.path.relpath(os.path.join(SITE_DIR, 'comments.js'), os.path.dirname(os.path.abspath(filepath)))
+        return '', ''
     page = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
     page = page.replace('/index.html', '/').replace('.html', '')
-    block = COMMENTS_BLOCK.replace('{page}', page)
-    html = block + '  <script src="' + rel + '"></script>\n'
-    content = content.replace('</main>', '</main>\n' + html)
-    return content
+    js_rel = os.path.relpath(os.path.join(SITE_DIR, 'comments.js'), os.path.dirname(os.path.abspath(filepath)))
+    block = '''  <div id="comments-section" data-page="''' + page + '''">
+    <h3>Comments</h3>
+    <div id="comments-list"></div>
+    <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div>
+  <script src="''' + js_rel + '''"></script>'''
+    return block, js_rel
 
-THEME_TOGGLE = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>\n'
+def make_nav(filepath):
+    rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(filepath)))
+    home = os.path.join(rel, 'index.html').replace('\\', '/')
+    return f'<a href="{home}">Home</a>'
 
-THEME_SCRIPT = r'''
-  <script>
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      var b = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', b ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = b ? '\u{1F319}' : '\u2600\uFE0F';
-    }
-    (function() {
-      var btn = document.querySelector('.theme-toggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '\u{1F319}';
-      }
-    })();
-  </script>
-'''
-
-def ensure_toggle(content):
-    if 'theme-toggle' in content:
-        return content
-    content = content.replace('</header>', THEME_TOGGLE + '\n  </header>')
-    return content
-
-def ensure_script(content):
-    if 'function toggleTheme()' in content and 'function toggleSidebar()' in content:
-        return content
-    script = '''
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
-  </script>'''
-    content = content.replace('</body>', THEME_SCRIPT + script + '\n</body>')
-    return content
-
-def update_html(filepath, sidebar_html):
+def build_page(filepath, categories):
     with open(filepath) as f:
-        content = f.read()
+        src = f.read()
 
-    content = cleanup_old(content)
+    if not os.path.exists(TEMPLATE_FILE):
+        return False
 
-    pattern = r'(<aside class="sidebar" id="sidebar">\s*).*?(\s*</aside>)'
-    content = re.sub(pattern, lambda m: m.group(1) + '\n' + sidebar_html + m.group(2), content, count=1, flags=re.DOTALL)
+    title = extract_title(src)
+    content = extract_main(src)
+    sidebar = generate_sidebar(categories, filepath)
+    nav = make_nav(filepath)
+    comments_block, comments_js_path = make_comments_block(filepath)
+    style_rel = os.path.relpath(os.path.join(SITE_DIR, 'style.css'), os.path.dirname(os.path.abspath(filepath)))
+    style_rel = style_rel.replace('\\', '/')
+    toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
-    content = ensure_toggle(content)
-    content = ensure_comments(content, filepath)
-    content = ensure_script(content)
+    with open(TEMPLATE_FILE) as f:
+        tmpl = f.read()
+
+    result = tmpl.replace('{{TITLE}}', title)
+    result = result.replace('{{STYLE_PATH}}', style_rel)
+    result = result.replace('{{NAV}}', nav)
+    result = result.replace('{{THEME_TOGGLE}}', toggle)
+    result = result.replace('{{SIDEBAR}}', sidebar)
+    result = result.replace('{{CONTENT}}', content)
+    result = result.replace('{{COMMENTS}}', comments_block)
+    result = result.replace('{{COMMENTS_JS_PATH}}', comments_js_path)
+
     with open(filepath, 'w') as f:
-        f.write(content)
+        f.write(result)
     return True
 
 def generate_all(log_func=print):
@@ -293,14 +244,16 @@ def generate_all(log_func=print):
 
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
+    skip = {os.path.basename(TEMPLATE_FILE)}
     for fp in sorted(html_files):
-        sidebar_html = generate_sidebar(categories, fp)
-        if update_html(fp, sidebar_html):
+        if os.path.basename(fp) in skip:
+            continue
+        if build_page(fp, categories):
             rel = os.path.relpath(fp, SITE_DIR)
-            log_func(f"  Updated: {rel}")
+            log_func(f"  Wrapped: {rel}")
             updated += 1
 
-    log_func(f"\nDone. {updated} files updated.")
+    log_func(f"\nDone. {updated} files wrapped.")
     return True
 
 def git_commit_push(log_func=print):

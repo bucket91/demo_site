@@ -9,44 +9,12 @@
 <body>
   <header>
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
-    <h1>Welcome</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-    </nav>
-          <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
-
+    <h1>Template Website</h1>
+    <nav><a href="./index.html">Home</a></nav>
+        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
   </header>
-
   <div class="layout">
     <aside class="sidebar" id="sidebar">
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
-      
       <div class="sidebar-top">
         <h2>Menu</h2>
         <button class="close-btn" onclick="toggleSidebar()">&times;</button>
@@ -77,35 +45,9 @@
         </ul>
       </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     </aside>
-
     <main>
-      <section class="hero">
+<section class="hero">
         <h2>Template Website</h2>
         <p>Built with HTML & CSS.</p>
       </section>
@@ -120,10 +62,10 @@
     </form>
   </div>
   <script src="comments.js"></script>
-</div></div><footer>
+  </div>
+  <footer>
     <p>&copy; 2026</p>
   </footer>
-
   <script>
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -134,7 +76,6 @@
       header.nextElementSibling.classList.toggle('open');
     }
   </script>
-
   <script>
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
@@ -149,17 +90,6 @@
         if (btn) btn.textContent = '\u{1F319}';
       }
     })();
-  </script>
-
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
   </script>
 </body>
 </html>
