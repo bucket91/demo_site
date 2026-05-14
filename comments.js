@@ -1,5 +1,5 @@
-const SUPABASE_URL = {url!r};
-const SUPABASE_ANON_KEY = {key!r};
+const SUPABASE_URL = 'https://oorgvolgpoapoediiuxy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5';
 
 (function() {
   var section = document.getElementById('comments-section');

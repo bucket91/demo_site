@@ -101,8 +101,8 @@ COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
 def write_comments_js():
     url = CONFIG.get("supabase_url", "")
     key = CONFIG.get("supabase_anon_key", "")
-    js = '''const SUPABASE_URL = {url!r};
-const SUPABASE_ANON_KEY = {key!r};
+    js = '''const SUPABASE_URL = $URL;
+const SUPABASE_ANON_KEY = $KEY;
 
 (function() {
   var section = document.getElementById('comments-section');
@@ -170,7 +170,7 @@ const SUPABASE_ANON_KEY = {key!r};
     }
   });
 })();
-'''
+'''.replace('$URL', repr(url)).replace('$KEY', repr(key))
     with open(os.path.join(SITE_DIR, 'comments.js'), 'w') as f:
         f.write(js)
 
