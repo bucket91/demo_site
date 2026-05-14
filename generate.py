@@ -96,8 +96,34 @@ def ensure_comments(content):
     content = content.replace('</main>', '</main>\n' + COMMENTS_HTML)
     return content
 
+THEME_TOGGLE = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>\n'
+
+THEME_SCRIPT = r'''
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      var b = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', b ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').textContent = b ? '\u{1F319}' : '\u2600\uFE0F';
+    }
+    (function() {
+      var btn = document.querySelector('.theme-toggle');
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '\u{1F319}';
+      }
+    })();
+  </script>
+'''
+
+def ensure_toggle(content):
+    if 'theme-toggle' in content:
+        return content
+    content = content.replace('</header>', THEME_TOGGLE + '\n  </header>')
+    return content
+
 def ensure_script(content):
-    if 'toggleCategory' in content:
+    if 'function toggleTheme()' in content and 'function toggleSidebar()' in content:
         return content
     script = '''
   <script>
@@ -110,7 +136,7 @@ def ensure_script(content):
       header.nextElementSibling.classList.toggle('open');
     }
   </script>'''
-    content = content.replace('</body>', script + '\n</body>')
+    content = content.replace('</body>', THEME_SCRIPT + script + '\n</body>')
     return content
 
 def update_html(filepath, sidebar_html):
@@ -122,6 +148,7 @@ def update_html(filepath, sidebar_html):
     pattern = r'(<aside class="sidebar" id="sidebar">\s*).*?(\s*</aside>)'
     content = re.sub(pattern, lambda m: m.group(1) + '\n' + sidebar_html + m.group(2), content, count=1, flags=re.DOTALL)
 
+    content = ensure_toggle(content)
     content = ensure_comments(content)
     content = ensure_script(content)
     with open(filepath, 'w') as f:

@@ -11,9 +11,13 @@
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
     <h1>Grammar 4</h1>
     <nav><a href="../index.html">Home</a></nav>
+          <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
+
   </header>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
+      
+      
       
       
       
@@ -52,6 +56,8 @@
 
 
 
+
+
     </aside>
     <main>
       <section class="hero">
@@ -70,10 +76,55 @@
   </div>
   <script src="comments.js"></script>
 
+  <div id="comments-section">
+    <h3>Comments</h3>
+    <div id="comments-list"></div>
+    <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div>
+  <div id="comments-section">
+    <h3>Comments</h3>
+    <div id="comments-list"></div>
+    <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div>
   <footer><p>&copy; 2026</p></footer>
   <script>
     function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
     function toggleCategory(h){h.classList.toggle('active');h.querySelector('.arrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+  </script>
+
+  <script>
+    function toggleTheme() {
+      document.body.classList.toggle('dark-mode');
+      var b = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', b ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').textContent = b ? '\u{1F319}' : '\u2600\uFE0F';
+    }
+    (function() {
+      var btn = document.querySelector('.theme-toggle');
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '\u{1F319}';
+      }
+    })();
+  </script>
+
+  <script>
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+    }
+    function toggleCategory(header) {
+      header.classList.toggle('active');
+      header.querySelector('.arrow').classList.toggle('open');
+      header.nextElementSibling.classList.toggle('open');
+    }
   </script>
 </body>
 </html>

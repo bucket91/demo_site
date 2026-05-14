@@ -1,14 +1,44 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  --body-bg: #f0f0f5;
+  --text: #1a1a2e;
+  --hero-bg: #f0f0f5;
+  --card-bg: #fff;
+  --card-border: #e0e0e0;
+  --input-bg: #fff;
+  --input-border: #ccc;
+  --label: #1a1a2e;
+  --muted: #999;
+  --accent: #1a1a2e;
+  --accent-hover: #0f3460;
+  --accent-text: #eee;
 }
+body.dark-mode {
+  --body-bg: #121212;
+  --text: #e0e0e0;
+  --hero-bg: #121212;
+  --card-bg: #1e1e2e;
+  --card-border: #333;
+  --input-bg: #2a2a3a;
+  --input-border: #444;
+  --label: #e0e0e0;
+  --muted: #888;
+  --accent: #333;
+  --accent-hover: #444;
+  --accent-text: #e0e0e0;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
 body {
   font-family: system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
+  background: var(--body-bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
 }
+
 header {
   background: #1a1a2e;
   color: #eee;
@@ -17,13 +47,22 @@ header {
   align-items: center;
   gap: 1rem;
 }
-header h1 {
-  flex: 1;
-}
+header h1 { flex: 1; }
 nav a {
   color: #eee;
   text-decoration: none;
   margin-left: 1rem;
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid #eee;
+  color: #eee;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  line-height: 1;
 }
 
 .layout {
@@ -46,9 +85,7 @@ nav a {
   z-index: 1000;
   overflow-y: auto;
 }
-.sidebar.open {
-  transform: translateX(0);
-}
+.sidebar.open { transform: translateX(0); }
 
 .sidebar-top {
   display: flex;
@@ -57,13 +94,9 @@ nav a {
   padding: 1rem;
   border-bottom: 1px solid #0f3460;
 }
-.sidebar-top h2 {
-  font-size: 1.2rem;
-}
+.sidebar-top h2 { font-size: 1.2rem; }
 
-.category {
-  border-bottom: 1px solid #0f3460;
-}
+.category { border-bottom: 1px solid #0f3460; }
 .category-header {
   display: flex;
   justify-content: space-between;
@@ -75,25 +108,19 @@ nav a {
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover {
-  background: #0f3460;
-}
+.category-header:hover { background: #0f3460; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
 }
-.category-header .arrow.open {
-  transform: rotate(90deg);
-}
+.category-header .arrow.open { transform: rotate(90deg); }
 .sub-links {
   list-style: none;
   max-height: 0;
   overflow: hidden;
   transition: max-height 0.3s ease;
 }
-.sub-links.open {
-  max-height: 300px;
-}
+.sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
   color: #a8b2d1;
@@ -101,10 +128,7 @@ nav a {
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover {
-  background: #0f3460;
-  color: #eee;
-}
+.sub-links li a:hover { background: #0f3460; color: #eee; }
 
 .sidebar-toggle, .close-btn {
   background: none;
@@ -120,7 +144,8 @@ nav a {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  background: #f0f0f5;
+  background: var(--hero-bg);
+  transition: background 0.3s;
 }
 
 footer {
@@ -137,16 +162,18 @@ footer {
 }
 #comments-section h3 {
   margin-bottom: 1rem;
-  color: #1a1a2e;
-  border-bottom: 2px solid #1a1a2e;
+  color: var(--label);
+  border-bottom: 2px solid var(--label);
   padding-bottom: 0.5rem;
+  transition: color 0.3s, border-color 0.3s;
 }
 .comment {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
   border-radius: 8px;
   padding: 1rem;
   margin-bottom: 1rem;
+  transition: background 0.3s, border-color 0.3s;
 }
 .comment-header {
   display: flex;
@@ -154,14 +181,8 @@ footer {
   align-items: center;
   margin-bottom: 0.5rem;
 }
-.comment-date {
-  color: #999;
-  font-size: 0.85rem;
-}
-.no-comments {
-  color: #999;
-  font-style: italic;
-}
+.comment-date { color: var(--muted); font-size: 0.85rem; }
+.no-comments { color: var(--muted); font-style: italic; }
 #comment-form {
   display: flex;
   flex-direction: column;
@@ -171,18 +192,18 @@ footer {
 #comment-form input,
 #comment-form textarea {
   padding: 0.75rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 6px;
   font-family: inherit;
   font-size: 0.95rem;
+  background: var(--input-bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
 }
-#comment-form textarea {
-  min-height: 100px;
-  resize: vertical;
-}
+#comment-form textarea { min-height: 100px; resize: vertical; }
 #comment-form button {
-  background: #1a1a2e;
-  color: #eee;
+  background: var(--accent);
+  color: var(--accent-text);
   border: none;
   padding: 0.75rem 1.5rem;
   border-radius: 6px;
@@ -191,10 +212,5 @@ footer {
   align-self: flex-start;
   transition: background 0.2s;
 }
-#comment-form button:hover {
-  background: #0f3460;
-}
-#comment-form button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
+#comment-form button:hover { background: var(--accent-hover); }
+#comment-form button:disabled { opacity: 0.6; cursor: not-allowed; }
