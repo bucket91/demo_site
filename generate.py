@@ -82,12 +82,38 @@ COMMENTS_BLOCK = '''  <div id="comments-section" data-page="{page}">
   </div>
 '''
 
+def remove_balanced(content, start):
+    i = content.index('>', start) + 1
+    depth = 1
+    while i < len(content):
+        if content[i:i+6] == '</div>':
+            depth -= 1
+            i += 6
+            if depth == 0:
+                return content[:start] + content[i:]
+        elif content[i:i+4] == '<div' and content[i+4] in ' \t\n\r>':
+            depth += 1
+            i += 4
+        else:
+            i += 1
+    return content[:start]
+
 def cleanup_old(content):
     content = re.sub(r'<div id="giscus-comments".*?</div>\s*', '', content, flags=re.DOTALL)
     content = re.sub(r'<script src="https://giscus\.app.*?</script>\s*', '', content, flags=re.DOTALL)
-    while 'id="comments-section"' in content:
-        content = re.sub(r'<div id="comments-section".*?</div>\s*', '', content, count=1, flags=re.DOTALL)
+    while True:
+        idx = content.find('<div id="comments-section"')
+        if idx == -1:
+            break
+        content = remove_balanced(content, idx)
+    content = re.sub(r'\s*<div id="comments-list".*?</div>\s*', '', content, flags=re.DOTALL)
+    content = re.sub(r'\s*<form id="comment-form">.*?</form>\s*', '', content, flags=re.DOTALL)
     content = re.sub(r'\s*<script src=".*?comments\.js"></script>\s*', '', content)
+    content = re.sub(r'\s*<h3>Comments</h3>\s*', '', content)
+    content = re.sub(r'\s*<input id="comment-name".*?>\s*', '', content)
+    content = re.sub(r'\s*<textarea id="comment-body".*?</textarea>\s*', '', content, flags=re.DOTALL)
+    content = re.sub(r'\s*<button[^>]*>Post Comment</button>\s*', '', content)
+    content = re.sub(r'</div>\s*(?=<form id="comment-form")', '', content)
     return content
 
 def ensure_comments(content, filepath):
