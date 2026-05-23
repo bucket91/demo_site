@@ -69,6 +69,10 @@ nav a {
   display: flex;
   flex: 1;
 }
+main {
+  padding: 0 1.25rem;
+  width: 100%;
+}
 
 .sidebar {
   width: 250px;
