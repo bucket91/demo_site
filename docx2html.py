@@ -215,8 +215,7 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
 <body>
   <header>
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
-    <h1>{html_mod.escape(title)}</h1>
-    <nav><a href="{rel}/index.html">Home</a></nav>
+    <h1><a href="{rel}/index.html">{html_mod.escape(title)}</a></h1>
     <button class="theme-toggle" onclick="toggleTheme()">&#x2600;&#xFE0F;</button>
   </header>
   <div class="layout">

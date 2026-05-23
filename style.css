@@ -1,30 +1,31 @@
+
 :root {
-  --body-bg: #f0f0f5;
-  --text: #222;
-  --hero-bg: #f0f0f5;
-  --card-bg: #fff;
-  --card-border: #e0e0e0;
-  --input-bg: #fff;
-  --input-border: #ccc;
-  --label: #222;
-  --muted: #999;
-  --accent: #333;
-  --accent-hover: #555;
-  --accent-text: #eee;
+  --body-bg: #edf7ee;
+  --text: #1a3a1a;
+  --hero-bg: #dcefd8;
+  --card-bg: #ffffff;
+  --card-border: #b8d4b0;
+  --input-bg: #ffffff;
+  --input-border: #8ab880;
+  --label: #1a3a1a;
+  --muted: #5a7a52;
+  --accent: #2a7a2a;
+  --accent-hover: #1e5e1e;
+  --accent-text: #ffffff;
 }
 body.dark-mode {
-  --body-bg: #121212;
-  --text: #e0e0e0;
-  --hero-bg: #121212;
-  --card-bg: #1e1e1e;
-  --card-border: #333;
-  --input-bg: #2a2a2a;
-  --input-border: #444;
-  --label: #e0e0e0;
-  --muted: #888;
-  --accent: #333;
-  --accent-hover: #444;
-  --accent-text: #e0e0e0;
+  --body-bg: #0e1e0e;
+  --text: #dcefd8;
+  --hero-bg: #122612;
+  --card-bg: #1a3018;
+  --card-border: #2a4a22;
+  --input-bg: #122612;
+  --input-border: #2a4a22;
+  --label: #dcefd8;
+  --muted: #6a8a62;
+  --accent: #4aba4a;
+  --accent-hover: #6ad46a;
+  --accent-text: #0e1e0e;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -40,8 +41,8 @@ body {
 }
 
 header {
-  background: #1e1e1e;
-  color: #eee;
+  background: #1a3a1a;
+  color: #edf7ee;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -54,16 +55,20 @@ header h1 {
   transform: translateX(-50%);
   white-space: nowrap;
 }
+header h1 a {
+  color: inherit;
+  text-decoration: none;
+}
 nav a {
-  color: #eee;
+  color: #edf7ee;
   text-decoration: none;
   margin-left: 1rem;
 }
 
 .theme-toggle {
   background: none;
-  border: 1px solid #eee;
-  color: #eee;
+  border: 1px solid #4a8a3a;
+  color: #edf7ee;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.6rem;
@@ -82,8 +87,8 @@ main {
 
 .sidebar {
   width: 250px;
-  background: #2a2a2a;
-  color: #eee;
+  background: #1a3a1a;
+  color: #edf7ee;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -99,7 +104,7 @@ main {
 .sidebar-owner {
   padding: 1.25rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #2a5a2a;
 }
 .owner-avatar {
   width: 60px;
@@ -107,17 +112,17 @@ main {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.6rem;
-  border: 2px solid #555;
+  border: 2px solid #4a8a3a;
 }
 .owner-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #eee;
+  color: #edf7ee;
   margin-bottom: 0.25rem;
 }
 .owner-bio {
   font-size: 0.8rem;
-  color: #999;
+  color: #8ab880;
 }
 .sidebar.open { transform: translateX(0); }
 
@@ -126,23 +131,23 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #333;
+  border-bottom: 1px solid #2a5a2a;
 }
 .sidebar-top h2 { font-size: 1.2rem; }
 
-.category { border-bottom: 1px solid #333; }
+.category { border-bottom: 1px solid #2a5a2a; }
 .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #eee;
+  color: #edf7ee;
   font-weight: 600;
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover { background: #333; }
+.category-header:hover { background: #2a5a2a; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
@@ -157,17 +162,17 @@ main {
 .sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
-  color: #999;
+  color: #8ab880;
   text-decoration: none;
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover { background: #333; color: #eee; }
+.sub-links li a:hover { background: #2a5a2a; color: #ffffff; }
 
 .sidebar-toggle, .close-btn {
   background: none;
   border: none;
-  color: #eee;
+  color: #edf7ee;
   font-size: 1.5rem;
   cursor: pointer;
 }
@@ -191,7 +196,7 @@ main {
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #555;
+  border: 3px solid #4a8a3a;
   margin-bottom: 0.5rem;
 }
 .home-owner-name {
@@ -261,8 +266,8 @@ main {
 .home-demo a { color: var(--accent); }
 
 footer {
-  background: #1e1e1e;
-  color: #eee;
+  background: #1a3a1a;
+  color: #edf7ee;
   text-align: center;
   padding: 1rem;
 }

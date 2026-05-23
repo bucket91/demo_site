@@ -58,10 +58,9 @@ header h1 {
   transform: translateX(-50%);
   white-space: nowrap;
 }
-nav a {
-  color: $header_text;
+header h1 a {
+  color: inherit;
   text-decoration: none;
-  margin-left: 1rem;
 }
 
 .theme-toggle {
