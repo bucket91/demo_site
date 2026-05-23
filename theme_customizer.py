@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, subprocess, json
+import os, sys, subprocess, json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -33,6 +33,52 @@ SWATCH_KEYS = [
     ("dark_body_bg", "Dark BG"),
     ("dark_accent", "Dark Accent"),
 ]
+
+COLOR_GROUPS = [
+    ("Light Page", [
+        ("body_bg", "Background"), ("text", "Text"), ("hero_bg", "Hero BG"),
+    ]),
+    ("Light Cards", [
+        ("card_bg", "Card BG"), ("card_border", "Card Border"),
+        ("label", "Label"), ("muted", "Muted"),
+    ]),
+    ("Light Accent", [
+        ("accent", "Accent"), ("accent_hover", "Accent Hover"), ("accent_text", "Accent Text"),
+    ]),
+    ("Light Inputs", [
+        ("input_bg", "Input BG"), ("input_border", "Input Border"),
+    ]),
+    ("Dark Page", [
+        ("dark_body_bg", "Background"), ("dark_text", "Text"), ("dark_hero_bg", "Hero BG"),
+    ]),
+    ("Dark Cards", [
+        ("dark_card_bg", "Card BG"), ("dark_card_border", "Card Border"),
+        ("dark_label", "Label"), ("dark_muted", "Muted"),
+    ]),
+    ("Dark Accent", [
+        ("dark_accent", "Accent"), ("dark_accent_hover", "Accent Hover"), ("dark_accent_text", "Accent Text"),
+    ]),
+    ("Dark Inputs", [
+        ("dark_input_bg", "Input BG"), ("dark_input_border", "Input Border"),
+    ]),
+    ("Header", [
+        ("header_bg", "Header BG"), ("header_text", "Header Text"),
+    ]),
+    ("Sidebar", [
+        ("sidebar_bg", "Sidebar BG"), ("sidebar_text", "Sidebar Text"),
+        ("sidebar_border", "Sidebar Border"), ("sidebar_hover", "Sidebar Hover"),
+        ("link_muted", "Link Muted"), ("link_hover_text", "Link Hover Text"),
+        ("avatar_border", "Avatar Border"),
+    ]),
+    ("Footer", [
+        ("footer_bg", "Footer BG"), ("footer_text", "Footer Text"),
+    ]),
+    ("Other", [
+        ("theme_border", "Theme Border"),
+    ]),
+]
+
+ALL_COLOR_KEYS = [k for _, items in COLOR_GROUPS for k, _ in items]
 
 FORMAT_MAP = {".ttf": "truetype", ".otf": "opentype", ".woff": "woff", ".woff2": "woff2"}
 
@@ -128,8 +174,12 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         # Theme selector
         selector_row = QtWidgets.QHBoxLayout()
         self.theme_combo = QtWidgets.QComboBox()
+        self.theme_combo.addItem("Custom...", "Custom")
+        self.theme_combo.insertSeparator(self.theme_combo.count())
         for key in THEMES:
             self.theme_combo.addItem(NAME_MAP.get(key, key), key)
+        self.custom_colors = dict(THEMES["Dark"])
+        self._ready = False
         self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
         selector_row.addWidget(self.theme_combo, 1)
 
@@ -187,6 +237,40 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.current_label.setProperty("class", "dim")
         layout.addWidget(self.current_label)
 
+        # --- Custom color editor (hidden by default) ---
+        self.custom_container = QtWidgets.QWidget()
+        self.custom_container.setVisible(False)
+        custom_layout = QtWidgets.QVBoxLayout(self.custom_container)
+        custom_layout.setContentsMargins(0, 0, 0, 0)
+        custom_layout.setSpacing(4)
+
+        custom_heading = QtWidgets.QLabel("Custom Colors")
+        custom_heading.setProperty("class", "heading")
+        custom_layout.addWidget(custom_heading)
+
+        self.custom_scroll = QtWidgets.QScrollArea()
+        self.custom_scroll.setWidgetResizable(True)
+        self.custom_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        self.custom_scroll.setMaximumHeight(300)
+        self.custom_scroll.setStyleSheet(
+            "QScrollArea { background: transparent; border: none; }"
+            "QScrollBar:vertical { background: #2a2a2a; width: 8px; }"
+            "QScrollBar::handle:vertical { background: #555; border-radius: 4px; }")
+        self.custom_scroll_body = QtWidgets.QWidget()
+        self.custom_scroll_body.setStyleSheet("background: transparent;")
+        self.custom_scroll_layout = QtWidgets.QVBoxLayout(self.custom_scroll_body)
+        self.custom_scroll_layout.setContentsMargins(0, 0, 0, 0)
+        self.custom_scroll_layout.setSpacing(2)
+        self.custom_scroll.setWidget(self.custom_scroll_body)
+        custom_layout.addWidget(self.custom_scroll, 1)
+
+        reset_btn = QtWidgets.QPushButton("Reset to Default")
+        reset_btn.setMinimumHeight(28)
+        reset_btn.clicked.connect(self.reset_custom_colors)
+        custom_layout.addWidget(reset_btn)
+
+        layout.addWidget(self.custom_container)
+
         # Preview log
         self.preview = QtWidgets.QTextEdit()
         self.preview.setReadOnly(True)
@@ -234,7 +318,10 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.status.setProperty("class", "dim")
         layout.addWidget(self.status)
 
-        self.update_preview()
+        # Pick first preset theme
+        self._ready = True
+        self.theme_combo.setCurrentIndex(2)
+        self.on_theme_changed(self.theme_combo.currentIndex())
 
     # --- Font combo ---
 
@@ -364,16 +451,98 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         with open(CONFIG_FILE, "w") as f:
             json.dump(cfg, f, indent=2)
 
+    # --- Custom colors ---
+
+    def load_custom_theme(self):
+        cfg = {}
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE) as f:
+                cfg = json.load(f)
+        return cfg.get("custom_theme", {})
+
+    def save_custom_theme(self, colors):
+        cfg = {}
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE) as f:
+                cfg = json.load(f)
+        cfg["custom_theme"] = colors
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(cfg, f, indent=2)
+
+    def build_custom_editor(self):
+        for i in reversed(range(self.custom_scroll_layout.count())):
+            w = self.custom_scroll_layout.itemAt(i).widget()
+            if w:
+                w.deleteLater()
+        self.custom_swatches = {}
+        for group_name, items in COLOR_GROUPS:
+            gl = QtWidgets.QLabel(group_name)
+            gl.setStyleSheet("color: #aaa; font-size: 10px; font-weight: bold; padding-top: 4px;")
+            self.custom_scroll_layout.addWidget(gl)
+            row = QtWidgets.QHBoxLayout()
+            row.setSpacing(4)
+            for key, label in items:
+                col = QtWidgets.QVBoxLayout()
+                col.setSpacing(2)
+                btn = QtWidgets.QPushButton()
+                btn.setFixedSize(28, 28)
+                color = self.custom_colors.get(key, THEMES["Dark"][key])
+                btn.setStyleSheet(
+                    f"background: {color}; border: 1px solid #555; border-radius: 3px;")
+                btn.setToolTip(label)
+                btn.color_key = key
+                btn.clicked.connect(self.pick_custom_color)
+                col.addWidget(btn, alignment=QtCore.Qt.AlignCenter)
+                lb = QtWidgets.QLabel(label)
+                lb.setStyleSheet("color: #888; font-size: 9px;")
+                col.addWidget(lb, alignment=QtCore.Qt.AlignCenter)
+                row.addLayout(col)
+                self.custom_swatches[key] = btn
+            self.custom_scroll_layout.addLayout(row)
+
+    def pick_custom_color(self):
+        btn = self.sender()
+        key = btn.color_key
+        current = self.custom_colors.get(key, THEMES["Dark"][key])
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(current), self, f"Pick {key}")
+        if color.isValid():
+            hex_color = color.name()
+            self.custom_colors[key] = hex_color
+            btn.setStyleSheet(
+                f"background: {hex_color}; border: 1px solid #555; border-radius: 3px;")
+            self.save_custom_theme(self.custom_colors)
+            self.update_preview()
+
+    def reset_custom_colors(self):
+        self.custom_colors = dict(THEMES["Dark"])
+        self.save_custom_theme(self.custom_colors)
+        self.build_custom_editor()
+        self.update_preview()
+        self.status.setText("Custom colors reset to Dark defaults")
+
     # --- Preview / apply ---
 
     def on_theme_changed(self, idx):
+        is_custom = self.theme_key() == "Custom"
+        if hasattr(self, 'custom_container'):
+            self.custom_container.setVisible(is_custom)
+        if is_custom and hasattr(self, 'custom_colors'):
+            self.custom_colors = dict(THEMES["Dark"])
+            saved = self.load_custom_theme()
+            if saved:
+                self.custom_colors.update(saved)
+            if hasattr(self, 'custom_scroll_layout'):
+                self.build_custom_editor()
         self.update_preview()
 
     def theme_key(self):
         return self.theme_combo.currentData()
 
     def theme_colors(self):
-        return THEMES[self.theme_key()]
+        key = self.theme_key()
+        if key == "Custom":
+            return self.custom_colors if hasattr(self, 'custom_colors') and self.custom_colors else THEMES["Dark"]
+        return THEMES[key]
 
     def update_preview(self):
         t = self.theme_colors()
@@ -392,11 +561,14 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             lines.append(f"  {label}: {t.get(key, '?')}")
         lines.append(f"  Font: {font_name}")
         lines.append(f"  Site Title: {site_title}")
+        if self.theme_key() == "Custom":
+            lines.append("  (custom colors)")
         self.preview.setPlainText(f"Theme: {name}\n" + "\n".join(lines))
 
     def apply_theme(self):
+        is_custom = self.theme_key() == "Custom"
         t = dict(self.theme_colors())
-        name = self.theme_combo.currentText()
+        name = "Custom" if is_custom else self.theme_combo.currentText()
         font_name = self.font_combo.currentText()
 
         # Save site title
