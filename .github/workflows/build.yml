@@ -26,13 +26,7 @@ jobs:
           pip install PyQt5 pyinstaller
 
       - name: Build executable
-        run: |
-          pyinstaller --onefile --name SiteTools ^
-            --hidden-import PyQt5.sip ^
-            --hidden-import PyQt5.QtCore ^
-            --hidden-import PyQt5.QtGui ^
-            --hidden-import PyQt5.QtWidgets ^
-            app.py
+        run: pyinstaller --onefile --name SiteTools --hidden-import PyQt5.sip --hidden-import PyQt5.QtCore --hidden-import PyQt5.QtGui --hidden-import PyQt5.QtWidgets app.py
         shell: bash
         working-directory: ${{ github.workspace }}
 
