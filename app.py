@@ -40,6 +40,9 @@ class App(QtWidgets.QMainWindow):
         import setup_git
         tabs.addTab(setup_git.SetupGitWidget(), "Git Setup")
 
+        import owner_tab
+        tabs.addTab(owner_tab.OwnerWidget(), "Owner")
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
