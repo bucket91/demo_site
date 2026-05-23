@@ -657,3 +657,14 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         import generate
         output = generate.run_generate_captured()
         self.status.setText(output)
+
+        cfg = {}
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE) as f:
+                cfg = json.load(f)
+        cfg["gui_theme"] = self.theme_combo.currentData() or "Dark"
+        with open(CONFIG_FILE, "w") as f:
+            json.dump(cfg, f, indent=2)
+
+        import gui_theme
+        gui_theme.apply(t)

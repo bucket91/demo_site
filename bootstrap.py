@@ -150,6 +150,7 @@ DEFAULT_CONFIG = {
     "owner_title": "",
     "owner_contacts": [],
     "site_title": "My Site",
+    "gui_theme": "Dark",
 }
 
 

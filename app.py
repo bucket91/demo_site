@@ -7,7 +7,6 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 class App(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
-        # bootstrap missing site files
         import bootstrap
         created = bootstrap.ensure_site_files(SITE_DIR)
         if created:
@@ -15,16 +14,6 @@ class App(QtWidgets.QMainWindow):
 
         self.setWindowTitle("Site Tools")
         self.setMinimumSize(900, 700)
-        self.setStyleSheet("""
-            QMainWindow { background: #1e1e1e; }
-            QTabWidget::pane { background: #1e1e1e; border: none; }
-            QTabBar::tab {
-                background: #2a2a2a; color: #999; padding: 10px 20px;
-                border: none; font-size: 13px; margin-right: 2px;
-            }
-            QTabBar::tab:selected { background: #1e1e1e; color: #eee; }
-            QTabBar::tab:hover { color: #eee; }
-        """)
 
         tabs = QtWidgets.QTabWidget()
         tabs.tabBar().setExpanding(True)
@@ -54,6 +43,11 @@ class App(QtWidgets.QMainWindow):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
+    app.setStyle("Fusion")
+
+    import gui_theme
+    gui_theme.apply()
+
     w = App()
     w.show()
     sys.exit(app.exec_())
