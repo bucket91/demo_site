@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
-import os, sys, re, html as html_mod
+import os, sys, re, html as html_mod, platform
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
-VENV_PYTHON = "/tmp/docx_venv/bin/python3"
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+if platform.system() == "Windows":
+    VENV_PYTHON = os.path.join(os.environ.get("USERPROFILE", "C:\\"), "docx_venv", "Scripts", "python.exe")
+else:
+    VENV_PYTHON = "/tmp/docx_venv/bin/python3"
 
 def convert_docx(path):
     if not os.path.exists(VENV_PYTHON):
-        return None, "python-docx not installed. Run: python3 -m venv /tmp/docx_venv && /tmp/docx_venv/bin/pip install python-docx"
+        if platform.system() == "Windows":
+            hint = f"python-docx not installed. Run: python -m venv {os.path.join(os.environ.get('USERPROFILE', 'C:\\\\'), 'docx_venv')} && {os.path.join(os.environ.get('USERPROFILE', 'C:\\\\'), 'docx_venv', 'Scripts', 'pip')} install python-docx"
+        else:
+            hint = "python-docx not installed. Run: python3 -m venv /tmp/docx_venv && /tmp/docx_venv/bin/pip install python-docx"
+        return None, hint
     import subprocess
     r = subprocess.run([VENV_PYTHON, "-c", """
 import sys, json
@@ -245,10 +252,9 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
             dlg.accept()
             self.status_label.setText(f"Added: {fpath}. Running generate...")
             QtWidgets.QApplication.processEvents()
-            import subprocess
-            r = subprocess.run([sys.executable, os.path.join(SITE_DIR, 'generate.py')],
-                             cwd=SITE_DIR, capture_output=True, text=True)
-            self.status_label.setText(r.stdout.strip() if r.returncode == 0 else r.stderr.strip())
+            import generate
+            output = generate.run_generate_captured()
+            self.status_label.setText(output)
 
         ok.clicked.connect(do_add)
         dlg.exec_()

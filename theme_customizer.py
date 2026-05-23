@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-import os, sys, subprocess, json
+import os, sys, json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 STYLE_FILE = os.path.join(SITE_DIR, "style.css")
 FONTS_DIR = os.path.join(SITE_DIR, "fonts")
 FONTS_JSON = os.path.join(FONTS_DIR, "fonts.json")
@@ -654,9 +654,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.status.setText(f"Applied {name}. Running generate...")
         QtWidgets.QApplication.processEvents()
 
-        r = subprocess.run(
-            [sys.executable, os.path.join(SITE_DIR, "generate.py")],
-            cwd=SITE_DIR, capture_output=True, text=True)
-        output = r.stdout.strip() or r.stderr.strip()
-        self.status.setText(
-            output.split("\n")[-1] if output else f"Applied")
+        import generate
+        output = generate.run_generate_captured()
+        self.status.setText(output)

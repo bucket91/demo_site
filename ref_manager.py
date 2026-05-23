@@ -2,7 +2,7 @@
 import os, re, shutil, sys
 from PyQt5 import QtWidgets, QtCore
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 
 def scan_categories():
@@ -239,12 +239,9 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.status.setText(f"Added '{display_name}' to '{category}/'. Running generate...")
         QtWidgets.QApplication.processEvents()
 
-        import subprocess
-        r = subprocess.run(
-            [sys.executable, os.path.join(SITE_DIR, 'generate.py')],
-            cwd=SITE_DIR, capture_output=True, text=True)
-        output = r.stdout.strip() or r.stderr.strip()
-        self.status.setText(output.split('\n')[-1] if output else "Done")
+        import generate
+        output = generate.run_generate_captured()
+        self.status.setText(output)
 
         self.refresh_all()
         self.path_input.clear()

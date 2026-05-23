@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-import re, os, glob, json
+import re, os, glob, json, sys
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
@@ -335,6 +335,20 @@ def git_commit_push(log_func=print):
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:
         log_func(f"Git error: {e}")
+
+def run_generate_captured():
+    """Run generate and return the last line of output."""
+    import io
+    buf = io.StringIO()
+    def log(msg):
+        print(msg)
+        buf.write(msg + '\n')
+    CONFIG.update(load_config())
+    write_comments_js()
+    generate_all(log)
+    git_commit_push(log)
+    output = buf.getvalue().strip()
+    return output.split('\n')[-1] if output else "Done"
 
 def main():
     generate_all()

@@ -2,7 +2,7 @@
 import json, os, sys, urllib.request, urllib.error
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
 def load():

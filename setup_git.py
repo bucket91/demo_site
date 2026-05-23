@@ -1,0 +1,333 @@
+#!/usr/bin/env python3
+"""Git setup widget for Site Tools."""
+import os, sys, subprocess, json
+from PyQt5 import QtWidgets, QtCore
+
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+
+
+def load_config():
+    default = {
+        "git_remote_url": "", "git_user_name": "", "git_user_email": "",
+        "git_commit_message": "Initial site setup", "git_auto_push": True,
+    }
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE) as f:
+            return {**default, **json.load(f)}
+    return default
+
+
+def save_git_config(url, name, email, msg, auto_push):
+    cfg = {}
+    if os.path.exists(CONFIG_FILE):
+        with open(CONFIG_FILE) as f:
+            cfg = json.load(f)
+    cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
+               git_commit_message=msg, git_auto_push=auto_push)
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(cfg, f, indent=2)
+
+
+def is_git_installed():
+    try:
+        subprocess.run(["git", "--version"], capture_output=True)
+        return True
+    except FileNotFoundError:
+        return False
+
+
+def is_git_repo():
+    r = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=SITE_DIR, capture_output=True)
+    return r.returncode == 0
+
+
+def get_git_status():
+    lines = []
+    if not is_git_installed():
+        return ["ERROR: git is not installed"]
+    if not is_git_repo():
+        lines.append("Not a git repository")
+        return lines
+    r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
+    if r.returncode == 0:
+        lines.append(f"Remote: {r.stdout.strip()}")
+    else:
+        lines.append("Remote: not set")
+    r = subprocess.run(["git", "config", "user.name"], cwd=SITE_DIR, capture_output=True, text=True)
+    lines.append(f"User: {r.stdout.strip() or 'not set'}")
+    r = subprocess.run(["git", "config", "user.email"], cwd=SITE_DIR, capture_output=True, text=True)
+    lines.append(f"Email: {r.stdout.strip() or 'not set'}")
+    r = subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
+    n = r.stdout.strip()
+    lines.append(f"Commits: {n}" if n.isdigit() else "Commits: 0 (no commits yet)")
+    r = subprocess.run(["git", "status", "--short"], cwd=SITE_DIR, capture_output=True, text=True)
+    untracked = len([l for l in r.stdout.strip().split('\n') if l.strip()])
+    lines.append(f"Uncommitted files: {untracked}")
+    return lines
+
+
+class SetupGitWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet("""
+            QLabel { color: #e0e0e0; }
+            QLabel.dim { color: #999; font-size: 11px; }
+            QLabel.heading { font-size: 14px; font-weight: bold; color: #eee; margin-top: 8px; }
+            QLineEdit {
+                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                border-radius: 6px; padding: 8px 10px; font-size: 13px;
+            }
+            QTextEdit {
+                background: #1a1a1a; color: #ccc; border: 1px solid #333;
+                border-radius: 6px; padding: 6px; font-size: 12px; font-family: monospace;
+            }
+            QPushButton {
+                background: #555; color: #fff; border: none;
+                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+            }
+            QPushButton:hover { background: #666; }
+            QPushButton:disabled { background: #333; color: #666; }
+            QPushButton.primary { background: #1a6b3c; }
+            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton.danger { background: #b71c1c; }
+            QPushButton.danger:hover { background: #d32f2f; }
+            QCheckBox { color: #ccc; font-size: 12px; }
+            QGroupBox {
+                color: #ddd; font-size: 13px; font-weight: bold;
+                border: 1px solid #333; border-radius: 6px; margin-top: 12px;
+                padding: 12px 8px 8px;
+            }
+            QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
+        """)
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(16, 12, 16, 12)
+        layout.setSpacing(8)
+
+        heading = QtWidgets.QLabel("Git Setup")
+        heading.setProperty("class", "heading")
+        layout.addWidget(heading)
+
+        desc = QtWidgets.QLabel(
+            "Initialize git, configure remote, stage, commit, and push your site."
+        )
+        desc.setProperty("class", "dim")
+        desc.setWordWrap(True)
+        layout.addWidget(desc)
+
+        # Status box
+        self.status_box = QtWidgets.QTextEdit()
+        self.status_box.setReadOnly(True)
+        self.status_box.setMaximumHeight(130)
+        layout.addWidget(self.status_box)
+
+        refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
+        refresh_status_btn.clicked.connect(self.check_status)
+        layout.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
+
+        # Config fields
+        cfg = load_config()
+        fields_group = QtWidgets.QGroupBox("Git Configuration")
+        fl = QtWidgets.QFormLayout(fields_group)
+        fl.setSpacing(6)
+        fl.setContentsMargins(10, 16, 10, 10)
+
+        self.remote_input = QtWidgets.QLineEdit(cfg.get("git_remote_url", ""))
+        self.remote_input.setPlaceholderText("https://github.com/user/repo.git")
+        fl.addRow("Remote URL:", self.remote_input)
+
+        self.name_input = QtWidgets.QLineEdit(cfg.get("git_user_name", ""))
+        self.name_input.setPlaceholderText("Your GitHub username")
+        fl.addRow("User name:", self.name_input)
+
+        self.email_input = QtWidgets.QLineEdit(cfg.get("git_user_email", ""))
+        self.email_input.setPlaceholderText("user@users.noreply.github.com")
+        fl.addRow("User email:", self.email_input)
+
+        self.msg_input = QtWidgets.QLineEdit(cfg.get("git_commit_message", "Initial site setup"))
+        self.msg_input.setPlaceholderText("Commit message")
+        fl.addRow("Commit msg:", self.msg_input)
+
+        self.auto_push_cb = QtWidgets.QCheckBox("Auto-push after commit")
+        self.auto_push_cb.setChecked(cfg.get("git_auto_push", True))
+        fl.addRow("", self.auto_push_cb)
+
+        layout.addWidget(fields_group)
+
+        # Buttons
+        btn_row = QtWidgets.QHBoxLayout()
+        btn_row.setSpacing(8)
+
+        init_btn = QtWidgets.QPushButton("Init Repo")
+        init_btn.setMinimumHeight(36)
+        init_btn.clicked.connect(self.init_repo)
+        btn_row.addWidget(init_btn)
+
+        commit_btn = QtWidgets.QPushButton("Stage & Commit")
+        commit_btn.setProperty("class", "primary")
+        commit_btn.setMinimumHeight(36)
+        commit_btn.clicked.connect(self.stage_commit)
+        btn_row.addWidget(commit_btn)
+
+        push_btn = QtWidgets.QPushButton("Push")
+        push_btn.setMinimumHeight(36)
+        push_btn.clicked.connect(self.push)
+        btn_row.addWidget(push_btn)
+
+        full_btn = QtWidgets.QPushButton("Full Setup (Init + Commit + Push)")
+        full_btn.setMinimumHeight(40)
+        full_btn.clicked.connect(self.full_setup)
+        btn_row.addWidget(full_btn)
+
+        layout.addLayout(btn_row)
+
+        # Output log
+        log_label = QtWidgets.QLabel("Output:")
+        log_label.setProperty("class", "dim")
+        layout.addWidget(log_label)
+
+        self.log = QtWidgets.QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setPlaceholderText("Git command output will appear here...")
+        layout.addWidget(self.log, 1)
+
+        # Status bar
+        self.status = QtWidgets.QLabel("Ready")
+        self.status.setProperty("class", "dim")
+        layout.addWidget(self.status)
+
+        self.check_status()
+
+    def log_msg(self, msg):
+        self.log.append(msg)
+        QtWidgets.QApplication.processEvents()
+
+    def run_git(self, args, check=False):
+        try:
+            r = subprocess.run(["git"] + args, cwd=SITE_DIR, capture_output=True, text=True)
+            out = r.stdout.strip() or r.stderr.strip()
+            if out:
+                self.log_msg(f"$ git {' '.join(args)}\n{out}")
+            return r
+        except FileNotFoundError:
+            self.log_msg("ERROR: git not found on PATH")
+            return None
+
+    def save_config_fields(self):
+        save_git_config(
+            self.remote_input.text().strip(),
+            self.name_input.text().strip(),
+            self.email_input.text().strip(),
+            self.msg_input.text().strip(),
+            self.auto_push_cb.isChecked(),
+        )
+
+    def check_status(self):
+        lines = get_git_status()
+        self.status_box.setPlainText("\n".join(lines) if lines else "(no status)")
+        self.status.setText("Status refreshed")
+
+    def init_repo(self):
+        self.log.clear()
+        self.save_config_fields()
+        if not is_git_installed():
+            self.log_msg("ERROR: git is not installed on this system")
+            self.status.setText("Failed: git not found")
+            return
+        if is_git_repo():
+            self.log_msg("Already a git repository")
+        else:
+            r = self.run_git(["init"])
+            if r and r.returncode == 0:
+                self.log_msg("Repository initialized")
+        self.run_git(["config", "user.name", self.name_input.text().strip()])
+        self.run_git(["config", "user.email", self.email_input.text().strip()])
+        url = self.remote_input.text().strip()
+        if url:
+            r = self.run_git(["remote", "get-url", "origin"])
+            if r and r.returncode == 0:
+                self.run_git(["remote", "set-url", "origin", url])
+            else:
+                self.run_git(["remote", "add", "origin", url])
+        # Ensure .gitignore exists
+        gi = os.path.join(SITE_DIR, ".gitignore")
+        if not os.path.exists(gi):
+            with open(gi, "w") as f:
+                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Build\nbuild_venv/\n*.spec\ndist/\n")
+            self.log_msg("Created .gitignore")
+        self.check_status()
+        self.status.setText("Init complete")
+
+    def stage_commit(self):
+        self.save_config_fields()
+        if not is_git_repo():
+            self.log_msg("Not a git repo. Click 'Init Repo' first.")
+            self.status.setText("Failed: not a repo")
+            return
+        self.log_msg("Staging all files...")
+        r = self.run_git(["add", "-A"])
+        if r and r.returncode != 0:
+            self.status.setText("Stage failed")
+            return
+        msg = self.msg_input.text().strip() or "update site"
+        self.log_msg(f"Committing: {msg}")
+        r = self.run_git(["commit", "-m", msg])
+        if r and r.returncode == 0:
+            self.status.setText("Commit succeeded")
+        elif r and r.returncode != 0:
+            if "nothing to commit" in (r.stdout + r.stderr):
+                self.status.setText("Nothing to commit")
+            else:
+                self.status.setText("Commit failed")
+        self.check_status()
+        if self.auto_push_cb.isChecked() and r and r.returncode == 0:
+            self.push()
+
+    def push(self):
+        self.save_config_fields()
+        r = self.run_git(["remote", "get-url", "origin"])
+        if not r or r.returncode != 0:
+            self.log_msg("No remote configured. Set Remote URL first.")
+            self.status.setText("Push failed: no remote")
+            return
+        self.log_msg("Pushing to origin...")
+        r = self.run_git(["push", "-u", "origin", "HEAD"])
+        if r and r.returncode == 0:
+            self.status.setText("Push succeeded")
+        else:
+            self.status.setText("Push failed")
+        self.check_status()
+
+    def full_setup(self):
+        self.log.clear()
+        self.status.setText("Running full setup...")
+        self.save_config_fields()
+        QtWidgets.QApplication.processEvents()
+        if not is_git_installed():
+            self.log_msg("ERROR: git is not installed")
+            self.status.setText("Failed: git not found")
+            return
+        if not is_git_repo():
+            self.init_repo()
+        self.stage_commit()
+        if self.auto_push_cb.isChecked():
+            self.push()
+        self.check_status()
+        self.status.setText("Full setup complete")
+
+
+def main_gui():
+    app = QtWidgets.QApplication(sys.argv)
+    w = QtWidgets.QWidget()
+    w.setWindowTitle("Git Setup")
+    w.setMinimumSize(700, 600)
+    layout = QtWidgets.QVBoxLayout(w)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(SetupGitWidget())
+    w.show()
+    sys.exit(app.exec_())
+
+
+if __name__ == "__main__":
+    main_gui()

@@ -2,7 +2,7 @@
 import sys, os
 from PyQt5 import QtWidgets
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
 class App(QtWidgets.QMainWindow):
     def __init__(self):
@@ -37,6 +37,12 @@ class App(QtWidgets.QMainWindow):
 
         import theme_customizer
         tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme Customizer")
+
+        import docs
+        tabs.addTab(docs.DocsWidget(), "Documentation")
+
+        import setup_git
+        tabs.addTab(setup_git.SetupGitWidget(), "Git Setup")
 
 
 def main():
