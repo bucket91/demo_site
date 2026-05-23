@@ -229,27 +229,27 @@ def make_homepage_content(categories):
     owner_avatar = CONFIG.get("owner_avatar", "")
     owner_title = CONFIG.get("owner_title", "")
     owner_contacts = CONFIG.get("owner_contacts", [])
-    html = '<div class="home-owner">\n'
-    if owner_avatar:
-        html += f'  <img src="./{owner_avatar}" alt="{owner_name}" class="home-owner-avatar">\n'
-    if owner_name:
-        html += f'  <div class="home-owner-name">{owner_name}</div>\n'
-    if owner_title:
-        html += f'  <div class="home-owner-title">{owner_title}</div>\n'
-    if owner_bio:
-        html += f'  <div class="home-owner-bio">{owner_bio}</div>\n'
-    if owner_contacts:
-        html += '  <div class="home-owner-contacts">\n'
-        for c in owner_contacts:
-            html += f'    <a href="{c["url"]}" class="owner-contact-link">{c["label"]}</a>\n'
-        html += '  </div>\n'
-    html += '</div>\n'
-    html += '''<div class="home-hero">
+    html = '''<div class="home-hero">
   <h1>Welcome</h1>
   <p class="home-tagline">Explore the site</p>
 </div>
 <div class="home-sections">
 '''
+    if owner_name:
+        html += '  <div class="home-card owner-card">\n'
+        if owner_avatar:
+            html += f'    <img src="./{owner_avatar}" alt="{owner_name}" class="owner-card-avatar">\n'
+        html += f'    <div class="owner-card-name">{owner_name}</div>\n'
+        if owner_title:
+            html += f'    <div class="owner-card-title">{owner_title}</div>\n'
+        if owner_bio:
+            html += f'    <div class="owner-card-bio">{owner_bio}</div>\n'
+        if owner_contacts:
+            html += '    <div class="owner-card-contacts">\n'
+            for c in owner_contacts:
+                html += f'      <a href="{c["url"]}" class="owner-card-link">{c["label"]}</a>\n'
+            html += '    </div>\n'
+        html += '  </div>\n'
     for cat_name, entries in categories:
         html += f'''  <div class="home-card">
     <h2>{cat_name}</h2>

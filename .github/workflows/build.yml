@@ -25,6 +25,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install PyQt5 pyinstaller python-docx
 
+      - name: Download git (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -sL -o git-linux.tar.gz https://github.com/darkvertex/static-git/releases/latest/download/git-binaries.linux-64bit.tar.gz
+          mkdir -p bundled-git
+          tar -xzf git-linux.tar.gz -C bundled-git --strip-components=1
+          rm git-linux.tar.gz
+          chmod +x bundled-git/*
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
       - name: Download MinGit (Windows)
         if: runner.os == 'Windows'
         run: |
@@ -39,6 +50,8 @@ jobs:
           DATA_ARGS=""
           if [ "${{ runner.os }}" = "Windows" ]; then
             DATA_ARGS="--add-data mingit:mingit"
+          else
+            DATA_ARGS="--add-data bundled-git:bundled-git"
           fi
           pyinstaller --onefile --name SiteTools \
             --hidden-import PyQt5.sip \

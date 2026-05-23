@@ -10,6 +10,8 @@ CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
 def load_config():
     default = {
+        "supabase_url": "", "supabase_anon_key": "", "comments_enabled": True,
+        "site_title": "Placeholder",
         "git_remote_url": "", "git_user_name": "", "git_user_email": "",
         "git_commit_message": "Initial site setup", "git_auto_push": True,
     }
@@ -19,13 +21,21 @@ def load_config():
     return default
 
 
-def save_git_config(url, name, email, msg, auto_push):
+def save_config(cfg):
+    with open(CONFIG_FILE, "w") as f:
+        json.dump(cfg, f, indent=2)
+
+
+def save_setup_config(url, name, email, msg, auto_push,
+                      supabase_url, supabase_anon_key, comments_enabled, site_title):
     cfg = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
             cfg = json.load(f)
     cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
-               git_commit_message=msg, git_auto_push=auto_push)
+               git_commit_message=msg, git_auto_push=auto_push,
+               supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
+               comments_enabled=comments_enabled, site_title=site_title)
     with open(CONFIG_FILE, "w") as f:
         json.dump(cfg, f, indent=2)
 
@@ -102,55 +112,125 @@ class SetupGitWidget(QtWidgets.QWidget):
         layout.setContentsMargins(16, 12, 16, 12)
         layout.setSpacing(8)
 
-        heading = QtWidgets.QLabel("Git Setup")
+        heading = QtWidgets.QLabel("Setup")
         heading.setProperty("class", "heading")
         layout.addWidget(heading)
 
         desc = QtWidgets.QLabel(
-            "Initialize git, configure remote, stage, commit, and push your site."
+            "Configure site, Supabase, GitHub, and generate your site."
         )
         desc.setProperty("class", "dim")
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
-        # Status box
-        self.status_box = QtWidgets.QTextEdit()
-        self.status_box.setReadOnly(True)
-        self.status_box.setMaximumHeight(130)
-        layout.addWidget(self.status_box)
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setStyleSheet("QScrollArea { background: transparent; }")
+        scroll_body = QtWidgets.QWidget()
+        scroll_body.setStyleSheet("background: transparent;")
+        sl = QtWidgets.QVBoxLayout(scroll_body)
+        sl.setContentsMargins(0, 0, 0, 0)
+        sl.setSpacing(8)
+        scroll.setWidget(scroll_body)
+        layout.addWidget(scroll, stretch=1)
 
-        refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
-        refresh_status_btn.clicked.connect(self.check_status)
-        layout.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
-
-        # Config fields
         cfg = load_config()
-        fields_group = QtWidgets.QGroupBox("Git Configuration")
-        fl = QtWidgets.QFormLayout(fields_group)
-        fl.setSpacing(6)
-        fl.setContentsMargins(10, 16, 10, 10)
+
+        # ── Supabase ──
+        supabase_group = QtWidgets.QGroupBox("Supabase")
+        sfl = QtWidgets.QFormLayout(supabase_group)
+        sfl.setSpacing(6)
+        sfl.setContentsMargins(10, 16, 10, 10)
+
+        self.supabase_url = QtWidgets.QLineEdit(cfg.get("supabase_url", ""))
+        self.supabase_url.setPlaceholderText("https://your-project.supabase.co")
+        sfl.addRow("Project URL:", self.supabase_url)
+
+        self.supabase_key = QtWidgets.QLineEdit(cfg.get("supabase_anon_key", ""))
+        self.supabase_key.setPlaceholderText("anon public key")
+        self.supabase_key.setEchoMode(QtWidgets.QLineEdit.Password)
+        sfl.addRow("Anon Key:", self.supabase_key)
+
+        self.comments_cb = QtWidgets.QCheckBox("Enable comments")
+        self.comments_cb.setChecked(cfg.get("comments_enabled", True))
+        sfl.addRow("", self.comments_cb)
+
+        sl.addWidget(supabase_group)
+
+        # ── Site ──
+        site_group = QtWidgets.QGroupBox("Site")
+        sifl = QtWidgets.QFormLayout(site_group)
+        sifl.setSpacing(6)
+        sifl.setContentsMargins(10, 16, 10, 10)
+
+        self.site_title = QtWidgets.QLineEdit(cfg.get("site_title", "Placeholder"))
+        self.site_title.setPlaceholderText("My Awesome Site")
+        sifl.addRow("Site Title:", self.site_title)
+
+        sl.addWidget(site_group)
+
+        # ── Git ──
+        git_group = QtWidgets.QGroupBox("GitHub / Git")
+        gfl = QtWidgets.QFormLayout(git_group)
+        gfl.setSpacing(6)
+        gfl.setContentsMargins(10, 16, 10, 10)
 
         self.remote_input = QtWidgets.QLineEdit(cfg.get("git_remote_url", ""))
         self.remote_input.setPlaceholderText("https://github.com/user/repo.git")
-        fl.addRow("Remote URL:", self.remote_input)
+        gfl.addRow("Remote URL:", self.remote_input)
 
         self.name_input = QtWidgets.QLineEdit(cfg.get("git_user_name", ""))
         self.name_input.setPlaceholderText("Your GitHub username")
-        fl.addRow("User name:", self.name_input)
+        gfl.addRow("User name:", self.name_input)
 
         self.email_input = QtWidgets.QLineEdit(cfg.get("git_user_email", ""))
         self.email_input.setPlaceholderText("user@users.noreply.github.com")
-        fl.addRow("User email:", self.email_input)
+        gfl.addRow("User email:", self.email_input)
 
         self.msg_input = QtWidgets.QLineEdit(cfg.get("git_commit_message", "Initial site setup"))
         self.msg_input.setPlaceholderText("Commit message")
-        fl.addRow("Commit msg:", self.msg_input)
+        gfl.addRow("Commit msg:", self.msg_input)
 
         self.auto_push_cb = QtWidgets.QCheckBox("Auto-push after commit")
         self.auto_push_cb.setChecked(cfg.get("git_auto_push", True))
-        fl.addRow("", self.auto_push_cb)
+        gfl.addRow("", self.auto_push_cb)
 
-        layout.addWidget(fields_group)
+        sl.addWidget(git_group)
+
+        # ── Status box ──
+        status_label = QtWidgets.QLabel("Status")
+        status_label.setProperty("class", "dim")
+        sl.addWidget(status_label)
+
+        self.status_box = QtWidgets.QTextEdit()
+        self.status_box.setReadOnly(True)
+        self.status_box.setMaximumHeight(100)
+        sl.addWidget(self.status_box)
+
+        refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
+        refresh_status_btn.clicked.connect(self.check_status)
+        sl.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
+
+        # Generate button
+        gen_row = QtWidgets.QHBoxLayout()
+        gen_row.addStretch()
+        self.gen_btn = QtWidgets.QPushButton("Generate & Push")
+        self.gen_btn.setProperty("class", "primary")
+        self.gen_btn.setMinimumHeight(44)
+        self.gen_btn.clicked.connect(self.on_generate)
+        gen_row.addWidget(self.gen_btn)
+        sl.addLayout(gen_row)
+
+        # Output log
+        log_label = QtWidgets.QLabel("Output:")
+        log_label.setProperty("class", "dim")
+        sl.addWidget(log_label)
+
+        self.log = QtWidgets.QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setPlaceholderText("Command output will appear here...")
+        sl.addWidget(self.log, 1)
 
         # Buttons
         btn_row = QtWidgets.QHBoxLayout()
@@ -162,7 +242,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         btn_row.addWidget(init_btn)
 
         commit_btn = QtWidgets.QPushButton("Stage & Commit")
-        commit_btn.setProperty("class", "primary")
         commit_btn.setMinimumHeight(36)
         commit_btn.clicked.connect(self.stage_commit)
         btn_row.addWidget(commit_btn)
@@ -177,22 +256,12 @@ class SetupGitWidget(QtWidgets.QWidget):
         full_btn.clicked.connect(self.full_setup)
         btn_row.addWidget(full_btn)
 
-        layout.addLayout(btn_row)
-
-        # Output log
-        log_label = QtWidgets.QLabel("Output:")
-        log_label.setProperty("class", "dim")
-        layout.addWidget(log_label)
-
-        self.log = QtWidgets.QTextEdit()
-        self.log.setReadOnly(True)
-        self.log.setPlaceholderText("Git command output will appear here...")
-        layout.addWidget(self.log, 1)
+        sl.addLayout(btn_row)
 
         # Status bar
         self.status = QtWidgets.QLabel("Ready")
         self.status.setProperty("class", "dim")
-        layout.addWidget(self.status)
+        sl.addWidget(self.status)
 
         self.check_status()
 
@@ -211,13 +280,48 @@ class SetupGitWidget(QtWidgets.QWidget):
         return r
 
     def save_config_fields(self):
-        save_git_config(
+        save_setup_config(
             self.remote_input.text().strip(),
             self.name_input.text().strip(),
             self.email_input.text().strip(),
             self.msg_input.text().strip(),
             self.auto_push_cb.isChecked(),
+            self.supabase_url.text().strip(),
+            self.supabase_key.text().strip(),
+            self.comments_cb.isChecked(),
+            self.site_title.text().strip(),
         )
+
+    @QtCore.pyqtSlot()
+    def on_generate(self):
+        self.save_config_fields()
+        self.log.clear()
+        self.gen_btn.setEnabled(False)
+        self.gen_btn.setText("Running...")
+
+        new = {
+            "supabase_url": self.supabase_url.text().strip(),
+            "supabase_anon_key": self.supabase_key.text().strip(),
+            "comments_enabled": self.comments_cb.isChecked(),
+            "site_title": self.site_title.text().strip(),
+            "git_remote_url": self.remote_input.text().strip(),
+            "git_user_name": self.name_input.text().strip(),
+            "git_user_email": self.email_input.text().strip(),
+            "git_commit_message": self.msg_input.text().strip(),
+            "git_auto_push": self.auto_push_cb.isChecked(),
+        }
+
+        self.worker = _SetupWorker(new)
+        self.worker.logged.connect(self.log_msg)
+        self.worker.finished.connect(self._on_generate_done)
+        self.worker.start()
+
+    @QtCore.pyqtSlot(bool)
+    def _on_generate_done(self, ok):
+        self.gen_btn.setEnabled(True)
+        self.gen_btn.setText("Generate & Push")
+        if not ok:
+            self.log_msg("[ERROR] Check output above.")
 
     def check_status(self):
         lines = get_git_status()
@@ -313,10 +417,33 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.status.setText("Full setup complete")
 
 
+class _SetupWorker(QtCore.QThread):
+    logged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(bool)
+
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+
+    def run(self):
+        ok = True
+        try:
+            import generate
+            generate.CONFIG.update(self.cfg)
+            generate.write_comments_js()
+            if not generate.generate_all(log_func=self.logged.emit):
+                ok = False
+            generate.git_commit_push(log_func=self.logged.emit)
+        except Exception as e:
+            self.logged.emit(f"Error: {e}")
+            ok = False
+        self.finished.emit(ok)
+
+
 def main_gui():
     app = QtWidgets.QApplication(sys.argv)
     w = QtWidgets.QWidget()
-    w.setWindowTitle("Git Setup")
+    w.setWindowTitle("Setup")
     w.setMinimumSize(700, 600)
     layout = QtWidgets.QVBoxLayout(w)
     layout.setContentsMargins(0, 0, 0, 0)

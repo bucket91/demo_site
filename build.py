@@ -7,10 +7,10 @@ both Linux and Windows executables automatically and upload them as
 build artifacts.
 
 Usage:
-  python build.py          # builds for current OS, bundling python-docx + MinGit (Windows only)
+  python build.py          # builds for current OS, bundling everything
   python build.py --clean  # removes old build artifacts
 """
-import os, sys, platform, subprocess, shutil, argparse, urllib.request, zipfile
+import os, sys, platform, subprocess, shutil, argparse, tarfile, urllib.request, zipfile, stat
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 IS_WINDOWS = platform.system() == "Windows"
@@ -19,9 +19,14 @@ VENV_DIR = os.path.join(SITE_DIR, "build_venv")
 BIN_DIR = "Scripts" if IS_WINDOWS else "bin"
 PYINSTALLER = os.path.join(VENV_DIR, BIN_DIR, "pyinstaller")
 PIP = os.path.join(VENV_DIR, BIN_DIR, "pip")
+
 MINGIT_URL = "https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/MinGit-2.48.1-64-bit.zip"
 MINGIT_ZIP = os.path.join(SITE_DIR, "mingit.zip")
 MINGIT_DIR = os.path.join(SITE_DIR, "mingit")
+
+LINUX_GIT_URL = "https://github.com/darkvertex/static-git/releases/latest/download/git-binaries.linux-64bit.tar.gz"
+LINUX_GIT_TGZ = os.path.join(SITE_DIR, "git-linux.tar.gz")
+LINUX_GIT_DIR = os.path.join(SITE_DIR, "bundled-git")
 
 
 def clean():
@@ -33,7 +38,7 @@ def clean():
         p = os.path.join(SITE_DIR, f)
         if os.path.exists(p):
             os.remove(p)
-    for p in [MINGIT_ZIP, MINGIT_DIR]:
+    for p in [MINGIT_ZIP, MINGIT_DIR, LINUX_GIT_TGZ, LINUX_GIT_DIR]:
         if os.path.exists(p):
             os.remove(p) if os.path.isfile(p) else shutil.rmtree(p)
     if os.path.exists(VENV_DIR):
@@ -61,6 +66,30 @@ def download_mingit():
     print(f"MinGit extracted to {MINGIT_DIR}")
 
 
+def download_linux_git():
+    if os.path.exists(LINUX_GIT_DIR):
+        return
+    print("Downloading static git for Linux bundling...")
+    urllib.request.urlretrieve(LINUX_GIT_URL, LINUX_GIT_TGZ)
+    os.makedirs(LINUX_GIT_DIR, exist_ok=True)
+    with tarfile.open(LINUX_GIT_TGZ, "r:gz") as t:
+        for member in t.getmembers():
+            name = member.name
+            if name.startswith("git-binaries/") and not name.endswith("/"):
+                rel = os.path.relpath(name, "git-binaries")
+                t.extract(member, LINUX_GIT_DIR)
+                src = os.path.join(LINUX_GIT_DIR, name)
+                dst = os.path.join(LINUX_GIT_DIR, rel)
+                if src != dst:
+                    os.makedirs(os.path.dirname(dst), exist_ok=True)
+                    shutil.move(src, dst)
+                st = os.stat(dst)
+                os.chmod(dst, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+        shutil.rmtree(os.path.join(LINUX_GIT_DIR, "git-binaries"), ignore_errors=True)
+    os.remove(LINUX_GIT_TGZ)
+    print(f"Static git extracted to {LINUX_GIT_DIR}")
+
+
 def build():
     os.chdir(SITE_DIR)
     dist_dir = os.path.join(SITE_DIR, "dist")
@@ -83,6 +112,9 @@ def build():
     if IS_WINDOWS:
         download_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
+    else:
+        download_linux_git()
+        cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])
 
     print("Running PyInstaller...")
     subprocess.run(cmd, check=True)
@@ -90,8 +122,8 @@ def build():
     src = os.path.join(dist_dir, EXE_NAME)
     dst = os.path.join(SITE_DIR, EXE_NAME)
     shutil.copy2(src, dst)
-    # Clean up mingit after build
-    for p in [MINGIT_DIR, os.path.join(SITE_DIR, "mingit.zip")]:
+    # Clean up git bundle after build
+    for p in [MINGIT_DIR, MINGIT_ZIP, LINUX_GIT_DIR, LINUX_GIT_TGZ]:
         if os.path.exists(p):
             os.remove(p) if os.path.isfile(p) else shutil.rmtree(p)
     print(f"\nDone! Executable: {dst}")

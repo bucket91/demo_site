@@ -16,33 +16,48 @@ class App(QtWidgets.QMainWindow):
         self.setMinimumSize(900, 700)
 
         tabs = QtWidgets.QTabWidget()
-        tabs.tabBar().setExpanding(True)
+        tabs.setStyleSheet("""
+            QTabWidget::pane {
+                border: none;
+                padding: 0;
+            }
+            QTabBar::tab {
+                padding: 8px 28px;
+                margin: 0 1px;
+                font-size: 13px;
+            }
+        """)
         self.setCentralWidget(tabs)
 
-        import gui
-        tabs.addTab(gui.SiteGeneratorWidget(), "Site Generator")
-
         import admin
-        tabs.addTab(admin.CommentAdminWidget(), "Comment Admin")
+        tabs.addTab(admin.CommentAdminWidget(), "Comments")
 
         import docx2html
-        tabs.addTab(docx2html.DocxToHtmlWidget(), "Docx to HTML")
+        self.docx_widget = docx2html.DocxToHtmlWidget()
+        tabs.addTab(self.docx_widget, "Docx to HTML")
 
         import ref_manager
-        tabs.addTab(ref_manager.RefManagerWidget(), "Reference Manager")
+        self.ref_mgr = ref_manager.RefManagerWidget()
+        tabs.addTab(self.ref_mgr, "Management")
 
         import theme_customizer
-        tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme Customizer")
+        tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme")
 
         import docs
-        tabs.addTab(docs.DocsWidget(), "Documentation")
-
-        import setup_git
-        tabs.addTab(setup_git.SetupGitWidget(), "Git Setup")
+        tabs.addTab(docs.DocsWidget(), "README")
 
         import owner_tab
         tabs.addTab(owner_tab.OwnerWidget(), "Owner")
 
+        import setup_git
+        tabs.addTab(setup_git.SetupGitWidget(), "Setup")
+
+        self.docx_widget.navigate_to_management.connect(
+            lambda path: self._go_to_management(path, tabs))
+
+    def _go_to_management(self, path, tabs):
+        self.ref_mgr.set_file_path(path)
+        tabs.setCurrentIndex(tabs.indexOf(self.ref_mgr))
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

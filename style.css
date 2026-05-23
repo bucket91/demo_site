@@ -187,53 +187,6 @@ main {
   transition: background 0.3s;
 }
 
-.home-owner {
-  text-align: center;
-  padding: 2rem 1rem 0.5rem;
-}
-.home-owner-avatar {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  object-fit: cover;
-  border: 3px solid #586069;
-  margin-bottom: 0.5rem;
-}
-.home-owner-name {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: var(--text);
-}
-.home-owner-title {
-  font-size: 1rem;
-  color: var(--accent);
-  margin-top: 0.15rem;
-}
-.home-owner-bio {
-  font-size: 0.9rem;
-  color: var(--muted);
-  margin-top: 0.2rem;
-}
-.home-owner-contacts {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.6rem 1rem;
-  margin-top: 0.6rem;
-}
-.owner-contact-link {
-  color: var(--accent);
-  font-size: 0.85rem;
-  text-decoration: none;
-  padding: 0.2rem 0.4rem;
-  border-radius: 4px;
-  transition: background 0.2s;
-}
-.owner-contact-link:hover {
-  background: var(--card-border);
-  text-decoration: underline;
-}
-
 .home-hero {
   text-align: center;
   padding: 1rem 1rem 1.5rem;
@@ -278,6 +231,57 @@ main {
 }
 .home-card a:hover {
   color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.owner-card {
+  text-align: center;
+}
+.owner-card-avatar {
+  width: 100%;
+  max-width: 120px;
+  aspect-ratio: 1 / 1;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--accent);
+  margin-bottom: 0.75rem;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.owner-card-name {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--label);
+  margin-bottom: 0.2rem;
+}
+.owner-card-title {
+  font-size: 0.9rem;
+  color: var(--accent);
+  margin-bottom: 0.3rem;
+}
+.owner-card-bio {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 0.5rem;
+}
+.owner-card-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 0.6rem;
+}
+.owner-card-link {
+  color: var(--accent);
+  font-size: 0.8rem;
+  text-decoration: none;
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--card-border);
+  transition: background 0.2s;
+}
+.owner-card-link:hover {
+  background: var(--card-border);
   text-decoration: underline;
 }
 

@@ -1,13 +1,17 @@
-"""Bundled git helper — uses system git on Linux, bundled MinGit on Windows."""
+"""Bundled git helper — finds bundled git first, falls back to system git."""
 import os, sys, subprocess
 
 
 def get_git_path():
-    if getattr(sys, 'frozen', False) and sys.platform == "win32":
+    if getattr(sys, 'frozen', False):
         meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(sys.argv[0]))
-        candidate = os.path.join(meipass, "mingit", "bin", "git.exe")
-        if os.path.exists(candidate):
-            return candidate
+        candidates = [
+            os.path.join(meipass, "bundled-git", "git"),
+            os.path.join(meipass, "mingit", "bin", "git.exe"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                return c
     return "git"
 
 

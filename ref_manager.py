@@ -16,6 +16,77 @@ def scan_categories():
                 cats.append(item)
     return cats
 
+def parse_entries():
+    """Return list of (category, name, file_path) from the reference file."""
+    if not os.path.exists(REF_FILE):
+        return []
+    entries = []
+    current_cat = None
+    entry_pattern = re.compile(r'\{Name:"([^"]*)"\s*File:\s*"([^"]*)"\}')
+    with open(REF_FILE) as f:
+        for line in f:
+            line = line.rstrip()
+            m = re.match(r'^\t(\w+)', line)
+            if m:
+                current_cat = m.group(1)
+            entry_m = entry_pattern.search(line)
+            if entry_m and current_cat:
+                entries.append((current_cat, entry_m.group(1), entry_m.group(2)))
+            elif '{Name:' in line and current_cat:
+                name_m = re.search(r'\{Name:"([^"]*)"', line)
+                if name_m:
+                    file_m = re.search(r'File:\s*"([^"]*)"', line)
+                    entries.append((current_cat, name_m.group(1), file_m.group(1) if file_m else ''))
+    return entries
+
+
+def delete_entry(category, display_name):
+    """Remove a specific entry from the reference file by category + name."""
+    if not os.path.exists(REF_FILE):
+        return False
+    with open(REF_FILE) as f:
+        lines = f.readlines()
+
+    cat_header = '\t' + category
+    new_lines = []
+    i = 0
+    in_target_cat = False
+    while i < len(lines):
+        line = lines[i]
+        stripped = line.rstrip()
+        if stripped == cat_header:
+            in_target_cat = True
+            new_lines.append(line)
+            i += 1
+            continue
+        if in_target_cat:
+            if stripped.startswith('\t') and not stripped.startswith('\t\t'):
+                in_target_cat = False
+                new_lines.append(line)
+                i += 1
+                continue
+            if stripped.startswith('\t\t'):
+                name_m = re.search(r'\{Name:"([^"]*)"', stripped)
+                if name_m and name_m.group(1) == display_name:
+                    entry_lines = []
+                    while i < len(lines) and lines[i].strip():
+                        entry_lines.append(lines[i])
+                        i += 1
+                    while i < len(lines) and not lines[i].strip():
+                        i += 1
+                    continue
+        new_lines.append(line)
+        i += 1
+
+    content = ''.join(new_lines).strip()
+    if content:
+        with open(REF_FILE, 'w') as f:
+            f.write(content + '\n')
+    else:
+        os.remove(REF_FILE)
+    return True
+
+
 def add_ref_entry(category, display_name, file_path):
     rel_path = '/' + os.path.relpath(file_path, SITE_DIR).replace('\\', '/')
     entry_block = f'\n\t\t{{Name:"{display_name}"\n\t\t File: "{rel_path}"}}'
@@ -80,10 +151,12 @@ class RefManagerWidget(QtWidgets.QWidget):
             QPushButton:disabled { background: #333; color: #666; }
             QPushButton.primary { background: #1a6b3c; }
             QPushButton.primary:hover { background: #218c4e; }
-            QTextEdit {
+            QTextEdit, QListWidget {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
                 border-radius: 6px; padding: 6px; font-size: 13px;
             }
+            QListWidget::item:selected { background: #555; }
+            QListWidget::item:hover { background: #3a3a3a; }
         """)
 
         layout = QtWidgets.QVBoxLayout(self)
@@ -133,21 +206,14 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         layout.addStretch()
 
-        # --- Current reference content preview ---
-        preview_label = QtWidgets.QLabel("Current reference entries:")
-        preview_label.setProperty("class", "heading")
-        layout.addWidget(preview_label)
+        # --- Current entries (selectable list) ---
+        entries_label = QtWidgets.QLabel("Current reference entries:")
+        entries_label.setProperty("class", "heading")
+        layout.addWidget(entries_label)
 
-        self.preview = QtWidgets.QTextEdit()
-        self.preview.setReadOnly(True)
-        self.preview.setMaximumHeight(180)
-        layout.addWidget(self.preview)
-        self.refresh_preview()
-
-        # --- Status ---
-        self.status = QtWidgets.QLabel("")
-        self.status.setProperty("class", "dim")
-        layout.addWidget(self.status)
+        self.entry_list = QtWidgets.QListWidget()
+        self.entry_list.setMaximumHeight(200)
+        layout.addWidget(self.entry_list)
 
         # --- Buttons ---
         btn_row = QtWidgets.QHBoxLayout()
@@ -157,10 +223,25 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.add_btn.clicked.connect(self.add_entry)
         btn_row.addWidget(self.add_btn)
 
+        self.delete_btn = QtWidgets.QPushButton("Delete Selected")
+        self.delete_btn.setMinimumHeight(40)
+        self.delete_btn.clicked.connect(self.delete_selected)
+        btn_row.addWidget(self.delete_btn)
+
         refresh_btn = QtWidgets.QPushButton("Refresh")
         refresh_btn.clicked.connect(self.refresh_all)
         btn_row.addWidget(refresh_btn)
         layout.addLayout(btn_row)
+
+        # --- Status ---
+        self.status = QtWidgets.QLabel("")
+        self.status.setProperty("class", "dim")
+        layout.addWidget(self.status)
+
+    def set_file_path(self, path):
+        self.path_input.setText(path)
+        basename = os.path.splitext(os.path.basename(path))[0]
+        self.name_input.setText(basename)
 
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -177,16 +258,40 @@ class RefManagerWidget(QtWidgets.QWidget):
         if idx >= 0:
             self.cat_combo.setCurrentIndex(idx)
 
-    def refresh_preview(self):
-        if os.path.exists(REF_FILE):
-            with open(REF_FILE) as f:
-                self.preview.setPlainText(f.read())
+    def refresh_entries(self):
+        self.entry_list.clear()
+        for cat, name, path in parse_entries():
+            item = QtWidgets.QListWidgetItem(f"{cat} / {name}")
+            item.setData(QtCore.Qt.UserRole, (cat, name))
+            self.entry_list.addItem(item)
+
+    @QtCore.pyqtSlot()
+    def delete_selected(self):
+        item = self.entry_list.currentItem()
+        if not item:
+            self.status.setText("Select an entry to delete")
+            return
+        cat, name = item.data(QtCore.Qt.UserRole)
+        reply = QtWidgets.QMessageBox.question(
+            self, "Delete entry",
+            f"Remove '{name}' from '{cat}'?",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        if delete_entry(cat, name):
+            self.status.setText(f"Deleted '{name}'. Regenerating...")
+            QtWidgets.QApplication.processEvents()
+            import generate
+            output = generate.run_generate_captured()
+            self.status.setText(output)
+            self.refresh_all()
         else:
-            self.preview.setPlainText("(no reference file yet)")
+            self.status.setText("Failed to delete entry")
 
     def refresh_all(self):
         self.refresh_categories()
-        self.refresh_preview()
+        self.refresh_entries()
         self.status.setText("Refreshed")
 
     def add_entry(self):

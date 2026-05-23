@@ -96,6 +96,8 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
         self.save_standalone.clicked.connect(self.save_as)
         self.save_to_site.clicked.connect(self.add_to_site)
 
+    navigate_to_management = QtCore.pyqtSignal(str)
+
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select .docx", "", "Word Documents (*.docx)")
         if p:
@@ -169,14 +171,8 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
         title_input = QtWidgets.QLineEdit(self.current_title)
         dl.addWidget(title_input)
 
-        name_label = QtWidgets.QLabel("Sidebar name:")
-        name_label.setProperty("class", "dim")
-        dl.addWidget(name_label)
-        name_input = QtWidgets.QLineEdit(self.current_title)
-        dl.addWidget(name_input)
-
         btns = QtWidgets.QHBoxLayout()
-        ok = QtWidgets.QPushButton("Add & Generate")
+        ok = QtWidgets.QPushButton("Save & Go to Management")
         cancel = QtWidgets.QPushButton("Cancel")
         cancel.clicked.connect(dlg.reject)
         btns.addWidget(ok)
@@ -186,7 +182,6 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
         def do_add():
             cat = cat_input.text().strip()
             title = title_input.text().strip()
-            name = name_input.text().strip()
             if not cat or not title:
                 return
             target_dir = os.path.join(SITE_DIR, cat)
@@ -221,25 +216,8 @@ class DocxToHtmlWidget(QtWidgets.QWidget):
 </html>"""
             with open(fpath, 'w') as f:
                 f.write(full)
-            # add to reference.txt
-            ref_file = os.path.join(SITE_DIR, "template reference.txt")
-            if os.path.exists(ref_file):
-                with open(ref_file) as f:
-                    ref = f.read()
-                cat_header = '\t' + cat.capitalize()
-                entry = f'\n\t\t{{Name:"{name}"\n\t\t File: "/{cat}/{fname}"}}'
-                if cat_header in ref:
-                    ref = ref.replace(cat_header, cat_header + entry)
-                else:
-                    ref += f'\n\t{cat.capitalize()}{entry}\n'
-                with open(ref_file, 'w') as f:
-                    f.write(ref)
             dlg.accept()
-            self.status_label.setText(f"Added: {fpath}. Running generate...")
-            QtWidgets.QApplication.processEvents()
-            import generate
-            output = generate.run_generate_captured()
-            self.status_label.setText(output)
+            self.navigate_to_management.emit(fpath)
 
         ok.clicked.connect(do_add)
         dlg.exec_()
