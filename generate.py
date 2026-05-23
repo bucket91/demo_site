@@ -19,6 +19,8 @@ def load_config():
         "owner_name": "",
         "owner_bio": "",
         "owner_avatar": "",
+        "owner_title": "",
+        "owner_contacts": [],
         "site_title": "Placeholder",
     }
     if os.path.exists(CONFIG_FILE):
@@ -79,12 +81,15 @@ def generate_sidebar(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
     owner_avatar = CONFIG.get("owner_avatar", "")
+    owner_title = CONFIG.get("owner_title", "")
     html = ''
     if owner_name:
         html += '      <div class="sidebar-owner">\n'
         if owner_avatar:
             html += f'        <img src="{owner_avatar}" alt="{owner_name}" class="owner-avatar">\n'
         html += f'        <div class="owner-name">{owner_name}</div>\n'
+        if owner_title:
+            html += f'        <div class="owner-title">{owner_title}</div>\n'
         if owner_bio:
             html += f'        <div class="owner-bio">{owner_bio}</div>\n'
         html += '      </div>\n'
@@ -220,13 +225,22 @@ def make_homepage_content(categories):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
     owner_avatar = CONFIG.get("owner_avatar", "")
+    owner_title = CONFIG.get("owner_title", "")
+    owner_contacts = CONFIG.get("owner_contacts", [])
     html = '<div class="home-owner">\n'
     if owner_avatar:
         html += f'  <img src="{owner_avatar}" alt="{owner_name}" class="home-owner-avatar">\n'
     if owner_name:
         html += f'  <div class="home-owner-name">{owner_name}</div>\n'
+    if owner_title:
+        html += f'  <div class="home-owner-title">{owner_title}</div>\n'
     if owner_bio:
         html += f'  <div class="home-owner-bio">{owner_bio}</div>\n'
+    if owner_contacts:
+        html += '  <div class="home-owner-contacts">\n'
+        for c in owner_contacts:
+            html += f'    <a href="{c["url"]}" class="owner-contact-link">{c["label"]}</a>\n'
+        html += '  </div>\n'
     html += '</div>\n'
     html += '''<div class="home-hero">
   <h1>Welcome</h1>

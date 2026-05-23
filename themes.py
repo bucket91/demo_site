@@ -118,6 +118,11 @@ main {
   color: $sidebar_text;
   margin-bottom: 0.25rem;
 }
+.owner-title {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
 .owner-bio {
   font-size: 0.8rem;
   color: $link_muted;
@@ -202,10 +207,34 @@ main {
   font-weight: 700;
   color: var(--text);
 }
+.home-owner-title {
+  font-size: 1rem;
+  color: var(--accent);
+  margin-top: 0.15rem;
+}
 .home-owner-bio {
   font-size: 0.9rem;
   color: var(--muted);
   margin-top: 0.2rem;
+}
+.home-owner-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1rem;
+  margin-top: 0.6rem;
+}
+.owner-contact-link {
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.owner-contact-link:hover {
+  background: var(--card-border);
+  text-decoration: underline;
 }
 
 .home-hero {

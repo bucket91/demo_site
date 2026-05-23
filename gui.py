@@ -141,6 +141,32 @@ class SiteGeneratorWidget(QtWidgets.QWidget):
         section("Site")
         labeled("Site Title", "site_title")
 
+        section("Owner")
+        labeled("Name", "owner_name")
+        labeled("Title", "owner_title")
+        labeled("Bio", "owner_bio")
+        labeled("Avatar URL", "owner_avatar")
+
+        def contacts_field(label, key):
+            f = QtWidgets.QWidget()
+            fl = QtWidgets.QVBoxLayout(f)
+            fl.setContentsMargins(0, 6, 0, 0)
+            fl.setSpacing(2)
+            lbl = QtWidgets.QLabel(label)
+            lbl.setStyleSheet("color: #999; font-size: 11px;")
+            fl.addWidget(lbl)
+            txt = QtWidgets.QTextEdit()
+            txt.setMaximumHeight(100)
+            val = self.cfg.get(key, [])
+            if isinstance(val, list):
+                txt.setPlainText('\n'.join(f"{c['label']} | {c['url']}" for c in val))
+            txt.setStyleSheet("font-size: 12px;")
+            fl.addWidget(txt)
+            body_layout.addWidget(f)
+            self.fields[key] = txt
+
+        contacts_field("Contacts (one per line:  label | url)", "owner_contacts")
+
         section("GitHub")
         labeled("Remote URL", "git_remote_url")
         labeled("Git User Name", "git_user_name")
@@ -188,6 +214,15 @@ class SiteGeneratorWidget(QtWidgets.QWidget):
                 new[k] = v.text()
             elif isinstance(v, QtWidgets.QCheckBox):
                 new[k] = v.isChecked()
+            elif isinstance(v, QtWidgets.QTextEdit):
+                text = v.toPlainText().strip()
+                contacts = []
+                for line in text.split('\n'):
+                    line = line.strip()
+                    if '|' in line:
+                        parts = line.split('|', 1)
+                        contacts.append({"label": parts[0].strip(), "url": parts[1].strip()})
+                new[k] = contacts
         save(new)
 
         self.log.clear()
