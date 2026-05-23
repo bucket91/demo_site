@@ -1,31 +1,31 @@
 
 :root {
-  --body-bg: #f8f0fc;
-  --text: #282a36;
-  --hero-bg: #f0e6f6;
+  --body-bg: #f5f5e8;
+  --text: #272822;
+  --hero-bg: #efefe0;
   --card-bg: #ffffff;
-  --card-border: #d8c8e8;
+  --card-border: #d8d8c8;
   --input-bg: #ffffff;
-  --input-border: #c8a8d8;
-  --label: #282a36;
-  --muted: #7a6a8a;
-  --accent: #8a5ab5;
-  --accent-hover: #6a3a95;
-  --accent-text: #ffffff;
+  --input-border: #c8c8b8;
+  --label: #272822;
+  --muted: #7a7a6a;
+  --accent: #a6a61a;
+  --accent-hover: #88880e;
+  --accent-text: #272822;
 }
 body.dark-mode {
-  --body-bg: #1e1e2e;
-  --text: #e0d6f0;
-  --hero-bg: #282a36;
-  --card-bg: #32304a;
-  --card-border: #44405a;
-  --input-bg: #282a36;
-  --input-border: #44405a;
-  --label: #e0d6f0;
-  --muted: #7a6a8a;
-  --accent: #bd93f9;
-  --accent-hover: #d4b0ff;
-  --accent-text: #282a36;
+  --body-bg: #1e1f1c;
+  --text: #f8f8f2;
+  --hero-bg: #272822;
+  --card-bg: #3e3f3a;
+  --card-border: #4e4f48;
+  --input-bg: #272822;
+  --input-border: #4e4f48;
+  --label: #f8f8f2;
+  --muted: #7a7a6a;
+  --accent: #a6e22e;
+  --accent-hover: #c0f050;
+  --accent-text: #272822;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,8 +41,8 @@ body {
 }
 
 header {
-  background: #32304a;
-  color: #f8f0fc;
+  background: #272822;
+  color: #f8f8f2;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -62,8 +62,8 @@ header h1 a {
 
 .theme-toggle {
   background: none;
-  border: 1px solid #7a6a9a;
-  color: #f8f0fc;
+  border: 1px solid #6a6a5a;
+  color: #f8f8f2;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.6rem;
@@ -82,8 +82,8 @@ main {
 
 .sidebar {
   width: 250px;
-  background: #32304a;
-  color: #f8f0fc;
+  background: #3e3f3a;
+  color: #f8f8f2;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -99,7 +99,7 @@ main {
 .sidebar-owner {
   padding: 1.25rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #4a4a62;
+  border-bottom: 1px solid #4e4f48;
 }
 .owner-avatar {
   width: 60px;
@@ -107,12 +107,12 @@ main {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.6rem;
-  border: 2px solid #7a6a9a;
+  border: 2px solid #6a6a5a;
 }
 .owner-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #f8f0fc;
+  color: #f8f8f2;
   margin-bottom: 0.25rem;
 }
 .owner-title {
@@ -122,7 +122,7 @@ main {
 }
 .owner-bio {
   font-size: 0.8rem;
-  color: #b8a8d0;
+  color: #a8a892;
 }
 .sidebar.open { transform: translateX(0); }
 
@@ -131,23 +131,23 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #4a4a62;
+  border-bottom: 1px solid #4e4f48;
 }
 .sidebar-top h2 { font-size: 1.2rem; }
 
-.category { border-bottom: 1px solid #4a4a62; }
+.category { border-bottom: 1px solid #4e4f48; }
 .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #f8f0fc;
+  color: #f8f8f2;
   font-weight: 600;
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover { background: #4a4a62; }
+.category-header:hover { background: #4e4f48; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
@@ -162,17 +162,17 @@ main {
 .sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
-  color: #b8a8d0;
+  color: #a8a892;
   text-decoration: none;
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover { background: #4a4a62; color: #ffffff; }
+.sub-links li a:hover { background: #4e4f48; color: #ffffff; }
 
 .sidebar-toggle, .close-btn {
   background: none;
   border: none;
-  color: #f8f0fc;
+  color: #f8f8f2;
   font-size: 1.5rem;
   cursor: pointer;
 }
@@ -196,7 +196,7 @@ main {
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #7a6a9a;
+  border: 3px solid #6a6a5a;
   margin-bottom: 0.5rem;
 }
 .home-owner-name {
@@ -290,8 +290,8 @@ main {
 .home-demo a { color: var(--accent); }
 
 footer {
-  background: #32304a;
-  color: #f8f0fc;
+  background: #272822;
+  color: #f8f8f2;
   text-align: center;
   padding: 1rem;
 }
