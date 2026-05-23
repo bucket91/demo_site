@@ -32,6 +32,12 @@ class App(QtWidgets.QMainWindow):
         import docx2html
         tabs.addTab(docx2html.DocxToHtmlWidget(), "Docx to HTML")
 
+        import ref_manager
+        tabs.addTab(ref_manager.RefManagerWidget(), "Reference Manager")
+
+        import theme_customizer
+        tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme Customizer")
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
