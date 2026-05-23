@@ -53,7 +53,7 @@ def parse_ref_names():
 def scan_categories():
     ref_names = parse_ref_names()
     categories = []
-    skip = {'.git', '__pycache__', 'node_modules'}
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
     for item in sorted(os.listdir(SITE_DIR)):
         dirpath = os.path.join(SITE_DIR, item)
         if not os.path.isdir(dirpath) or item in skip:
@@ -362,9 +362,13 @@ def generate_all(log_func=print):
 
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
-    skip = {os.path.basename(TEMPLATE_FILE)}
+    skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
+    skip_base = {os.path.basename(TEMPLATE_FILE)}
     for fp in sorted(html_files):
-        if os.path.basename(fp) in skip:
+        rel = os.path.relpath(fp, SITE_DIR)
+        if any(part in skip_dirs for part in rel.split(os.sep)):
+            continue
+        if os.path.basename(fp) in skip_base:
             continue
         if build_page(fp, categories):
             rel = os.path.relpath(fp, SITE_DIR)

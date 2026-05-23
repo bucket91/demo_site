@@ -6,7 +6,7 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 
 def scan_categories():
-    skip = {'.git', '__pycache__', 'node_modules'}
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
     cats = []
     for item in sorted(os.listdir(SITE_DIR)):
         d = os.path.join(SITE_DIR, item)

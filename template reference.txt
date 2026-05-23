@@ -1,4 +1,4 @@
-	Blog
+Blog
 		{Name:"demo"
 		 File: "/blog/file-sample-1mb.html"}
 		{Name:"Post1"

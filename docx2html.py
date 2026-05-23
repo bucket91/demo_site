@@ -10,24 +10,130 @@ def convert_docx(path):
     except ImportError:
         return None, "python-docx not available — rebuild with 'pip install python-docx' first"
     try:
+        from lxml import etree
         doc = Document(path)
-        out = []
-        for p in doc.paragraphs:
-            style = p.style.name.lower() if p.style else ''
-            text = p.text.strip()
-            if not text:
-                continue
-            text_esc = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-            if 'heading 1' in style:
-                out.append('<h1>' + text_esc + '</h1>')
-            elif 'heading 2' in style:
-                out.append('<h2>' + text_esc + '</h2>')
-            elif 'heading 3' in style:
-                out.append('<h3>' + text_esc + '</h3>')
-            elif 'list' in style:
-                out.append('<li>' + text_esc + '</li>')
+        nsmap = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main',
+                 'r': 'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+                 'wp': 'http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing',
+                 'a': 'http://schemas.openxmlformats.org/drawingml/2006/main',
+                 'pic': 'http://schemas.openxmlformats.org/drawingml/2006/picture'}
+
+        def esc(t):
+            return t.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;') if t else ''
+
+        def run_to_html(run_elem):
+            parts = []
+            has_drawing = run_elem.find('.//w:drawing', nsmap) is not None
+            if has_drawing:
+                img = run_to_img(run_elem)
+                if img:
+                    parts.append(img)
+            texts = run_elem.findall('.//w:t', nsmap)
+            text = ''.join(t.text or '' for t in texts)
+            if text:
+                inner = esc(text)
+                if run_elem.find('.//w:b', nsmap) is not None:
+                    inner = f'<strong>{inner}</strong>'
+                if run_elem.find('.//w:i', nsmap) is not None:
+                    inner = f'<em>{inner}</em>'
+                if run_elem.find('.//w:u', nsmap) is not None:
+                    inner = f'<u>{inner}</u>'
+                parts.append(inner)
+            return ''.join(parts)
+
+        def run_to_img(run_elem):
+            blip = run_elem.find('.//{http://schemas.openxmlformats.org/drawingml/2006/main}blip')
+            if blip is not None:
+                embed = blip.get('{http://schemas.openxmlformats.org/officeDocument/2006/relationships}embed')
+                if embed and embed in self_images:
+                    rel = self_images[embed]
+                    img_data = rel.target_part.blob
+                    ext = os.path.splitext(rel.target_ref)[1] or '.png'
+                    b64 = base64.b64encode(img_data).decode()
+                    return f'<img src="data:image/{ext.lstrip(".")};base64,{b64}" style="max-width:100%">'
+            return ''
+
+        def para_to_html(para_elem):
+            pPr = para_elem.find('w:pPr', nsmap)
+            style_name = ''
+            numPr = None
+            if pPr is not None:
+                style_el = pPr.find('w:pStyle', nsmap)
+                if style_el is not None:
+                    style_name = (style_el.get('{http://schemas.openxmlformats.org/wordprocessingml/2006/main}val') or '').lower()
+                numPr = pPr.find('w:numPr', nsmap)
+
+            inner = ''.join(run_to_html(r) for r in para_elem.findall('w:r', nsmap))
+            inner = inner.strip()
+            if not inner:
+                return ''
+
+            is_list = numPr is not None or 'list' in style_name
+            if 'heading 1' in style_name:
+                return f'<h1>{inner}</h1>'
+            elif 'heading 2' in style_name:
+                return f'<h2>{inner}</h2>'
+            elif 'heading 3' in style_name:
+                return f'<h3>{inner}</h3>'
+            elif 'heading 4' in style_name:
+                return f'<h4>{inner}</h4>'
+            elif 'heading 5' in style_name:
+                return f'<h5>{inner}</h5>'
+            elif 'heading 6' in style_name:
+                return f'<h6>{inner}</h6>'
+            elif is_list:
+                return f'<li>{inner}</li>'
+            elif 'code' in style_name:
+                return f'<pre><code>{inner}</code></pre>'
+            elif 'quote' in style_name or 'block text' in style_name:
+                return f'<blockquote>{inner}</blockquote>'
             else:
-                out.append('<p>' + text_esc + '</p>')
+                return f'<p>{inner}</p>'
+
+        def table_to_html(table_elem):
+            rows = table_elem.findall('.//w:tr', nsmap)
+            if not rows:
+                return ''
+            html = '<table>\n'
+            for row in rows:
+                html += '  <tr>\n'
+                cells = row.findall('w:tc', nsmap)
+                for cell in cells:
+                    cell_html = ''
+                    for p in cell.findall('w:p', nsmap):
+                        cell_html += para_to_html(p)
+                    html += f'    <td>{cell_html}</td>\n'
+                html += '  </tr>\n'
+            html += '</table>'
+            return html
+
+        def extract_images():
+            images = {}
+            for rel_id, rel in doc.part.rels.items():
+                if "image" in rel.reltype:
+                    images[rel_id] = rel
+            return images
+
+        self_images = extract_images()
+        import base64
+
+        body = doc.element.body
+        out = []
+        for child in body:
+            tag = etree.QName(child).localname
+            if tag == 'p':
+                h = para_to_html(child)
+                if h:
+                    out.append(h)
+            elif tag == 'tbl':
+                h = table_to_html(child)
+                if h:
+                    out.append(h)
+            elif tag == 'sectPr':
+                continue
+            elif tag == 'bookmarkStart':
+                continue
+
         html_body = '<div class="doc-content">\n' + '\n'.join(out) + '\n</div>'
         title = os.path.splitext(os.path.basename(path))[0]
         return {'ok': True, 'html': html_body, 'title': title}, None
