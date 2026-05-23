@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Git setup widget for Site Tools."""
-import os, sys, subprocess, json
+import os, sys, json
 from PyQt5 import QtWidgets, QtCore
+from git_util import is_git_available as _git_available, git_run as _git_run
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
@@ -30,15 +31,11 @@ def save_git_config(url, name, email, msg, auto_push):
 
 
 def is_git_installed():
-    try:
-        subprocess.run(["git", "--version"], capture_output=True)
-        return True
-    except FileNotFoundError:
-        return False
+    return _git_available()
 
 
 def is_git_repo():
-    r = subprocess.run(["git", "rev-parse", "--git-dir"], cwd=SITE_DIR, capture_output=True)
+    r = _git_run(["rev-parse", "--git-dir"], cwd=SITE_DIR, capture_output=True)
     return r.returncode == 0
 
 
@@ -49,19 +46,19 @@ def get_git_status():
     if not is_git_repo():
         lines.append("Not a git repository")
         return lines
-    r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
+    r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
     if r.returncode == 0:
         lines.append(f"Remote: {r.stdout.strip()}")
     else:
         lines.append("Remote: not set")
-    r = subprocess.run(["git", "config", "user.name"], cwd=SITE_DIR, capture_output=True, text=True)
+    r = _git_run(["config", "user.name"], cwd=SITE_DIR, capture_output=True, text=True)
     lines.append(f"User: {r.stdout.strip() or 'not set'}")
-    r = subprocess.run(["git", "config", "user.email"], cwd=SITE_DIR, capture_output=True, text=True)
+    r = _git_run(["config", "user.email"], cwd=SITE_DIR, capture_output=True, text=True)
     lines.append(f"Email: {r.stdout.strip() or 'not set'}")
-    r = subprocess.run(["git", "rev-list", "--count", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
+    r = _git_run(["rev-list", "--count", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
     n = r.stdout.strip()
     lines.append(f"Commits: {n}" if n.isdigit() else "Commits: 0 (no commits yet)")
-    r = subprocess.run(["git", "status", "--short"], cwd=SITE_DIR, capture_output=True, text=True)
+    r = _git_run(["status", "--short"], cwd=SITE_DIR, capture_output=True, text=True)
     untracked = len([l for l in r.stdout.strip().split('\n') if l.strip()])
     lines.append(f"Uncommitted files: {untracked}")
     return lines
@@ -204,15 +201,14 @@ class SetupGitWidget(QtWidgets.QWidget):
         QtWidgets.QApplication.processEvents()
 
     def run_git(self, args, check=False):
-        try:
-            r = subprocess.run(["git"] + args, cwd=SITE_DIR, capture_output=True, text=True)
-            out = r.stdout.strip() or r.stderr.strip()
-            if out:
-                self.log_msg(f"$ git {' '.join(args)}\n{out}")
-            return r
-        except FileNotFoundError:
+        r = _git_run(args, cwd=SITE_DIR, capture_output=True, text=True)
+        if r is None:
             self.log_msg("ERROR: git not found on PATH")
             return None
+        out = r.stdout.strip() or r.stderr.strip()
+        if out:
+            self.log_msg(f"$ git {' '.join(args)}\n{out}")
+        return r
 
     def save_config_fields(self):
         save_git_config(

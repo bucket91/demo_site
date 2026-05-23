@@ -7,10 +7,10 @@ both Linux and Windows executables automatically and upload them as
 build artifacts.
 
 Usage:
-  python build.py          # builds for current OS
+  python build.py          # builds for current OS, bundling python-docx + MinGit (Windows only)
   python build.py --clean  # removes old build artifacts
 """
-import os, sys, platform, subprocess, shutil, argparse
+import os, sys, platform, subprocess, shutil, argparse, urllib.request, zipfile
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 IS_WINDOWS = platform.system() == "Windows"
@@ -19,7 +19,9 @@ VENV_DIR = os.path.join(SITE_DIR, "build_venv")
 BIN_DIR = "Scripts" if IS_WINDOWS else "bin"
 PYINSTALLER = os.path.join(VENV_DIR, BIN_DIR, "pyinstaller")
 PIP = os.path.join(VENV_DIR, BIN_DIR, "pip")
-PYTHON = os.path.join(VENV_DIR, BIN_DIR, "python" + (".exe" if IS_WINDOWS else ""))
+MINGIT_URL = "https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/MinGit-2.48.1-64-bit.zip"
+MINGIT_ZIP = os.path.join(SITE_DIR, "mingit.zip")
+MINGIT_DIR = os.path.join(SITE_DIR, "mingit")
 
 
 def clean():
@@ -31,6 +33,9 @@ def clean():
         p = os.path.join(SITE_DIR, f)
         if os.path.exists(p):
             os.remove(p)
+    for p in [MINGIT_ZIP, MINGIT_DIR]:
+        if os.path.exists(p):
+            os.remove(p) if os.path.isfile(p) else shutil.rmtree(p)
     if os.path.exists(VENV_DIR):
         shutil.rmtree(VENV_DIR)
     print("Cleaned build artifacts.")
@@ -39,9 +44,21 @@ def clean():
 def setup_venv():
     if os.path.exists(PYINSTALLER):
         return
-    print("Creating build venv and installing PyInstaller + PyQt5...")
+    print("Creating build venv and installing PyInstaller + PyQt5 + python-docx...")
     subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
-    subprocess.run([PIP, "install", "pyinstaller", "PyQt5"], check=True)
+    subprocess.run([PIP, "install", "pyinstaller", "PyQt5", "python-docx"], check=True)
+
+
+def download_mingit():
+    if os.path.exists(MINGIT_DIR):
+        return
+    print("Downloading MinGit for Windows bundling...")
+    urllib.request.urlretrieve(MINGIT_URL, MINGIT_ZIP)
+    os.makedirs(MINGIT_DIR, exist_ok=True)
+    with zipfile.ZipFile(MINGIT_ZIP, "r") as z:
+        z.extractall(MINGIT_DIR)
+    os.remove(MINGIT_ZIP)
+    print(f"MinGit extracted to {MINGIT_DIR}")
 
 
 def build():
@@ -62,13 +79,23 @@ def build():
         "--hidden-import", "PyQt5.QtWidgets",
         "app.py",
     ]
+
+    if IS_WINDOWS:
+        download_mingit()
+        cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
+
     print("Running PyInstaller...")
     subprocess.run(cmd, check=True)
 
     src = os.path.join(dist_dir, EXE_NAME)
     dst = os.path.join(SITE_DIR, EXE_NAME)
     shutil.copy2(src, dst)
+    # Clean up mingit after build
+    for p in [MINGIT_DIR, os.path.join(SITE_DIR, "mingit.zip")]:
+        if os.path.exists(p):
+            os.remove(p) if os.path.isfile(p) else shutil.rmtree(p)
     print(f"\nDone! Executable: {dst}")
+    print(f"Size: {os.path.getsize(dst) / 1024 / 1024:.0f} MB")
     print(f"Place it in your site directory and run{' ./' if not IS_WINDOWS else ' '}{EXE_NAME}")
 
 

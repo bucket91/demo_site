@@ -1,53 +1,38 @@
 #!/usr/bin/env python3
-import os, sys, re, html as html_mod, platform
+import os, sys, re, html as html_mod
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
-if platform.system() == "Windows":
-    VENV_PYTHON = os.path.join(os.environ.get("USERPROFILE", "C:\\"), "docx_venv", "Scripts", "python.exe")
-else:
-    VENV_PYTHON = "/tmp/docx_venv/bin/python3"
 
 def convert_docx(path):
-    if not os.path.exists(VENV_PYTHON):
-        if platform.system() == "Windows":
-            hint = f"python-docx not installed. Run: python -m venv {os.path.join(os.environ.get('USERPROFILE', 'C:\\\\'), 'docx_venv')} && {os.path.join(os.environ.get('USERPROFILE', 'C:\\\\'), 'docx_venv', 'Scripts', 'pip')} install python-docx"
-        else:
-            hint = "python-docx not installed. Run: python3 -m venv /tmp/docx_venv && /tmp/docx_venv/bin/pip install python-docx"
-        return None, hint
-    import subprocess
-    r = subprocess.run([VENV_PYTHON, "-c", """
-import sys, json
-try:
-    from docx import Document
-    doc = Document(sys.argv[1])
-    out = []
-    for p in doc.paragraphs:
-        style = p.style.name.lower() if p.style else ''
-        text = p.text.strip()
-        if not text:
-            continue
-        text_esc = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
-        if 'heading 1' in style:
-            out.append('<h1>' + text_esc + '</h1>')
-        elif 'heading 2' in style:
-            out.append('<h2>' + text_esc + '</h2>')
-        elif 'heading 3' in style:
-            out.append('<h3>' + text_esc + '</h3>')
-        elif 'list' in style:
-            out.append('<li>' + text_esc + '</li>')
-        else:
-            out.append('<p>' + text_esc + '</p>')
-    print(json.dumps({'ok': True, 'html': '<div class=\\"doc-content\\">\\n' + '\\n'.join(out) + '\\n</div>', 'title': os.path.splitext(os.path.basename(sys.argv[1]))[0]}))
-except Exception as e:
-    print(json.dumps({'ok': False, 'error': str(e)}))
-""", path], capture_output=True, text=True)
     try:
-        import json as j
-        result = j.loads(r.stdout.strip())
-        return result, None
+        from docx import Document
+    except ImportError:
+        return None, "python-docx not available — rebuild with 'pip install python-docx' first"
+    try:
+        doc = Document(path)
+        out = []
+        for p in doc.paragraphs:
+            style = p.style.name.lower() if p.style else ''
+            text = p.text.strip()
+            if not text:
+                continue
+            text_esc = text.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;')
+            if 'heading 1' in style:
+                out.append('<h1>' + text_esc + '</h1>')
+            elif 'heading 2' in style:
+                out.append('<h2>' + text_esc + '</h2>')
+            elif 'heading 3' in style:
+                out.append('<h3>' + text_esc + '</h3>')
+            elif 'list' in style:
+                out.append('<li>' + text_esc + '</li>')
+            else:
+                out.append('<p>' + text_esc + '</p>')
+        html_body = '<div class="doc-content">\n' + '\n'.join(out) + '\n</div>'
+        title = os.path.splitext(os.path.basename(path))[0]
+        return {'ok': True, 'html': html_body, 'title': title}, None
     except Exception as e:
-        return None, f"Parse error: {e}\n{r.stderr}"
+        return None, str(e)
 
 class DocxToHtmlWidget(QtWidgets.QWidget):
     def __init__(self):

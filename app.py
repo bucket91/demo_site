@@ -7,6 +7,12 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 class App(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
+        # bootstrap missing site files
+        import bootstrap
+        created = bootstrap.ensure_site_files(SITE_DIR)
+        if created:
+            print(f"Created missing files: {', '.join(created)}")
+
         self.setWindowTitle("Site Tools")
         self.setMinimumSize(900, 700)
         self.setStyleSheet("""

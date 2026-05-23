@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re, os, glob, json, sys
+from git_util import git_run as _git_run, get_git_path as _get_git_path
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
@@ -379,24 +380,23 @@ def git_commit_push(log_func=print):
     name = CONFIG.get("git_user_name", "")
     email = CONFIG.get("git_user_email", "")
     try:
-        import subprocess
         if name:
-            subprocess.run(["git", "config", "user.name", name], cwd=SITE_DIR, capture_output=True)
+            _git_run(["config", "user.name", name], cwd=SITE_DIR, capture_output=True)
         if email:
-            subprocess.run(["git", "config", "user.email", email], cwd=SITE_DIR, capture_output=True)
+            _git_run(["config", "user.email", email], cwd=SITE_DIR, capture_output=True)
         if url:
-            r = subprocess.run(["git", "remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
+            r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
             if r.returncode != 0 or r.stdout.strip() != url:
-                subprocess.run(["git", "remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
-                subprocess.run(["git", "remote", "add", "origin", url], cwd=SITE_DIR, capture_output=True)
-        subprocess.run(["git", "add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
-        r = subprocess.run(["git", "commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
+                _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
+                _git_run(["remote", "add", "origin", url], cwd=SITE_DIR, capture_output=True)
+        _git_run(["add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
+        r = _git_run(["commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
         if r.returncode == 0:
             log_func(r.stdout.strip())
         else:
             log_func(r.stderr.strip())
         if auto and url:
-            r2 = subprocess.run(["git", "push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
+            r2 = _git_run(["push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:
         log_func(f"Git error: {e}")
