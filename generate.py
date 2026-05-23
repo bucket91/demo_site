@@ -87,7 +87,8 @@ def generate_sidebar(categories, current_file):
     if owner_name:
         html += '      <div class="sidebar-owner">\n'
         if owner_avatar:
-            html += f'        <img src="{owner_avatar}" alt="{owner_name}" class="owner-avatar">\n'
+            src = rel_path(current_file, '/' + owner_avatar)
+            html += f'        <img src="{src}" alt="{owner_name}" class="owner-avatar">\n'
         html += f'        <div class="owner-name">{owner_name}</div>\n'
         if owner_title:
             html += f'        <div class="owner-title">{owner_title}</div>\n'
@@ -230,7 +231,7 @@ def make_homepage_content(categories):
     owner_contacts = CONFIG.get("owner_contacts", [])
     html = '<div class="home-owner">\n'
     if owner_avatar:
-        html += f'  <img src="{owner_avatar}" alt="{owner_name}" class="home-owner-avatar">\n'
+        html += f'  <img src="./{owner_avatar}" alt="{owner_name}" class="home-owner-avatar">\n'
     if owner_name:
         html += f'  <div class="home-owner-name">{owner_name}</div>\n'
     if owner_title:

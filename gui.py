@@ -145,7 +145,33 @@ class SiteGeneratorWidget(QtWidgets.QWidget):
         labeled("Name", "owner_name")
         labeled("Title", "owner_title")
         labeled("Bio", "owner_bio")
-        labeled("Avatar URL", "owner_avatar")
+
+        def avatar_picker(label, key):
+            f = QtWidgets.QWidget()
+            fl = QtWidgets.QVBoxLayout(f)
+            fl.setContentsMargins(0, 6, 0, 0)
+            fl.setSpacing(2)
+            lbl = QtWidgets.QLabel(label)
+            lbl.setStyleSheet("color: #999; font-size: 11px;")
+            fl.addWidget(lbl)
+            row = QtWidgets.QHBoxLayout()
+            row.setContentsMargins(0, 0, 0, 0)
+            inp = QtWidgets.QLineEdit()
+            inp.setReadOnly(True)
+            inp.setText(self.cfg.get(key, ''))
+            inp.setPlaceholderText("No avatar selected")
+            row.addWidget(inp, 1)
+            btn = QtWidgets.QPushButton("Browse")
+            btn.clicked.connect(lambda: self._pick_avatar(inp))
+            row.addWidget(btn)
+            clr = QtWidgets.QPushButton("Clear")
+            clr.clicked.connect(lambda: inp.setText(''))
+            row.addWidget(clr)
+            fl.addLayout(row)
+            body_layout.addWidget(f)
+            self.fields[key] = inp
+
+        avatar_picker("Avatar image (copied to site root)", "owner_avatar")
 
         def contacts_field(label, key):
             f = QtWidgets.QWidget()
@@ -201,10 +227,24 @@ class SiteGeneratorWidget(QtWidgets.QWidget):
 
     def log_msg(self, msg):
         self.log.append(msg)
-        # auto-scroll to bottom
         sb = self.log.verticalScrollBar()
         sb.setValue(sb.maximum())
         QtWidgets.QApplication.processEvents()
+
+    def _pick_avatar(self, inp):
+        p, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Select Avatar Image", "",
+            "Images (*.png *.jpg *.jpeg *.gif *.webp *.svg *.bmp)")
+        if not p:
+            return
+        import shutil
+        dst = os.path.join(SITE_DIR, os.path.basename(p))
+        try:
+            shutil.copy2(p, dst)
+            inp.setText(os.path.basename(p))
+            self.log_msg(f"Avatar copied: {os.path.basename(p)}")
+        except Exception as e:
+            self.log_msg(f"Error copying avatar: {e}")
 
     @QtCore.pyqtSlot()
     def on_run(self):
