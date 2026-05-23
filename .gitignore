@@ -1,6 +1,15 @@
+# MS Word
 *.doc
 *.docx
 *.dot
 *.dotx
 *.docm
 *.dotm
+
+# Build artifacts
+SiteTools
+SiteTools.exe
+build_venv/
+dist/
+*.spec
+build/
