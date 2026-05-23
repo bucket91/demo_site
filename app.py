@@ -21,6 +21,7 @@ class App(QtWidgets.QMainWindow):
         """)
 
         tabs = QtWidgets.QTabWidget()
+        tabs.tabBar().setExpanding(True)
         self.setCentralWidget(tabs)
 
         import gui
