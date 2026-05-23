@@ -119,6 +119,130 @@ def make_font_face_rule(cf):
 }}"""
 
 
+class CustomColorDialog(QtWidgets.QDialog):
+    def __init__(self, colors, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Custom Colors")
+        self.setMinimumSize(580, 500)
+        self.setStyleSheet("""
+            QDialog { background: #1a1a1a; }
+            QLabel { color: #e0e0e0; }
+            QLabel.dim { color: #999; font-size: 10px; }
+            QLabel.heading { color: #ccc; font-size: 11px; font-weight: bold; padding-top: 6px; }
+            QPushButton {
+                background: #555; color: #fff; border: none;
+                border-radius: 6px; padding: 8px 20px; font-size: 13px;
+            }
+            QPushButton:hover { background: #666; }
+            QPushButton.primary { background: #1a6b3c; }
+            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton.danger { background: #b71c1c; }
+            QPushButton.danger:hover { background: #d32f2f; }
+            QScrollArea { background: transparent; border: none; }
+            QScrollBar:vertical { background: #2a2a2a; width: 8px; }
+            QScrollBar::handle:vertical { background: #555; border-radius: 4px; }
+        """)
+
+        self.colors = dict(colors)
+        self.color_btns = {}
+
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(16, 16, 16, 16)
+        layout.setSpacing(4)
+
+        heading = QtWidgets.QLabel("Click any color swatch to open the picker")
+        heading.setStyleSheet("font-size: 14px; font-weight: bold; color: #eee; padding-bottom: 4px;")
+        layout.addWidget(heading)
+
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        body = QtWidgets.QWidget()
+        body.setStyleSheet("background: transparent;")
+        bl = QtWidgets.QVBoxLayout(body)
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(2)
+
+        for group_name, items in COLOR_GROUPS:
+            gl = QtWidgets.QLabel(group_name)
+            gl.setProperty("class", "heading")
+            bl.addWidget(gl)
+
+            row_w = QtWidgets.QWidget()
+            row_w.setStyleSheet("background: transparent;")
+            rl = QtWidgets.QHBoxLayout(row_w)
+            rl.setContentsMargins(0, 0, 0, 0)
+            rl.setSpacing(10)
+            for key, label in items:
+                col_w = QtWidgets.QWidget()
+                col_w.setStyleSheet("background: transparent;")
+                cl = QtWidgets.QVBoxLayout(col_w)
+                cl.setContentsMargins(0, 0, 0, 0)
+                cl.setSpacing(1)
+                btn = QtWidgets.QPushButton()
+                btn.setFixedSize(32, 32)
+                color = self.colors.get(key, "#000")
+                btn.setStyleSheet(
+                    f"background: {color}; border: 1px solid #555; border-radius: 4px;")
+                btn.setToolTip(f"{key} = {color}")
+                btn.color_key = key
+                btn.clicked.connect(self.pick_color)
+                cl.addWidget(btn, alignment=QtCore.Qt.AlignCenter)
+                lb = QtWidgets.QLabel(label)
+                lb.setProperty("class", "dim")
+                cl.addWidget(lb, alignment=QtCore.Qt.AlignCenter)
+                rl.addWidget(col_w)
+                self.color_btns[key] = btn
+            bl.addWidget(row_w)
+
+        scroll.setWidget(body)
+        layout.addWidget(scroll, 1)
+
+        bottom = QtWidgets.QHBoxLayout()
+        reset_btn = QtWidgets.QPushButton("Reset to Default")
+        reset_btn.setProperty("class", "danger")
+        reset_btn.clicked.connect(self.reset_colors)
+        bottom.addWidget(reset_btn)
+
+        bottom.addStretch()
+
+        cancel_btn = QtWidgets.QPushButton("Cancel")
+        cancel_btn.clicked.connect(self.reject)
+        bottom.addWidget(cancel_btn)
+
+        ok_btn = QtWidgets.QPushButton("Save Colors")
+        ok_btn.setProperty("class", "primary")
+        ok_btn.clicked.connect(self.accept)
+        bottom.addWidget(ok_btn)
+
+        layout.addLayout(bottom)
+
+    def pick_color(self):
+        btn = self.sender()
+        key = btn.color_key
+        current = self.colors.get(key, "#000")
+        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(current), self, f"Pick {key}")
+        if color.isValid():
+            hex_color = color.name()
+            self.colors[key] = hex_color
+            btn.setStyleSheet(
+                f"background: {hex_color}; border: 1px solid #555; border-radius: 4px;")
+            btn.setToolTip(f"{key} = {hex_color}")
+
+    def reset_colors(self):
+        for key, val in THEMES["Dark"].items():
+            if key in self.colors:
+                self.colors[key] = val
+        for key, btn in self.color_btns.items():
+            color = self.colors.get(key, "#000")
+            btn.setStyleSheet(
+                f"background: {color}; border: 1px solid #555; border-radius: 4px;")
+            btn.setToolTip(f"{key} = {color}")
+
+    def get_colors(self):
+        return dict(self.colors)
+
+
 class ThemeCustomizerWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -237,39 +361,12 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.current_label.setProperty("class", "dim")
         layout.addWidget(self.current_label)
 
-        # --- Custom color editor (hidden by default) ---
-        self.custom_container = QtWidgets.QWidget()
-        self.custom_container.setVisible(False)
-        custom_layout = QtWidgets.QVBoxLayout(self.custom_container)
-        custom_layout.setContentsMargins(0, 0, 0, 0)
-        custom_layout.setSpacing(4)
-
-        custom_heading = QtWidgets.QLabel("Custom Colors")
-        custom_heading.setProperty("class", "heading")
-        custom_layout.addWidget(custom_heading)
-
-        self.custom_scroll = QtWidgets.QScrollArea()
-        self.custom_scroll.setWidgetResizable(True)
-        self.custom_scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
-        self.custom_scroll.setMaximumHeight(300)
-        self.custom_scroll.setStyleSheet(
-            "QScrollArea { background: transparent; border: none; }"
-            "QScrollBar:vertical { background: #2a2a2a; width: 8px; }"
-            "QScrollBar::handle:vertical { background: #555; border-radius: 4px; }")
-        self.custom_scroll_body = QtWidgets.QWidget()
-        self.custom_scroll_body.setStyleSheet("background: transparent;")
-        self.custom_scroll_layout = QtWidgets.QVBoxLayout(self.custom_scroll_body)
-        self.custom_scroll_layout.setContentsMargins(0, 0, 0, 0)
-        self.custom_scroll_layout.setSpacing(2)
-        self.custom_scroll.setWidget(self.custom_scroll_body)
-        custom_layout.addWidget(self.custom_scroll, 1)
-
-        reset_btn = QtWidgets.QPushButton("Reset to Default")
-        reset_btn.setMinimumHeight(28)
-        reset_btn.clicked.connect(self.reset_custom_colors)
-        custom_layout.addWidget(reset_btn)
-
-        layout.addWidget(self.custom_container)
+        # Customize button (visible only when Custom selected)
+        self.customize_btn = QtWidgets.QPushButton("Customize Colors...")
+        self.customize_btn.setMinimumHeight(36)
+        self.customize_btn.setVisible(False)
+        self.customize_btn.clicked.connect(self.open_color_dialog)
+        layout.addWidget(self.customize_btn)
 
         # Preview log
         self.preview = QtWidgets.QTextEdit()
@@ -469,70 +566,26 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         with open(CONFIG_FILE, "w") as f:
             json.dump(cfg, f, indent=2)
 
-    def build_custom_editor(self):
-        for i in reversed(range(self.custom_scroll_layout.count())):
-            w = self.custom_scroll_layout.itemAt(i).widget()
-            if w:
-                w.deleteLater()
-        self.custom_swatches = {}
-        for group_name, items in COLOR_GROUPS:
-            gl = QtWidgets.QLabel(group_name)
-            gl.setStyleSheet("color: #aaa; font-size: 10px; font-weight: bold; padding-top: 4px;")
-            self.custom_scroll_layout.addWidget(gl)
-            row = QtWidgets.QHBoxLayout()
-            row.setSpacing(4)
-            for key, label in items:
-                col = QtWidgets.QVBoxLayout()
-                col.setSpacing(2)
-                btn = QtWidgets.QPushButton()
-                btn.setFixedSize(28, 28)
-                color = self.custom_colors.get(key, THEMES["Dark"][key])
-                btn.setStyleSheet(
-                    f"background: {color}; border: 1px solid #555; border-radius: 3px;")
-                btn.setToolTip(label)
-                btn.color_key = key
-                btn.clicked.connect(self.pick_custom_color)
-                col.addWidget(btn, alignment=QtCore.Qt.AlignCenter)
-                lb = QtWidgets.QLabel(label)
-                lb.setStyleSheet("color: #888; font-size: 9px;")
-                col.addWidget(lb, alignment=QtCore.Qt.AlignCenter)
-                row.addLayout(col)
-                self.custom_swatches[key] = btn
-            self.custom_scroll_layout.addLayout(row)
-
-    def pick_custom_color(self):
-        btn = self.sender()
-        key = btn.color_key
-        current = self.custom_colors.get(key, THEMES["Dark"][key])
-        color = QtWidgets.QColorDialog.getColor(QtGui.QColor(current), self, f"Pick {key}")
-        if color.isValid():
-            hex_color = color.name()
-            self.custom_colors[key] = hex_color
-            btn.setStyleSheet(
-                f"background: {hex_color}; border: 1px solid #555; border-radius: 3px;")
+    def open_color_dialog(self):
+        colors = dict(self.custom_colors) if self.custom_colors else dict(THEMES["Dark"])
+        dlg = CustomColorDialog(colors, self)
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            self.custom_colors = dlg.get_colors()
             self.save_custom_theme(self.custom_colors)
             self.update_preview()
-
-    def reset_custom_colors(self):
-        self.custom_colors = dict(THEMES["Dark"])
-        self.save_custom_theme(self.custom_colors)
-        self.build_custom_editor()
-        self.update_preview()
-        self.status.setText("Custom colors reset to Dark defaults")
+            self.status.setText("Custom colors updated")
 
     # --- Preview / apply ---
 
     def on_theme_changed(self, idx):
         is_custom = self.theme_key() == "Custom"
-        if hasattr(self, 'custom_container'):
-            self.custom_container.setVisible(is_custom)
-        if is_custom and hasattr(self, 'custom_colors'):
+        if hasattr(self, 'customize_btn'):
+            self.customize_btn.setVisible(is_custom)
+        if is_custom:
             self.custom_colors = dict(THEMES["Dark"])
             saved = self.load_custom_theme()
             if saved:
                 self.custom_colors.update(saved)
-            if hasattr(self, 'custom_scroll_layout'):
-                self.build_custom_editor()
         self.update_preview()
 
     def theme_key(self):

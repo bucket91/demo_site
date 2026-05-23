@@ -269,7 +269,10 @@ def build_page(filepath, categories):
         tmpl = f.read()
 
     site_title = CONFIG.get("site_title", "Placeholder")
-    result = tmpl.replace('{{SITE_TITLE}}', site_title)
+    home_rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(filepath)))
+    home_path = os.path.join(home_rel, 'index.html').replace('\\', '/')
+    result = tmpl.replace('{{HOME_PATH}}', home_path)
+    result = result.replace('{{SITE_TITLE}}', site_title)
     result = result.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
     result = result.replace('{{NAV}}', nav)
