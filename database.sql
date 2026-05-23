@@ -15,3 +15,9 @@ CREATE POLICY "Anyone can read comments" ON comments
 
 CREATE POLICY "Anyone can insert comments" ON comments
   FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Anyone can update comments" ON comments
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Anyone can delete comments" ON comments
+  FOR DELETE USING (true);
