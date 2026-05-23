@@ -5,7 +5,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 STYLE_FILE = os.path.join(SITE_DIR, "style.css")
 
-from themes import THEMES, CSS_TEMPLATE
+from themes import THEMES, FONTS, CSS_TEMPLATE
 
 NAME_MAP = {
     "Dark": "Dark (default)",
@@ -92,6 +92,19 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         selector_row.addWidget(apply_btn)
         layout.addLayout(selector_row)
 
+        # Font selector
+        font_row = QtWidgets.QHBoxLayout()
+        font_label = QtWidgets.QLabel("Font:")
+        font_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_row.addWidget(font_label)
+        self.font_combo = QtWidgets.QComboBox()
+        for name in FONTS:
+            self.font_combo.addItem(name)
+        self.font_combo.setCurrentIndex(0)
+        self.font_combo.currentIndexChanged.connect(self.on_theme_changed)
+        font_row.addWidget(self.font_combo, 1)
+        layout.addLayout(font_row)
+
         # Color swatches
         swatch_label = QtWidgets.QLabel("Color preview:")
         swatch_label.setProperty("class", "dim")
@@ -144,7 +157,8 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
     def update_preview(self):
         t = self.theme_colors()
         name = self.theme_combo.currentText()
-        self.current_label.setText(f"Current selection: {name}")
+        font_name = self.font_combo.currentText()
+        self.current_label.setText(f"Theme: {name}  |  Font: {font_name}")
 
         for sw, key in self.swatch_widgets:
             color = t.get(key, "#000")
@@ -153,12 +167,15 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         lines = []
         for key, label in SWATCH_KEYS:
             lines.append(f"  {label}: {t.get(key, '?')}")
+        lines.append(f"  Font: {font_name}")
         self.preview.setPlainText(f"Theme: {name}\n" + "\n".join(lines))
 
     def apply_theme(self):
-        t = self.theme_colors()
+        t = dict(self.theme_colors())
         name = self.theme_combo.currentText()
-        self.status.setText(f"Applying {name}...")
+        font_name = self.font_combo.currentText()
+        t["font_family"] = FONTS[font_name]
+        self.status.setText(f"Applying {name} with {font_name}...")
         QtWidgets.QApplication.processEvents()
 
         css = CSS_TEMPLATE.substitute(**t)
@@ -176,4 +193,4 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             [sys.executable, os.path.join(SITE_DIR, 'generate.py')],
             cwd=SITE_DIR, capture_output=True, text=True)
         output = r.stdout.strip() or r.stderr.strip()
-        self.status.setText(output.split('\n')[-1] if output else f"Theme '{name}' applied")
+        self.status.setText(output.split('\n')[-1] if output else f"Theme '{name}' / '{font_name}' applied")

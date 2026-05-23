@@ -33,7 +33,7 @@ body.dark-mode {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: system-ui, sans-serif;
+  font-family: $font_family;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -531,4 +531,17 @@ THEMES = {
         "footer_bg": "#0d1117", "footer_text": "#c9d1d9",
         "theme_border": "#30363d",
     },
+}
+
+FONTS = {
+    "System UI": "system-ui, -apple-system, sans-serif",
+    "Classic Serif": "Georgia, 'Times New Roman', serif",
+    "Classic Sans": "Arial, Helvetica, sans-serif",
+    "Monospace": "'Courier New', Courier, monospace",
+    "Humanist": "'Segoe UI', Roboto, 'Helvetica Neue', sans-serif",
+    "Slate Serif": "Garamond, 'Times New Roman', serif",
+    "Verdana": "Verdana, Geneva, sans-serif",
+    "Trebuchet": "'Trebuchet MS', 'Lucida Grande', sans-serif",
+    "Palatino": "Palatino, 'Palatino Linotype', serif",
+    "Tahoma": "Tahoma, Geneva, Verdana, sans-serif",
 }
