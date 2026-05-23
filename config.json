@@ -46,5 +46,15 @@
     "footer_text": "#eee",
     "theme_border": "#eee"
   },
-  "gui_theme": "GitHub"
+  "gui_theme": "GitHub",
+  "owner_name": "Jon Doe",
+  "owner_title": "Maniac",
+  "owner_bio": "fugaisv uahfi8asfuxb ausgiavsc   asugcuavsc",
+  "owner_avatar": "avatar.jpg",
+  "owner_contacts": [
+    {
+      "label": "Email",
+      "url": "s.mahadialam@gmail.com"
+    }
+  ]
 }
