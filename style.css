@@ -9,7 +9,7 @@
   --input-border: #ccc;
   --label: #222;
   --muted: #999;
-  --accent: #ff0000;
+  --accent: #333;
   --accent-hover: #555;
   --accent-text: #eee;
 }
@@ -23,7 +23,7 @@ body.dark-mode {
   --input-border: #444;
   --label: #e0e0e0;
   --muted: #888;
-  --accent: #ff4444;
+  --accent: #333;
   --accent-hover: #444;
   --accent-text: #e0e0e0;
 }
