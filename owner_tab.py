@@ -181,4 +181,41 @@ class OwnerWidget(QtWidgets.QWidget):
 
         save_config(cfg)
         self.cfg = cfg
-        self.log.append("✅ Owner settings saved")
+        self.log.append("✅ Owner settings saved — generating site...")
+        self.save_btn.setEnabled(False)
+        self.save_btn.setText("Saving & Generating...")
+        self._worker = _OwnerWorker(cfg)
+        self._worker.logged.connect(self.log.append)
+        self._worker.finished.connect(self._on_generate_done)
+        self._worker.start()
+
+    def _on_generate_done(self, ok):
+        self.save_btn.setEnabled(True)
+        self.save_btn.setText("Save Owner Settings")
+        if ok:
+            self.log.append("✅ Site generated and pushed")
+        else:
+            self.log.append("❌ Generation failed — check output above")
+
+
+class _OwnerWorker(QtCore.QThread):
+    logged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(bool)
+
+    def __init__(self, cfg):
+        super().__init__()
+        self.cfg = cfg
+
+    def run(self):
+        ok = True
+        try:
+            import generate
+            generate.CONFIG.update(self.cfg)
+            generate.write_comments_js()
+            if not generate.generate_all(log_func=self.logged.emit):
+                ok = False
+            generate.git_commit_push(log_func=self.logged.emit)
+        except Exception as e:
+            self.logged.emit(f"Error: {e}")
+            ok = False
+        self.finished.emit(ok)

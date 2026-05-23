@@ -13,6 +13,8 @@
 		 File: "/blog/blog5.html"}
 
 	Grammar
+{Name:"demo2"
+		 File: "/grammar/demo2.html"}
 		{Name:"Post1"
 		 File: "/grammar/grammar1.html"}
 		{Name:"Post2"
