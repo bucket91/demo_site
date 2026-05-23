@@ -270,7 +270,7 @@ def build_page(filepath, categories):
 
     site_title = CONFIG.get("site_title", "Placeholder")
     result = tmpl.replace('{{SITE_TITLE}}', site_title)
-    result = tmpl.replace('{{TITLE}}', title)
+    result = result.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
