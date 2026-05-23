@@ -1,31 +1,31 @@
 
 :root {
-  --body-bg: #eceff4;
-  --text: #2e3440;
-  --hero-bg: #e5e9f0;
+  --body-bg: #ffffff;
+  --text: #24292e;
+  --hero-bg: #f6f8fa;
   --card-bg: #ffffff;
-  --card-border: #d8dee9;
+  --card-border: #e1e4e8;
   --input-bg: #ffffff;
-  --input-border: #c8cede;
-  --label: #2e3440;
-  --muted: #7a8294;
-  --accent: #5e81ac;
-  --accent-hover: #4a6a92;
+  --input-border: #d1d5da;
+  --label: #24292e;
+  --muted: #586069;
+  --accent: #0366d6;
+  --accent-hover: #0256b9;
   --accent-text: #ffffff;
 }
 body.dark-mode {
-  --body-bg: #2e3440;
-  --text: #d8dee9;
-  --hero-bg: #3b4252;
-  --card-bg: #434c5e;
-  --card-border: #4c566a;
-  --input-bg: #3b4252;
-  --input-border: #4c566a;
-  --label: #d8dee9;
-  --muted: #7a8294;
-  --accent: #88c0d0;
-  --accent-hover: #a8d8e8;
-  --accent-text: #2e3440;
+  --body-bg: #0d1117;
+  --text: #c9d1d9;
+  --hero-bg: #161b22;
+  --card-bg: #21262d;
+  --card-border: #30363d;
+  --input-bg: #161b22;
+  --input-border: #30363d;
+  --label: #c9d1d9;
+  --muted: #8b949e;
+  --accent: #58a6ff;
+  --accent-hover: #79c0ff;
+  --accent-text: #0d1117;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,8 +41,8 @@ body {
 }
 
 header {
-  background: #3b4252;
-  color: #eceff4;
+  background: #24292e;
+  color: #ffffff;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -62,8 +62,8 @@ header h1 a {
 
 .theme-toggle {
   background: none;
-  border: 1px solid #6a728a;
-  color: #eceff4;
+  border: 1px solid #586069;
+  color: #ffffff;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.6rem;
@@ -82,8 +82,8 @@ main {
 
 .sidebar {
   width: 250px;
-  background: #3b4252;
-  color: #eceff4;
+  background: #24292e;
+  color: #ffffff;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -99,7 +99,7 @@ main {
 .sidebar-owner {
   padding: 1.25rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #4c566a;
+  border-bottom: 1px solid #404448;
 }
 .owner-avatar {
   width: 60px;
@@ -107,12 +107,12 @@ main {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.6rem;
-  border: 2px solid #6a728a;
+  border: 2px solid #586069;
 }
 .owner-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #eceff4;
+  color: #ffffff;
   margin-bottom: 0.25rem;
 }
 .owner-title {
@@ -122,7 +122,7 @@ main {
 }
 .owner-bio {
   font-size: 0.8rem;
-  color: #a4aeba;
+  color: #959da5;
 }
 .sidebar.open { transform: translateX(0); }
 
@@ -131,23 +131,23 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #4c566a;
+  border-bottom: 1px solid #404448;
 }
 .sidebar-top h2 { font-size: 1.2rem; }
 
-.category { border-bottom: 1px solid #4c566a; }
+.category { border-bottom: 1px solid #404448; }
 .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #eceff4;
+  color: #ffffff;
   font-weight: 600;
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover { background: #4c566a; }
+.category-header:hover { background: #404448; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
@@ -162,17 +162,17 @@ main {
 .sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
-  color: #a4aeba;
+  color: #959da5;
   text-decoration: none;
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover { background: #4c566a; color: #ffffff; }
+.sub-links li a:hover { background: #404448; color: #ffffff; }
 
 .sidebar-toggle, .close-btn {
   background: none;
   border: none;
-  color: #eceff4;
+  color: #ffffff;
   font-size: 1.5rem;
   cursor: pointer;
 }
@@ -196,7 +196,7 @@ main {
   height: 72px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #6a728a;
+  border: 3px solid #586069;
   margin-bottom: 0.5rem;
 }
 .home-owner-name {
@@ -290,8 +290,8 @@ main {
 .home-demo a { color: var(--accent); }
 
 footer {
-  background: #3b4252;
-  color: #eceff4;
+  background: #24292e;
+  color: #ffffff;
   text-align: center;
   padding: 1rem;
 }
