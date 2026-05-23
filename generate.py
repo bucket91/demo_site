@@ -300,8 +300,59 @@ def build_page(filepath, categories):
         f.write(result)
     return True
 
+def clean_ref_file(log_func=print):
+    if not os.path.exists(REF_FILE):
+        return
+    with open(REF_FILE) as f:
+        lines = f.readlines()
+    out = []
+    i = 0
+    header = ''
+    entries_buffer = []
+    removed = 0
+    while i < len(lines):
+        stripped = lines[i].strip()
+        if stripped and not stripped.startswith('{Name:') and not stripped.startswith('File:'):
+            if header and entries_buffer:
+                out.append(header)
+                for name_line, file_line in entries_buffer:
+                    out.append(name_line)
+                    out.append(file_line)
+                out.append('\n')
+            elif header:
+                pass
+            header = lines[i]
+            entries_buffer = []
+        elif stripped.startswith('{Name:'):
+            name_line = lines[i]
+            i += 1
+            file_line = lines[i] if i < len(lines) else ''
+            file_path = ''
+            if file_line.strip().startswith('File:'):
+                try:
+                    file_path = file_line.strip().split('"')[1]
+                except IndexError:
+                    pass
+            full_path = os.path.join(SITE_DIR, file_path.lstrip('/')) if file_path else ''
+            if full_path and os.path.exists(full_path):
+                entries_buffer.append((name_line, file_line))
+            else:
+                removed += 1
+        i += 1
+    if header and entries_buffer:
+        out.append(header)
+        for name_line, file_line in entries_buffer:
+            out.append(name_line)
+            out.append(file_line)
+        out.append('\n')
+    with open(REF_FILE, 'w') as f:
+        f.write(''.join(out).rstrip('\n') + '\n')
+    if removed:
+        log_func(f"  Cleaned {removed} stale reference(s)")
+
 def generate_all(log_func=print):
     CONFIG.update(load_config())
+    clean_ref_file(log_func)
     write_comments_js()
 
     categories = scan_categories()

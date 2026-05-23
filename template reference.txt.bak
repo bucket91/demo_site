@@ -1,25 +1,36 @@
+SideMenu
 	Blog
+
 		{Name:"demo"
 		 File: "/blog/file-sample-1mb.html"}
+
 		{Name:"Post1"
 		 File: "/blog/blog1.html"}
+		 
 		{Name:"Post2"
 		 File: "/blog/blog2.html"}
+		 
 		{Name:"Post3"
 		 File: "/blog/blog3.html"}
+	
 		{Name:"Post4"
 		 File: "/blog/blog4.html"}
+	
 		{Name:"Post5"
 		 File: "/blog/blog5.html"}
-
+		 
 	Grammar
 		{Name:"Post1"
 		 File: "/grammar/grammar1.html"}
+		 
 		{Name:"Post2"
 		 File: "/grammar/grammar2.html"}
+		 
 		{Name:"Post3"
 		 File: "/grammar/grammar3.html"}
+	
 		{Name:"Post4"
 		 File: "/grammar/grammar4.html"}
+	
 		{Name:"Post5"
 		 File: "/grammar/grammar5.html"}
