@@ -25,14 +25,11 @@ def save(cfg):
     with open(CONFIG_FILE, 'w') as f:
         json.dump(cfg, f, indent=2)
 
-class MainWindow(QtWidgets.QMainWindow):
+class SiteGeneratorWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.cfg = load()
-        self.setWindowTitle("Site Generator")
-        self.setMinimumSize(520, 640)
         self.setStyleSheet("""
-            QMainWindow { background: #1e1e1e; }
             QLabel { color: #eee; }
             QLabel.hint { color: #999; font-size: 11px; }
             QLineEdit, QTextEdit {
@@ -63,9 +60,7 @@ class MainWindow(QtWidgets.QMainWindow):
             }
         """)
 
-        widget = QtWidgets.QWidget()
-        self.setCentralWidget(widget)
-        layout = QtWidgets.QVBoxLayout(widget)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -207,6 +202,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.run_btn.setText("Generate & Push")
         if not ok:
             self.log_msg("[ERROR] Check output above.")
+
+class MainWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Site Generator")
+        self.setMinimumSize(520, 640)
+        self.setCentralWidget(SiteGeneratorWidget())
 
 class Worker(QtCore.QThread):
     logged = QtCore.pyqtSignal(str)

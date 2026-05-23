@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, re, html as html_mod
+from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(__file__))
 VENV_PYTHON = "/tmp/docx_venv/bin/python3"
@@ -41,127 +42,125 @@ except Exception as e:
     except Exception as e:
         return None, f"Parse error: {e}\n{r.stderr}"
 
-def main_gui():
-    from PyQt5 import QtWidgets, QtCore, QtGui
-    app = QtWidgets.QApplication(sys.argv)
-    app.setStyleSheet("""
-        QMainWindow, QDialog { background: #1e1e1e; }
-        QLabel { color: #e0e0e0; }
-        QLabel.dim { color: #999; font-size: 11px; }
-        QTextEdit, QLineEdit {
-            background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-            border-radius: 6px; padding: 6px; font-size: 13px;
-        }
-        QPushButton {
-            background: #555; color: #fff; border: none;
-            border-radius: 6px; padding: 8px 16px; font-size: 13px;
-        }
-        QPushButton:hover { background: #666; }
-        QPushButton:disabled { background: #333; color: #666; }
-    """)
+class DocxToHtmlWidget(QtWidgets.QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setStyleSheet("""
+            QLabel { color: #e0e0e0; }
+            QLabel.dim { color: #999; font-size: 11px; }
+            QTextEdit, QLineEdit {
+                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                border-radius: 6px; padding: 6px; font-size: 13px;
+            }
+            QPushButton {
+                background: #555; color: #fff; border: none;
+                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+            }
+            QPushButton:hover { background: #666; }
+            QPushButton:disabled { background: #333; color: #666; }
+        """)
 
-    w = QtWidgets.QWidget()
-    w.setWindowTitle("Word to HTML Converter")
-    w.setMinimumSize(700, 500)
-    layout = QtWidgets.QVBoxLayout(w)
-    layout.setContentsMargins(12, 12, 12, 12)
+        layout = QtWidgets.QVBoxLayout(self)
+        layout.setContentsMargins(12, 12, 12, 12)
 
-    # file selection
-    file_row = QtWidgets.QHBoxLayout()
-    path_input = QtWidgets.QLineEdit()
-    path_input.setPlaceholderText("Select a .docx file...")
-    file_row.addWidget(path_input, 1)
-    browse_btn = QtWidgets.QPushButton("Browse")
-    file_row.addWidget(browse_btn)
-    layout.addLayout(file_row)
+        # file selection
+        file_row = QtWidgets.QHBoxLayout()
+        self.path_input = QtWidgets.QLineEdit()
+        self.path_input.setPlaceholderText("Select a .docx file...")
+        file_row.addWidget(self.path_input, 1)
+        browse_btn = QtWidgets.QPushButton("Browse")
+        file_row.addWidget(browse_btn)
+        layout.addLayout(file_row)
 
-    # preview
-    preview = QtWidgets.QTextEdit()
-    preview.setReadOnly(True)
-    preview.setPlaceholderText("HTML preview will appear here...")
-    layout.addWidget(preview, 1)
+        # preview
+        self.preview = QtWidgets.QTextEdit()
+        self.preview.setReadOnly(True)
+        self.preview.setPlaceholderText("HTML preview will appear here...")
+        layout.addWidget(self.preview, 1)
 
-    # status
-    status = QtWidgets.QLabel("")
-    status.setProperty("class", "dim")
-    layout.addWidget(status)
+        # status
+        self.status_label = QtWidgets.QLabel("")
+        self.status_label.setProperty("class", "dim")
+        layout.addWidget(self.status_label)
 
-    # save options
-    save_row = QtWidgets.QHBoxLayout()
-    save_standalone = QtWidgets.QPushButton("Save as HTML")
-    save_standalone.setEnabled(False)
-    save_row.addWidget(save_standalone)
+        # save options
+        save_row = QtWidgets.QHBoxLayout()
+        self.save_standalone = QtWidgets.QPushButton("Save as HTML")
+        self.save_standalone.setEnabled(False)
+        save_row.addWidget(self.save_standalone)
 
-    save_to_site = QtWidgets.QPushButton("Add to Site + Generate")
-    save_to_site.setEnabled(False)
-    save_row.addWidget(save_to_site)
+        self.save_to_site = QtWidgets.QPushButton("Add to Site + Generate")
+        self.save_to_site.setEnabled(False)
+        save_row.addWidget(self.save_to_site)
 
-    layout.addLayout(save_row)
+        layout.addLayout(save_row)
 
-    current_html = [""]
-    current_title = [""]
-    current_path = [""]
+        self.current_html = ""
+        self.current_title = ""
+        self.current_path = ""
 
-    def browse():
-        p, _ = QtWidgets.QFileDialog.getOpenFileName(w, "Select .docx", "", "Word Documents (*.docx)")
+        browse_btn.clicked.connect(self.browse)
+        self.path_input.returnPressed.connect(self.convert)
+        self.save_standalone.clicked.connect(self.save_as)
+        self.save_to_site.clicked.connect(self.add_to_site)
+
+    def browse(self):
+        p, _ = QtWidgets.QFileDialog.getOpenFileName(self, "Select .docx", "", "Word Documents (*.docx)")
         if p:
-            path_input.setText(p)
-            convert()
+            self.path_input.setText(p)
+            self.convert()
 
-    def convert():
-        p = path_input.text().strip()
+    def convert(self):
+        p = self.path_input.text().strip()
         if not p or not p.endswith('.docx'):
             return
-        current_path[0] = p
-        status.setText("Converting...")
+        self.current_path = p
+        self.status_label.setText("Converting...")
         QtWidgets.QApplication.processEvents()
         result, err = convert_docx(p)
         if err:
-            status.setText(f"Error: {err}")
-            preview.setPlainText(err)
+            self.status_label.setText(f"Error: {err}")
+            self.preview.setPlainText(err)
             return
         if not result.get('ok'):
-            status.setText(f"Error: {result.get('error', 'unknown')}")
-            preview.setPlainText(result.get('error', ''))
+            self.status_label.setText(f"Error: {result.get('error', 'unknown')}")
+            self.preview.setPlainText(result.get('error', ''))
             return
         html = result['html']
         title = result['title']
-        current_html[0] = html
-        current_title[0] = title
-        preview.setHtml(html)
-        status.setText(f"Converted: {title} ({len(html)} chars)")
-        save_standalone.setEnabled(True)
-        save_to_site.setEnabled(True)
+        self.current_html = html
+        self.current_title = title
+        self.preview.setHtml(html)
+        self.status_label.setText(f"Converted: {title} ({len(html)} chars)")
+        self.save_standalone.setEnabled(True)
+        self.save_to_site.setEnabled(True)
 
-    browse_btn.clicked.connect(browse)
-    path_input.returnPressed.connect(convert)
-
-    def save_as():
-        p, _ = QtWidgets.QFileDialog.getSaveFileName(w, "Save HTML", current_title[0] + ".html", "HTML Files (*.html)")
+    def save_as(self):
+        p, _ = QtWidgets.QFileDialog.getSaveFileName(self, "Save HTML", self.current_title + ".html", "HTML Files (*.html)")
         if p:
             full = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{html_mod.escape(current_title[0])}</title>
+  <title>{html_mod.escape(self.current_title)}</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
-    <h1>{html_mod.escape(current_title[0])}</h1>
+    <h1>{html_mod.escape(self.current_title)}</h1>
   </header>
   <main>
-{current_html[0]}
+{self.current_html}
   </main>
 </body>
 </html>"""
             with open(p, 'w') as f:
                 f.write(full)
-            status.setText(f"Saved: {p}")
+            self.status_label.setText(f"Saved: {p}")
 
-    def add_to_site():
-        dlg = QtWidgets.QDialog(w)
+    def add_to_site(self):
+        dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Add to Site")
         dlg.setMinimumWidth(400)
         dl = QtWidgets.QVBoxLayout(dlg)
@@ -175,13 +174,13 @@ def main_gui():
         title_label = QtWidgets.QLabel("Page title:")
         title_label.setProperty("class", "dim")
         dl.addWidget(title_label)
-        title_input = QtWidgets.QLineEdit(current_title[0])
+        title_input = QtWidgets.QLineEdit(self.current_title)
         dl.addWidget(title_input)
 
         name_label = QtWidgets.QLabel("Sidebar name:")
         name_label.setProperty("class", "dim")
         dl.addWidget(name_label)
-        name_input = QtWidgets.QLineEdit(current_title[0])
+        name_input = QtWidgets.QLineEdit(self.current_title)
         dl.addWidget(name_input)
 
         btns = QtWidgets.QHBoxLayout()
@@ -224,7 +223,7 @@ def main_gui():
     <aside class="sidebar" id="sidebar">
     </aside>
     <main>
-{current_html[0]}
+{self.current_html}
     </main>
   </div>
 </body>
@@ -236,7 +235,6 @@ def main_gui():
             if os.path.exists(ref_file):
                 with open(ref_file) as f:
                     ref = f.read()
-                # find the category section and add entry
                 cat_header = '\t' + cat.capitalize()
                 entry = f'\n\t\t{{Name:"{name}"\n\t\t File: "/{cat}/{fname}"}}'
                 if cat_header in ref:
@@ -246,19 +244,24 @@ def main_gui():
                 with open(ref_file, 'w') as f:
                     f.write(ref)
             dlg.accept()
-            status.setText(f"Added: {fpath}. Running generate...")
+            self.status_label.setText(f"Added: {fpath}. Running generate...")
             QtWidgets.QApplication.processEvents()
             import subprocess
             r = subprocess.run([sys.executable, os.path.join(SITE_DIR, 'generate.py')],
                              cwd=SITE_DIR, capture_output=True, text=True)
-            status.setText(r.stdout.strip() if r.returncode == 0 else r.stderr.strip())
+            self.status_label.setText(r.stdout.strip() if r.returncode == 0 else r.stderr.strip())
 
         ok.clicked.connect(do_add)
         dlg.exec_()
 
-    save_standalone.clicked.connect(save_as)
-    save_to_site.clicked.connect(add_to_site)
-
+def main_gui():
+    app = QtWidgets.QApplication(sys.argv)
+    w = QtWidgets.QWidget()
+    w.setWindowTitle("Word to HTML Converter")
+    w.setMinimumSize(700, 500)
+    layout = QtWidgets.QVBoxLayout(w)
+    layout.setContentsMargins(0, 0, 0, 0)
+    layout.addWidget(DocxToHtmlWidget())
     w.show()
     sys.exit(app.exec_())
 

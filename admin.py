@@ -140,13 +140,10 @@ class EditDialog(QtWidgets.QDialog):
             "body": self.body_inp.toPlainText(),
         }
 
-class AdminWindow(QtWidgets.QMainWindow):
+class CommentAdminWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Comment Admin")
-        self.setMinimumSize(800, 500)
         self.setStyleSheet("""
-            QMainWindow { background: #1e1e1e; }
             QTableView {
                 background: #333; color: #eee; gridline-color: #2a2a2a;
                 border: none; font-size: 13px; selection-background-color: #555;
@@ -165,12 +162,9 @@ class AdminWindow(QtWidgets.QMainWindow):
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
             QPushButton:disabled { background: #333; color: #666; }
-            QStatusBar { background: #2a2a2a; color: #999; }
         """)
 
-        widget = QtWidgets.QWidget()
-        self.setCentralWidget(widget)
-        layout = QtWidgets.QVBoxLayout(widget)
+        layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
         layout.setSpacing(0)
 
@@ -266,6 +260,13 @@ class AdminWindow(QtWidgets.QMainWindow):
         if confirm == QtWidgets.QMessageBox.Yes:
             self.model.remove_comment(row)
             self.status.setText(f"Comment #{c['id']} deleted")
+
+class AdminWindow(QtWidgets.QMainWindow):
+    def __init__(self):
+        super().__init__()
+        self.setWindowTitle("Comment Admin")
+        self.setMinimumSize(800, 500)
+        self.setCentralWidget(CommentAdminWidget())
 
 def main():
     if not BASE or not KEY:
