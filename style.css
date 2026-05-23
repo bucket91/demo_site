@@ -45,9 +45,15 @@ header {
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  justify-content: space-between;
+  position: relative;
 }
-header h1 { flex: 1; text-align: center; }
+header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
 nav a {
   color: #eee;
   text-decoration: none;
