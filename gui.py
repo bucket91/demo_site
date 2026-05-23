@@ -15,6 +15,7 @@ def load():
         "git_user_email": "",
         "git_commit_message": "update site via generator",
         "git_auto_push": True,
+        "site_title": "Placeholder",
     }
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -136,6 +137,9 @@ class SiteGeneratorWidget(QtWidgets.QWidget):
         labeled("Project URL", "supabase_url")
         labeled("Anon Key", "supabase_anon_key")
         checkbox("Enable comments", "comments_enabled")
+
+        section("Site")
+        labeled("Site Title", "site_title")
 
         section("GitHub")
         labeled("Remote URL", "git_remote_url")

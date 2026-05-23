@@ -1,6 +1,7 @@
 from string import Template
 
 CSS_TEMPLATE = Template("""\
+$font_face_rules
 :root {
   --body-bg: $body_bg;
   --text: $text;

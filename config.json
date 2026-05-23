@@ -6,5 +6,6 @@
   "git_user_name": "bucket91",
   "git_user_email": "bucket91@users.noreply.github.com",
   "git_commit_message": "update site via generator",
-  "git_auto_push": true
+  "git_auto_push": true,
+  "site_title": "\u00a1Hola! \u65e5\u672c\u8a9e \ud83c\udf1f"
 }

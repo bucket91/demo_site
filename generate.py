@@ -19,6 +19,7 @@ def load_config():
         "owner_name": "",
         "owner_bio": "",
         "owner_avatar": "",
+        "site_title": "Placeholder",
     }
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -267,6 +268,8 @@ def build_page(filepath, categories):
     with open(TEMPLATE_FILE) as f:
         tmpl = f.read()
 
+    site_title = CONFIG.get("site_title", "Placeholder")
+    result = tmpl.replace('{{SITE_TITLE}}', site_title)
     result = tmpl.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
     result = result.replace('{{NAV}}', nav)
