@@ -323,7 +323,7 @@ footer {
 #comment-form button:hover { background: var(--accent-hover); }
 #comment-form button:disabled { opacity: 0.6; cursor: not-allowed; }
 
-@media (max-width: 768px) {
+@media (max-aspect-ratio: 1/1) {
   .layout {
     flex-direction: column;
   }
