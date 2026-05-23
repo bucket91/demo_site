@@ -45,5 +45,6 @@
     "footer_bg": "#1e1e1e",
     "footer_text": "#eee",
     "theme_border": "#eee"
-  }
+  },
+  "gui_theme": "Ocean"
 }
