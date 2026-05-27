@@ -360,12 +360,14 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.run_git(["config", "user.name", self.name_input.text().strip()])
         self.run_git(["config", "user.email", self.email_input.text().strip()])
         url = self.remote_input.text().strip()
+        token = self.token_input.text().strip()
+        remote_url = _make_push_url(url, token)
         if url:
             r = self.run_git(["remote", "get-url", "origin"])
             if r and r.returncode == 0:
-                self.run_git(["remote", "set-url", "origin", url])
+                self.run_git(["remote", "set-url", "origin", remote_url])
             else:
-                self.run_git(["remote", "add", "origin", url])
+                self.run_git(["remote", "add", "origin", remote_url])
         # Ensure .gitignore exists
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
