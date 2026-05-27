@@ -14,6 +14,7 @@ def load_config():
         "site_title": "Placeholder",
         "git_remote_url": "", "git_user_name": "", "git_user_email": "",
         "git_commit_message": "Initial site setup", "git_auto_push": True,
+        "github_token": "",
     }
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -27,7 +28,8 @@ def save_config(cfg):
 
 
 def save_setup_config(url, name, email, msg, auto_push,
-                      supabase_url, supabase_anon_key, comments_enabled, site_title):
+                      supabase_url, supabase_anon_key, comments_enabled, site_title,
+                      github_token):
     cfg = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -35,7 +37,8 @@ def save_setup_config(url, name, email, msg, auto_push,
     cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
                git_commit_message=msg, git_auto_push=auto_push,
                supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
-               comments_enabled=comments_enabled, site_title=site_title)
+               comments_enabled=comments_enabled, site_title=site_title,
+               github_token=github_token)
     with open(CONFIG_FILE, "w") as f:
         json.dump(cfg, f, indent=2)
 
@@ -180,6 +183,11 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.remote_input.setPlaceholderText("https://github.com/user/repo.git")
         gfl.addRow("Remote URL:", self.remote_input)
 
+        self.token_input = QtWidgets.QLineEdit(cfg.get("github_token", ""))
+        self.token_input.setPlaceholderText("ghp_xxxxxxxxxxxxxxxxxxxx")
+        self.token_input.setEchoMode(QtWidgets.QLineEdit.Password)
+        gfl.addRow("GitHub Token:", self.token_input)
+
         self.name_input = QtWidgets.QLineEdit(cfg.get("git_user_name", ""))
         self.name_input.setPlaceholderText("Your GitHub username")
         gfl.addRow("User name:", self.name_input)
@@ -290,6 +298,7 @@ class SetupGitWidget(QtWidgets.QWidget):
             self.supabase_key.text().strip(),
             self.comments_cb.isChecked(),
             self.site_title.text().strip(),
+            self.token_input.text().strip(),
         )
 
     @QtCore.pyqtSlot()
@@ -309,6 +318,7 @@ class SetupGitWidget(QtWidgets.QWidget):
             "git_user_email": self.email_input.text().strip(),
             "git_commit_message": self.msg_input.text().strip(),
             "git_auto_push": self.auto_push_cb.isChecked(),
+            "github_token": self.token_input.text().strip(),
         }
 
         self.worker = _SetupWorker(new)

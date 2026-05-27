@@ -17,6 +17,7 @@ def load_config():
         "git_user_email": "",
         "git_commit_message": "update site via generator",
         "git_auto_push": True,
+        "github_token": "",
         "owner_name": "",
         "owner_bio": "",
         "owner_avatar": "",
@@ -378,10 +379,18 @@ def generate_all(log_func=print):
     log_func(f"\nDone. {updated} files wrapped.")
     return True
 
+def _make_push_url(url, token):
+    if token and url.startswith('https://'):
+        return url.replace('https://', f'https://{token}@', 1)
+    return url
+
+
 def git_commit_push(log_func=print):
     msg = CONFIG.get("git_commit_message", "update site via generator")
     auto = CONFIG.get("git_auto_push", True)
     url = CONFIG.get("git_remote_url", "")
+    token = CONFIG.get("github_token", "")
+    push_url = _make_push_url(url, token)
     name = CONFIG.get("git_user_name", "")
     email = CONFIG.get("git_user_email", "")
     try:
@@ -391,9 +400,9 @@ def git_commit_push(log_func=print):
             _git_run(["config", "user.email", email], cwd=SITE_DIR, capture_output=True)
         if url:
             r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
-            if r.returncode != 0 or r.stdout.strip() != url:
+            if r.returncode != 0 or r.stdout.strip() != push_url:
                 _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
-                _git_run(["remote", "add", "origin", url], cwd=SITE_DIR, capture_output=True)
+                _git_run(["remote", "add", "origin", push_url], cwd=SITE_DIR, capture_output=True)
         _git_run(["add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
         r = _git_run(["commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
         if r.returncode == 0:

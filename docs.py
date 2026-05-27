@@ -44,6 +44,13 @@ DOCS_HTML = """\
   <b>Step 3:</b> Enter your GitHub repository URL (e.g. <code>https://github.com/you/repo.git</code>), your git name/email, and a commit message.
 </div>
 <div class="step">
+  <b>Step 3b:</b> If using HTTPS (recommended), generate a <b>GitHub personal access token</b> with <code>repo</code> scope and paste it into the <b>GitHub Token</b> field. The token avoids credential prompts on push.
+  <br><br>
+  Where to get it:
+  <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>
+  → <b>Generate new token (classic)</b> → give it a name, check <code>repo</code> → copy the token (starts with <code>ghp_</code>).
+</div>
+<div class="step">
   <b>Step 4:</b> Fill in your name, bio, and avatar URL — these appear in the sidebar and homepage.
 </div>
 <div class="step">
@@ -148,10 +155,10 @@ DOCS_HTML = """\
 
 <h2>Quick Start (First Time)</h2>
 <ol>
-  <li>Open the <b>Site Generator</b> tab — enter your Supabase URL, anon key, GitHub remote URL, and owner info</li>
-  <li>Click <b>Generate &amp; Push</b> — this creates your initial site</li>
-  <li>Open the <b>Theme Customizer</b> tab — pick a theme and font, click <b>Apply Theme</b></li>
-  <li>Your site is live. Add pages by dropping HTML files into folders and running Generate again, or use the <b>Docx to HTML</b> or <b>Reference Manager</b> tabs</li>
+  <li>Open the <b>Setup</b> tab — enter your Supabase URL, anon key, GitHub remote URL, <b>GitHub Token</b>, and owner info</li>
+  <li>Click <b>Generate &amp; Push</b> — this creates your initial site and pushes it live</li>
+  <li>Open the <b>Theme</b> tab — pick a theme and font, click <b>Apply Theme</b></li>
+  <li>Your site is live. Add pages with the <b>Import</b> tab (Google Docs exports) or <b>Management</b> tab (existing HTML files)</li>
 </ol>
 
 <hr>
@@ -162,6 +169,13 @@ DOCS_HTML = """\
 <p>Initialize git, configure your remote, and push your site to GitHub.</p>
 <div class="step">
   <b>Step 1:</b> Enter your Remote URL, User name, and User email in the fields (pre-filled from <code>config.json</code>).
+</div>
+<div class="step">
+  <b>Step 1b:</b> If your remote URL uses <code>https://</code>, paste a <b>GitHub personal access token</b> into the <b>GitHub Token</b> field. This lets the app authenticate automatically when pushing.
+  <br><br>
+  Get one at
+  <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>
+  → <b>Generate new token (classic)</b> → check <code>repo</code> → copy the token.
 </div>
 <div class="step">
   <b>Step 2:</b> Click <b>Init Repo</b> to create the git repository, set your identity, and add the remote.
