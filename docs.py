@@ -44,11 +44,11 @@ DOCS_HTML = """\
   <b>Step 3:</b> Enter your GitHub repository URL (e.g. <code>https://github.com/you/repo.git</code>), your git name/email, and a commit message.
 </div>
 <div class="step">
-  <b>Step 3b:</b> If using HTTPS (recommended), generate a <b>GitHub personal access token</b> with <code>repo</code> scope and paste it into the <b>GitHub Token</b> field. The token avoids credential prompts on push.
+  <b>Step 3b:</b> If using HTTPS (recommended), generate a <b>GitHub personal access token</b> (NOT a GPG key — starts with <code>ghp_</code>) with <code>repo</code> scope and paste it into the <b>GitHub Token</b> field. The token avoids credential prompts on push.
   <br><br>
   Where to get it:
   <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>
-  → <b>Generate new token (classic)</b> → give it a name, check <code>repo</code> → copy the token (starts with <code>ghp_</code>).
+  → <b>Generate new token (classic)</b> → give it a name, check <code>repo</code> → copy the token.
 </div>
 <div class="step">
   <b>Step 4:</b> Fill in your name, bio, and avatar URL — these appear in the sidebar and homepage.
@@ -171,7 +171,7 @@ DOCS_HTML = """\
   <b>Step 1:</b> Enter your Remote URL, User name, and User email in the fields (pre-filled from <code>config.json</code>).
 </div>
 <div class="step">
-  <b>Step 1b:</b> If your remote URL uses <code>https://</code>, paste a <b>GitHub personal access token</b> into the <b>GitHub Token</b> field. This lets the app authenticate automatically when pushing.
+  <b>Step 1b:</b> If your remote URL uses <code>https://</code>, paste a <b>GitHub personal access token</b> (NOT a GPG key — starts with <code>ghp_</code>) into the <b>GitHub Token</b> field. This lets the app authenticate automatically when pushing.
   <br><br>
   Get one at
   <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>

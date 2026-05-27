@@ -184,7 +184,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         gfl.addRow("Remote URL:", self.remote_input)
 
         self.token_input = QtWidgets.QLineEdit(cfg.get("github_token", ""))
-        self.token_input.setPlaceholderText("ghp_xxxxxxxxxxxxxxxxxxxx")
+        self.token_input.setPlaceholderText("ghp_xxxxxxxxxxxxxxxxxxxx  (NOT a GPG key)")
         self.token_input.setEchoMode(QtWidgets.QLineEdit.Password)
         gfl.addRow("GitHub Token:", self.token_input)
 

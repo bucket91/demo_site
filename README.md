@@ -7,7 +7,7 @@ A desktop app that imports Google Docs exports, manages a static site with sideb
 1. Download the `SiteTools` executable (or build from source).
 2. Place it in any directory (it will create a template, CSS, and config on first run).
 3. Run `./SiteTools`.
-4. Open the **Setup** tab — enter your site title, GitHub remote URL, and **GitHub Token** (needed for HTTPS push auth).
+4. Open the **Setup** tab — enter your site title, GitHub remote URL, and **GitHub Token** (needed for HTTPS push auth — this is a personal access token starting with `ghp_`, NOT a GPG key).
 5. Get your token at [github.com/settings/tokens](https://github.com/settings/tokens) — create a classic token with `repo` scope.
 6. Open the **Owner** tab — set your name, bio, and avatar.
 7. Click **Generate & Push** on the Setup tab.
