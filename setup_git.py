@@ -372,7 +372,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
             with open(gi, "w") as f:
-                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Build\nbuild_venv/\n*.spec\ndist/\n")
+                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Local config (contains tokens, never commit)\nconfig.json\n# Build\nbuild_venv/\n*.spec\ndist/\n")
             self.log_msg("Created .gitignore")
         self.check_status()
         self.status.setText("Init complete")

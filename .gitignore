@@ -6,6 +6,9 @@
 *.docm
 *.dotm
 
+# Local config (contains tokens, never commit)
+config.json
+
 # Build artifacts
 SiteTools
 SiteTools.exe
