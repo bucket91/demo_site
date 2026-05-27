@@ -29,4 +29,4 @@ Your site is live at `https://your-username.github.io/your-repo/`.
 python3 build.py
 ```
 
-Requires Python 3.10+ and creates a standalone executable bundled with PyQt5, mammoth, and a static git binary.
+Requires Python 3.10+ and creates a standalone executable bundled with PyQt5, a static git binary, plus other necessary packages.
