@@ -7,7 +7,7 @@
 *.dotm
 
 # Local config (contains tokens, never commit)
-config.json
+config.local.json
 
 # Build artifacts
 SiteTools

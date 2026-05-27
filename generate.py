@@ -6,6 +6,7 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
 
 def load_config():
     default = {
@@ -25,10 +26,14 @@ def load_config():
         "owner_contacts": [],
         "site_title": "Placeholder",
     }
+    cfg = default
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
-            return {**default, **json.load(f)}
-    return default
+            cfg = {**default, **json.load(f)}
+    if os.path.exists(LOCAL_CONFIG_FILE):
+        with open(LOCAL_CONFIG_FILE) as f:
+            cfg.update(json.load(f))
+    return cfg
 
 CONFIG = load_config()
 

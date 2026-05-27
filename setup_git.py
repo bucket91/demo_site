@@ -6,6 +6,7 @@ from git_util import is_git_available as _git_available, git_run as _git_run
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
 
 
 def load_config():
@@ -16,10 +17,14 @@ def load_config():
         "git_commit_message": "Initial site setup", "git_auto_push": True,
         "github_token": "",
     }
+    cfg = default
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
-            return {**default, **json.load(f)}
-    return default
+            cfg = {**default, **json.load(f)}
+    if os.path.exists(LOCAL_CONFIG_FILE):
+        with open(LOCAL_CONFIG_FILE) as f:
+            cfg.update(json.load(f))
+    return cfg
 
 
 def save_config(cfg):
@@ -30,6 +35,7 @@ def save_config(cfg):
 def save_setup_config(url, name, email, msg, auto_push,
                       supabase_url, supabase_anon_key, comments_enabled, site_title,
                       github_token):
+    # Write safe fields to config.json (pushed to repo)
     cfg = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE) as f:
@@ -37,10 +43,19 @@ def save_setup_config(url, name, email, msg, auto_push,
     cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
                git_commit_message=msg, git_auto_push=auto_push,
                supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
-               comments_enabled=comments_enabled, site_title=site_title,
-               github_token=github_token)
+               comments_enabled=comments_enabled, site_title=site_title)
+    cfg.pop("github_token", None)
     with open(CONFIG_FILE, "w") as f:
         json.dump(cfg, f, indent=2)
+
+    # Write token to local-only config (not pushed)
+    local_cfg = {}
+    if os.path.exists(LOCAL_CONFIG_FILE):
+        with open(LOCAL_CONFIG_FILE) as f:
+            local_cfg = json.load(f)
+    local_cfg["github_token"] = github_token
+    with open(LOCAL_CONFIG_FILE, "w") as f:
+        json.dump(local_cfg, f, indent=2)
 
 
 def _make_push_url(url, token):
@@ -372,7 +387,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
             with open(gi, "w") as f:
-                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Local config (contains tokens, never commit)\nconfig.json\n# Build\nbuild_venv/\n*.spec\ndist/\n")
+                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Local config (contains tokens, never commit)\nconfig.local.json\n# Build\nbuild_venv/\n*.spec\ndist/\n")
             self.log_msg("Created .gitignore")
         self.check_status()
         self.status.setText("Init complete")

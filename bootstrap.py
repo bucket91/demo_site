@@ -174,6 +174,11 @@ def ensure_site_files(site_dir):
             json.dump(DEFAULT_CONFIG, f, indent=2)
         created.append("config.json")
 
+    if not os.path.exists(_path("config.local.json")):
+        with open(_path("config.local.json"), "w") as f:
+            json.dump({"github_token": ""}, f, indent=2)
+        created.append("config.local.json")
+
     check(_path(".nojekyll"), "")
     check(_path("template reference.txt"), "SideMenu\n")
 

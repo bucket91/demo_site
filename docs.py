@@ -168,7 +168,7 @@ DOCS_HTML = """\
 <h2>Git Setup Tab</h2>
 <p>Initialize git, configure your remote, and push your site to GitHub.</p>
 <div class="step">
-  <b>Step 1:</b> Enter your Remote URL, User name, and User email in the fields (pre-filled from <code>config.json</code>).
+  <b>Step 1:</b> Enter your Remote URL, User name, and User email in the fields (pre-filled from <code>config.json</code> / <code>config.local.json</code>).
 </div>
 <div class="step">
   <b>Step 1b:</b> If your remote URL uses <code>https://</code>, paste a <b>GitHub personal access token</b> (NOT a GPG key — starts with <code>ghp_</code>) into the <b>GitHub Token</b> field. This lets the app authenticate automatically when pushing.
