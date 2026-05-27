@@ -43,6 +43,12 @@ def save_setup_config(url, name, email, msg, auto_push,
         json.dump(cfg, f, indent=2)
 
 
+def _make_push_url(url, token):
+    if token and url.startswith('https://'):
+        return url.replace('https://', f'https://{token}@', 1)
+    return url
+
+
 def is_git_installed():
     return _git_available()
 
@@ -396,6 +402,13 @@ class SetupGitWidget(QtWidgets.QWidget):
 
     def push(self):
         self.save_config_fields()
+        cfg = load_config()
+        url = cfg.get("git_remote_url", "")
+        token = cfg.get("github_token", "")
+        push_url = _make_push_url(url, token)
+        if push_url != url:
+            self.log_msg(f"Using token-authenticated remote URL")
+            _git_run(["remote", "set-url", "origin", push_url], cwd=SITE_DIR, capture_output=True)
         r = self.run_git(["remote", "get-url", "origin"])
         if not r or r.returncode != 0:
             self.log_msg("No remote configured. Set Remote URL first.")
