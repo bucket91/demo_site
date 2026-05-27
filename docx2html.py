@@ -51,6 +51,10 @@ class _HtmlCleaner(HTMLParser):
         if tag == 'img':
             src = dict(attrs).get('src', '')
             if src in self.images:
+                clean = [(n, v) for n, v in clean if n != 'src']
+                attrs_str = ''
+                if clean:
+                    attrs_str = ' ' + ' '.join(f'{n}="{self._esc_attr(v)}"' for n, v in clean)
                 self.out.append(f'<img{attrs_str} src="{self.images[src]}">')
                 return
 
