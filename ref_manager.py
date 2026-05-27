@@ -204,16 +204,35 @@ class RefManagerWidget(QtWidgets.QWidget):
         hint.setWordWrap(True)
         layout.addWidget(hint)
 
-        layout.addStretch()
+        # --- Entries + Raw view (horizontal split) ---
+        splitter = QtWidgets.QSplitter(QtCore.Qt.Horizontal)
 
-        # --- Current entries (selectable list) ---
+        left_panel = QtWidgets.QWidget()
+        left_layout = QtWidgets.QVBoxLayout(left_panel)
+        left_layout.setContentsMargins(0, 0, 0, 0)
         entries_label = QtWidgets.QLabel("Current reference entries:")
         entries_label.setProperty("class", "heading")
-        layout.addWidget(entries_label)
+        left_layout.addWidget(entries_label)
 
         self.entry_list = QtWidgets.QListWidget()
-        self.entry_list.setMaximumHeight(200)
-        layout.addWidget(self.entry_list)
+        left_layout.addWidget(self.entry_list)
+        splitter.addWidget(left_panel)
+
+        right_panel = QtWidgets.QWidget()
+        right_layout = QtWidgets.QVBoxLayout(right_panel)
+        right_layout.setContentsMargins(0, 0, 0, 0)
+        raw_label = QtWidgets.QLabel("Raw file (template reference.txt):")
+        raw_label.setProperty("class", "heading")
+        right_layout.addWidget(raw_label)
+
+        self.raw_preview = QtWidgets.QTextEdit()
+        self.raw_preview.setReadOnly(True)
+        self.raw_preview.setStyleSheet("font-family: monospace; font-size: 12px;")
+        right_layout.addWidget(self.raw_preview)
+        splitter.addWidget(right_panel)
+
+        splitter.setSizes([300, 400])
+        layout.addWidget(splitter, 1)
 
         # --- Buttons ---
         btn_row = QtWidgets.QHBoxLayout()
@@ -265,6 +284,13 @@ class RefManagerWidget(QtWidgets.QWidget):
             item.setData(QtCore.Qt.UserRole, (cat, name))
             self.entry_list.addItem(item)
 
+    def refresh_raw(self):
+        if os.path.exists(REF_FILE):
+            with open(REF_FILE) as f:
+                self.raw_preview.setPlainText(f.read())
+        else:
+            self.raw_preview.setPlainText("(file does not exist yet)")
+
     @QtCore.pyqtSlot()
     def delete_selected(self):
         item = self.entry_list.currentItem()
@@ -292,6 +318,7 @@ class RefManagerWidget(QtWidgets.QWidget):
     def refresh_all(self):
         self.refresh_categories()
         self.refresh_entries()
+        self.refresh_raw()
         self.status.setText("Refreshed")
 
     def add_entry(self):
@@ -317,23 +344,21 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         basename = os.path.basename(src)
         dst = os.path.join(target_dir, basename)
-        if os.path.abspath(src) == os.path.abspath(dst):
-            self.status.setText("File is already in the target directory")
-            return
-        if os.path.exists(dst):
-            reply = QtWidgets.QMessageBox.question(
-                self, "File exists",
-                f"{basename} already exists in '{category}/'. Overwrite?",
-                QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
-            )
-            if reply != QtWidgets.QMessageBox.Yes:
+        already_in_place = os.path.abspath(src) == os.path.abspath(dst)
+        if not already_in_place:
+            if os.path.exists(dst):
+                reply = QtWidgets.QMessageBox.question(
+                    self, "File exists",
+                    f"{basename} already exists in '{category}/'. Overwrite?",
+                    QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+                )
+                if reply != QtWidgets.QMessageBox.Yes:
+                    return
+            try:
+                shutil.copy2(src, dst)
+            except Exception as e:
+                self.status.setText(f"Error copying file: {e}")
                 return
-
-        try:
-            shutil.copy2(src, dst)
-        except Exception as e:
-            self.status.setText(f"Error copying file: {e}")
-            return
 
         try:
             add_ref_entry(category, display_name, dst)

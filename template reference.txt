@@ -1,4 +1,4 @@
-Blog
+	Blog
 		{Name:"demo"
 		 File: "/blog/file-sample-1mb.html"}
 		{Name:"Post1"
@@ -13,7 +13,7 @@ Blog
 		 File: "/blog/blog5.html"}
 
 	Grammar
-{Name:"demo2"
+		{Name:"demo2"
 		 File: "/grammar/demo2.html"}
 		{Name:"Post1"
 		 File: "/grammar/grammar1.html"}

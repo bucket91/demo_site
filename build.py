@@ -49,9 +49,9 @@ def clean():
 def setup_venv():
     if os.path.exists(PYINSTALLER):
         return
-    print("Creating build venv and installing PyInstaller + PyQt5 + python-docx...")
+    print("Creating build venv and installing PyInstaller + PyQt5...")
     subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
-    subprocess.run([PIP, "install", "pyinstaller", "PyQt5", "python-docx"], check=True)
+    subprocess.run([PIP, "install", "pyinstaller", "PyQt5"], check=True)
 
 
 def download_mingit():
@@ -103,9 +103,6 @@ def build():
         "--workpath", os.path.join(SITE_DIR, "build"),
         "--specpath", SITE_DIR,
         "--hidden-import", "PyQt5.sip",
-        "--hidden-import", "PyQt5.QtCore",
-        "--hidden-import", "PyQt5.QtGui",
-        "--hidden-import", "PyQt5.QtWidgets",
         "app.py",
     ]
 

@@ -67,16 +67,19 @@ DOCS_HTML = """\
 
 <hr>
 
-<h2>Docx to HTML Tab</h2>
-<p>Convert Word documents into web pages.</p>
+<h2>Import Tab</h2>
+<p>Import a Google Docs export (<code>.zip</code>) as a site page.</p>
 <div class="step">
-  <b>Step 1:</b> Click <b>Browse</b> and pick a <code>.docx</code> file.
+  <b>Step 1:</b> In Google Docs, go to <b>File → Download → Web page (.html, zipped)</b>.
 </div>
 <div class="step">
-  <b>Step 2:</b> Preview the HTML output.
+  <b>Step 2:</b> Click <b>Browse</b> and pick the <code>.zip</code> file.
 </div>
 <div class="step">
-  <b>Step 3:</b> Click <b>Save as HTML</b> (standalone file) or <b>Add to Site + Generate</b> (adds to a category and rebuilds the site).
+  <b>Step 3:</b> Preview the cleaned HTML — colors are stripped so the page inherits your site theme.
+</div>
+<div class="step">
+  <b>Step 4:</b> Click <b>Save as HTML</b> (standalone file) or <b>Add to Site + Generate</b> (adds to a category and rebuilds the site).
 </div>
 <p>When adding to site, you'll enter a category name, page title, and sidebar label.</p>
 

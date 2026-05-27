@@ -314,16 +314,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         selector_row.addWidget(apply_btn)
         layout.addLayout(selector_row)
 
-        # Site title
-        title_row = QtWidgets.QHBoxLayout()
-        title_label = QtWidgets.QLabel("Site title:")
-        title_label.setStyleSheet("color: #999; font-size: 12px;")
-        title_row.addWidget(title_label)
-        self.site_title_input = QtWidgets.QLineEdit()
-        self.load_site_title()
-        title_row.addWidget(self.site_title_input, 1)
-        layout.addLayout(title_row)
-
         # Font selector
         font_row = QtWidgets.QHBoxLayout()
         font_label = QtWidgets.QLabel("Font:")
@@ -530,24 +520,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.update_preview()
         self.status.setText(f"Removed font '{name}'")
 
-    # --- Site title ---
-
-    def load_site_title(self):
-        cfg = {}
-        if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
-                cfg = json.load(f)
-        self.site_title_input.setText(cfg.get("site_title", "Placeholder"))
-
-    def save_site_title(self):
-        cfg = {}
-        if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
-                cfg = json.load(f)
-        cfg["site_title"] = self.site_title_input.text()
-        with open(CONFIG_FILE, "w") as f:
-            json.dump(cfg, f, indent=2)
-
     # --- Custom colors ---
 
     def load_custom_theme(self):
@@ -601,8 +573,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         t = self.theme_colors()
         name = self.theme_combo.currentText()
         font_name = self.font_combo.currentText()
-        site_title = self.site_title_input.text()
-        self.current_label.setText(f"Theme: {name}  |  Font: {font_name}  |  Title: {site_title}")
+        self.current_label.setText(f"Theme: {name}  |  Font: {font_name}")
 
         for sw, key in self.swatch_widgets:
             color = t.get(key, "#000")
@@ -613,7 +584,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         for key, label in SWATCH_KEYS:
             lines.append(f"  {label}: {t.get(key, '?')}")
         lines.append(f"  Font: {font_name}")
-        lines.append(f"  Site Title: {site_title}")
         if self.theme_key() == "Custom":
             lines.append("  (custom colors)")
         self.preview.setPlainText(f"Theme: {name}\n" + "\n".join(lines))
@@ -623,10 +593,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         t = dict(self.theme_colors())
         name = "Custom" if is_custom else self.theme_combo.currentText()
         font_name = self.font_combo.currentText()
-
-        # Save site title
-        self.save_site_title()
-        site_title = self.site_title_input.text()
 
         if is_custom_font(font_name):
             cf = get_custom_font(font_name)
@@ -640,7 +606,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             t["font_family"] = FONTS[font_name]
             t["font_face_rules"] = ""
 
-        self.status.setText(f"Applying {name} with {font_name} (title: {site_title})...")
+        self.status.setText(f"Applying {name} with {font_name}...")
         QtWidgets.QApplication.processEvents()
 
         css = CSS_TEMPLATE.substitute(**t)

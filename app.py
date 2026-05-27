@@ -29,12 +29,15 @@ class App(QtWidgets.QMainWindow):
         """)
         self.setCentralWidget(tabs)
 
-        import admin
-        tabs.addTab(admin.CommentAdminWidget(), "Comments")
+        import setup_git
+        tabs.addTab(setup_git.SetupGitWidget(), "Setup")
+
+        import owner_tab
+        tabs.addTab(owner_tab.OwnerWidget(), "Owner")
 
         import docx2html
-        self.docx_widget = docx2html.DocxToHtmlWidget()
-        tabs.addTab(self.docx_widget, "Docx to HTML")
+        self.docx_widget = docx2html.ImportWidget()
+        tabs.addTab(self.docx_widget, "Import")
 
         import ref_manager
         self.ref_mgr = ref_manager.RefManagerWidget()
@@ -43,14 +46,15 @@ class App(QtWidgets.QMainWindow):
         import theme_customizer
         tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme")
 
+        import admin
+        tabs.addTab(admin.CommentAdminWidget(), "Comments")
+
         import docs
-        tabs.addTab(docs.DocsWidget(), "README")
+        tabs.addTab(docs.DocsWidget(), "Help & Guide")
 
-        import owner_tab
-        tabs.addTab(owner_tab.OwnerWidget(), "Owner")
-
-        import setup_git
-        tabs.addTab(setup_git.SetupGitWidget(), "Setup")
+        self.statusBar().showMessage(
+            "Welcome! Start with the Setup tab to configure git, site title, and Supabase.")
+        tabs.setCurrentIndex(0)
 
         self.docx_widget.navigate_to_management.connect(
             lambda path: self._go_to_management(path, tabs))
