@@ -229,7 +229,7 @@ def make_nav(filepath):
     home = os.path.join(rel, 'index.html').replace('\\', '/')
     return f'<a href="{home}">Home</a>'
 
-def make_homepage_content(categories):
+def make_homepage_content(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
     owner_avatar = CONFIG.get("owner_avatar", "")
@@ -244,7 +244,8 @@ def make_homepage_content(categories):
     if owner_name:
         html += '  <div class="home-card owner-card">\n'
         if owner_avatar:
-            html += f'    <img src="./{owner_avatar}" alt="{owner_name}" class="owner-card-avatar">\n'
+            src = rel_path(current_file, '/' + owner_avatar)
+            html += f'    <img src="{src}" alt="{owner_name}" class="owner-card-avatar">\n'
         html += f'    <div class="owner-card-name">{owner_name}</div>\n'
         if owner_title:
             html += f'    <div class="owner-card-title">{owner_title}</div>\n'
@@ -253,7 +254,11 @@ def make_homepage_content(categories):
         if owner_contacts:
             html += '    <div class="owner-card-contacts">\n'
             for c in owner_contacts:
-                html += f'      <a href="{c["url"]}" class="owner-card-link">{c["label"]}</a>\n'
+                url = c["url"]
+                if not url.startswith(('http://', 'https://', 'mailto:', 'tel:')):
+                    if '@' in url:
+                        url = 'mailto:' + url
+                html += f'      <a href="{url}" class="owner-card-link">{c["label"]}</a>\n'
             html += '    </div>\n'
         html += '  </div>\n'
     for cat_name, entries in categories:
@@ -262,8 +267,8 @@ def make_homepage_content(categories):
     <ul>
 '''
         for name, file_path in entries:
-            rel = file_path.lstrip('/')
-            html += f'      <li><a href="{rel}">{name}</a></li>\n'
+            href = rel_path(current_file, file_path)
+            html += f'      <li><a href="{href}">{name}</a></li>\n'
         html += '''    </ul>
   </div>
 '''
@@ -279,7 +284,7 @@ def build_page(filepath, categories):
 
     title = extract_title(src)
     is_home = os.path.basename(filepath) == 'index.html'
-    content = make_homepage_content(categories) if is_home else extract_main(src)
+    content = make_homepage_content(categories, filepath) if is_home else extract_main(src)
     sidebar = generate_sidebar(categories, filepath)
     nav = make_nav(filepath)
     comments_block, comments_js_path = make_comments_block(filepath)
