@@ -365,6 +365,29 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.preview.setMaximumHeight(160)
         layout.addWidget(self.preview, 1)
 
+        # --- Custom Font URL ---
+        font_url_heading = QtWidgets.QLabel("External Font (Google Fonts, etc.)")
+        font_url_heading.setProperty("class", "heading")
+        layout.addWidget(font_url_heading)
+
+        font_url_row = QtWidgets.QHBoxLayout()
+        font_url_label = QtWidgets.QLabel("URL:")
+        font_url_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_url_row.addWidget(font_url_label)
+        self.font_url_input = QtWidgets.QLineEdit()
+        self.font_url_input.setPlaceholderText("https://fonts.googleapis.com/css2?family=...")
+        font_url_row.addWidget(self.font_url_input, 1)
+        layout.addLayout(font_url_row)
+
+        font_family_row = QtWidgets.QHBoxLayout()
+        font_family_label = QtWidgets.QLabel("Family:")
+        font_family_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_family_row.addWidget(font_family_label)
+        self.font_family_input = QtWidgets.QLineEdit()
+        self.font_family_input.setPlaceholderText("'Noto Sans Bengali', sans-serif")
+        font_family_row.addWidget(self.font_family_input, 1)
+        layout.addLayout(font_family_row)
+
         # --- Custom Font Import ---
         import_heading = QtWidgets.QLabel("Import Custom Font")
         import_heading.setProperty("class", "heading")
@@ -404,6 +427,14 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.status = QtWidgets.QLabel("")
         self.status.setProperty("class", "dim")
         layout.addWidget(self.status)
+
+        # Load saved font URL and family
+        cfg = {}
+        if os.path.exists(CONFIG_FILE):
+            with open(CONFIG_FILE) as f:
+                cfg = json.load(f)
+        self.font_url_input.setText(cfg.get("custom_font_url", ""))
+        self.font_family_input.setText(cfg.get("custom_font_family", ""))
 
         # Pick first preset theme
         self._ready = True
@@ -594,7 +625,11 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         name = "Custom" if is_custom else self.theme_combo.currentText()
         font_name = self.font_combo.currentText()
 
-        if is_custom_font(font_name):
+        custom_family = self.font_family_input.text().strip()
+        if custom_family:
+            t["font_family"] = custom_family
+            t["font_face_rules"] = ""
+        elif is_custom_font(font_name):
             cf = get_custom_font(font_name)
             if cf:
                 t["font_family"] = f"'{font_name}'"
@@ -629,6 +664,8 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             with open(CONFIG_FILE) as f:
                 cfg = json.load(f)
         cfg["gui_theme"] = self.theme_combo.currentData() or "Dark"
+        cfg["custom_font_url"] = self.font_url_input.text().strip()
+        cfg["custom_font_family"] = self.font_family_input.text().strip()
         with open(CONFIG_FILE, "w") as f:
             json.dump(cfg, f, indent=2)
 
