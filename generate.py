@@ -391,6 +391,31 @@ def clean_ref_file(log_func=print):
     if removed:
         log_func(f"  Cleaned {removed} stale reference(s)")
 
+def generate_404(categories, log_func=print):
+    path = os.path.join(SITE_DIR, "404.html")
+    with open(path, "w") as f:
+        f.write("""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page Not Found</title>
+</head>
+<body>
+  <main>
+    <div class="home-hero">
+      <h1>404</h1>
+      <p class="home-tagline">Page not found</p>
+      <p style="margin-top:1rem"><a href="index.html">Go home</a></p>
+    </div>
+  </main>
+</body>
+</html>""")
+    if build_page(path, categories):
+        log_func("  Generated: 404.html")
+    return True
+
+
 def generate_all(log_func=print):
     CONFIG.update(load_config())
     clean_ref_file(log_func)
@@ -402,7 +427,7 @@ def generate_all(log_func=print):
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
     skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
-    skip_base = {os.path.basename(TEMPLATE_FILE)}
+    skip_base = {os.path.basename(TEMPLATE_FILE), "404.html"}
     for fp in sorted(html_files):
         rel = os.path.relpath(fp, SITE_DIR)
         if any(part in skip_dirs for part in rel.split(os.sep)):
@@ -413,6 +438,9 @@ def generate_all(log_func=print):
             rel = os.path.relpath(fp, SITE_DIR)
             log_func(f"  Wrapped: {rel}")
             updated += 1
+
+    generate_404(categories, log_func)
+    updated += 1
 
     log_func(f"\nDone. {updated} files wrapped.")
     return True

@@ -21,7 +21,7 @@ Your site is live at `https://your-username.github.io/your-repo/`.
 - **Import** — Import Google Docs exports (.zip) as site pages
 - **Management** — Add/edit HTML files and sidebar entries
 - **Theme** — Pick colors and fonts
-- **Comments** — Moderate reader comments (requires Supabase)
+- **Comments** — Moderate reader comments (requires Supabase — run the SQL from Help & Guide to create the table)
 - **Help & Guide** — Full documentation
 
 ## Building from Source

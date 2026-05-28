@@ -199,10 +199,31 @@ DOCS_HTML = """\
   <b>Step 2:</b> In your project dashboard, go to <b>Settings → API</b>. Copy the <b>Project URL</b> and the <b>anon public key</b>.
 </div>
 <div class="step">
-  <b>Step 3:</b> Go to the <b>Site Generator</b> tab in this app. Paste your Project URL and anon key into the Supabase fields.
+  <b>Step 3:</b> In your Supabase dashboard, go to the <b>SQL Editor</b> and run this query to create the comments table:
+  <pre>CREATE TABLE comments (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  page TEXT NOT NULL,
+  name TEXT NOT NULL,
+  body TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Allow anonymous inserts (anyone can post a comment)
+CREATE POLICY "anon_insert" ON comments
+  FOR INSERT TO anon WITH CHECK (true);
+
+-- Allow anonymous selects (anyone can read comments)
+CREATE POLICY "anon_select" ON comments
+  FOR SELECT TO anon USING (true);
+
+-- Enable Row Level Security
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;</pre>
 </div>
 <div class="step">
-  <b>Step 4:</b> Check <b>Enable comments</b> and click <b>Generate &amp; Push</b>. Every page now has a comment form.
+  <b>Step 4:</b> Go to the <b>Setup</b> tab in this app. Paste your Project URL and anon key into the Supabase fields.
+</div>
+<div class="step">
+  <b>Step 5:</b> Check <b>Enable comments</b> and click <b>Generate &amp; Push</b>. Every page now has a comment form.
 </div>
 """
 
