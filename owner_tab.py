@@ -177,6 +177,9 @@ class OwnerWidget(QtWidgets.QWidget):
                 contacts.append({"label": label.strip(), "url": url.strip()})
             else:
                 contacts.append({"label": line, "url": ""})
+        from generate import normalize_contact_url
+        for c in contacts:
+            c["url"] = normalize_contact_url(c["label"], c["url"])
         cfg["owner_contacts"] = contacts
 
         save_config(cfg)

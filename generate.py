@@ -229,6 +229,32 @@ def make_nav(filepath):
     home = os.path.join(rel, 'index.html').replace('\\', '/')
     return f'<a href="{home}">Home</a>'
 
+CONTACT_PATTERNS = [
+    ('whatsapp',  lambda u: 'https://wa.me/' + u.lstrip('+').replace('-','').replace(' ','')),
+    ('telegram',  lambda u: 'https://t.me/' + u.lstrip('@')),
+    ('youtube',   lambda u: 'https://youtube.com/@' + u.lstrip('@')),
+    ('instagram', lambda u: 'https://instagram.com/' + u.lstrip('@')),
+    ('twitter',   lambda u: 'https://x.com/' + u.lstrip('@')),
+    ('x',         lambda u: 'https://x.com/' + u.lstrip('@')),
+    ('facebook',  lambda u: 'https://facebook.com/' + u.lstrip('@')),
+    ('github',    lambda u: 'https://github.com/' + u.lstrip('@')),
+    ('linkedin',  lambda u: 'https://linkedin.com/in/' + u.lstrip('@')),
+    ('phone',     lambda u: 'tel:' + u.lstrip('+').replace('-','').replace(' ','')),
+]
+
+def normalize_contact_url(label, url):
+    if url.startswith(('http://', 'https://', 'mailto:', 'tel:')):
+        return url
+    if '@' in url and '.' in url.split('@')[-1]:
+        return 'mailto:' + url
+    label_lower = label.lower()
+    for keyword, builder in CONTACT_PATTERNS:
+        if keyword in label_lower:
+            return builder(url)
+    if '@' in url:
+        return 'mailto:' + url
+    return url
+
 def make_homepage_content(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
@@ -254,10 +280,7 @@ def make_homepage_content(categories, current_file):
         if owner_contacts:
             html += '    <div class="owner-card-contacts">\n'
             for c in owner_contacts:
-                url = c["url"]
-                if not url.startswith(('http://', 'https://', 'mailto:', 'tel:')):
-                    if '@' in url:
-                        url = 'mailto:' + url
+                url = normalize_contact_url(c.get("label", ""), c.get("url", ""))
                 html += f'      <a href="{url}" class="owner-card-link">{c["label"]}</a>\n'
             html += '    </div>\n'
         html += '  </div>\n'
