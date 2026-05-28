@@ -360,12 +360,8 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.status.setText("Status refreshed")
 
     def init_repo(self):
-        self.log.clear()
         self.save_config_fields()
-        if not is_git_installed():
-            self.log_msg("ERROR: git is not installed on this system")
-            self.status.setText("Failed: git not found")
-            return
+        self.log_msg("Initializing git repository...")
         if is_git_repo():
             self.log_msg("Already a git repository")
         else:
@@ -375,14 +371,12 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.run_git(["config", "user.name", self.name_input.text().strip()])
         self.run_git(["config", "user.email", self.email_input.text().strip()])
         url = self.remote_input.text().strip()
-        token = self.token_input.text().strip()
-        remote_url = _make_push_url(url, token)
         if url:
             r = self.run_git(["remote", "get-url", "origin"])
             if r and r.returncode == 0:
-                self.run_git(["remote", "set-url", "origin", remote_url])
+                self.run_git(["remote", "set-url", "origin", url])
             else:
-                self.run_git(["remote", "add", "origin", remote_url])
+                self.run_git(["remote", "add", "origin", url])
         # Ensure .gitignore exists
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
@@ -423,8 +417,12 @@ class SetupGitWidget(QtWidgets.QWidget):
         url = cfg.get("git_remote_url", "")
         token = cfg.get("github_token", "")
         push_url = _make_push_url(url, token)
+        orig = None
         if push_url != url:
-            self.log_msg(f"Using token-authenticated remote URL")
+            r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
+            if r and r.returncode == 0:
+                orig = r.stdout.strip()
+            self.log_msg("Using token-authenticated remote URL")
             _git_run(["remote", "set-url", "origin", push_url], cwd=SITE_DIR, capture_output=True)
         r = self.run_git(["remote", "get-url", "origin"])
         if not r or r.returncode != 0:
@@ -437,6 +435,8 @@ class SetupGitWidget(QtWidgets.QWidget):
             self.status.setText("Push succeeded")
         else:
             self.status.setText("Push failed")
+        if orig:
+            _git_run(["remote", "set-url", "origin", orig], cwd=SITE_DIR, capture_output=True)
         self.check_status()
 
     def full_setup(self):

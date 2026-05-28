@@ -426,6 +426,7 @@ def git_commit_push(log_func=print):
     push_url = _make_push_url(url, token)
     name = CONFIG.get("git_user_name", "")
     email = CONFIG.get("git_user_email", "")
+    orig_remote = None
     try:
         if name:
             _git_run(["config", "user.name", name], cwd=SITE_DIR, capture_output=True)
@@ -433,7 +434,9 @@ def git_commit_push(log_func=print):
             _git_run(["config", "user.email", email], cwd=SITE_DIR, capture_output=True)
         if url:
             r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
-            if r.returncode != 0 or r.stdout.strip() != push_url:
+            if r.returncode == 0:
+                orig_remote = r.stdout.strip()
+            if orig_remote != push_url:
                 _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
                 _git_run(["remote", "add", "origin", push_url], cwd=SITE_DIR, capture_output=True)
         _git_run(["add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
@@ -447,7 +450,10 @@ def git_commit_push(log_func=print):
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:
         log_func(f"Git error: {e}")
-
+    finally:
+        if orig_remote and orig_remote != push_url:
+            _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
+            _git_run(["remote", "add", "origin", orig_remote], cwd=SITE_DIR, capture_output=True)
 def run_generate_captured():
     """Run generate and return the last line of output."""
     import io
