@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import sys, os
+import sys, os, json
 from PyQt5 import QtWidgets
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -11,6 +11,8 @@ class App(QtWidgets.QMainWindow):
         created = bootstrap.ensure_site_files(SITE_DIR)
         if created:
             print(f"Created missing files: {', '.join(created)}")
+
+        self._check_first_run()
 
         self.setWindowTitle("Site Tools")
         self.setMinimumSize(900, 700)
@@ -58,6 +60,18 @@ class App(QtWidgets.QMainWindow):
 
         self.docx_widget.navigate_to_management.connect(
             lambda path: self._go_to_management(path, tabs))
+
+    def _check_first_run(self):
+        local_path = os.path.join(SITE_DIR, "config.local.json")
+        if os.path.exists(local_path):
+            with open(local_path) as f:
+                local = json.load(f)
+            if local.get("github_token", ""):
+                return
+        import first_run
+        first_run.SITE_DIR = SITE_DIR
+        wizard = first_run.FirstRunWizard(self)
+        wizard.exec_()
 
     def _go_to_management(self, path, tabs):
         self.ref_mgr.set_file_path(path)
