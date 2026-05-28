@@ -1,12 +1,12 @@
 {
-  "supabase_url": "https://oorgvolgpoapoediiuxy.supabase.co",
-  "supabase_anon_key": "sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5",
-  "comments_enabled": true,
+  "supabase_url": "",
+  "supabase_anon_key": "",
+  "comments_enabled": "True",
   "git_remote_url": "https://github.com/bucket91/demo_site.git",
   "git_user_name": "bucket91",
   "git_user_email": "bucket91@users.noreply.github.com",
-  "git_commit_message": "update site via generator",
-  "git_auto_push": true,
+  "git_commit_message": "update",
+  "git_auto_push": "True",
   "site_title": "Placeholder",
   "custom_theme": {
     "body_bg": "#f0f0f5",
