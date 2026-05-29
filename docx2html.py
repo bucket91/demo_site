@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, re, html as html_mod, zipfile, base64, email, email.policy, email.parser
+import os, sys, re, json, webbrowser, html as html_mod, zipfile, base64, email, email.policy, email.parser
 from html.parser import HTMLParser
 from PyQt5 import QtWidgets, QtCore
 
@@ -235,6 +235,16 @@ class ImportWidget(QtWidgets.QWidget):
         file_row.addWidget(browse_btn)
         layout.addLayout(file_row)
 
+        preview_header = QtWidgets.QHBoxLayout()
+        preview_label = QtWidgets.QLabel("Preview")
+        preview_label.setProperty("class", "dim")
+        preview_header.addWidget(preview_label, 1)
+        self.fullscreen_btn = QtWidgets.QPushButton("Full Screen")
+        self.fullscreen_btn.setEnabled(False)
+        self.fullscreen_btn.clicked.connect(self._show_fullscreen)
+        preview_header.addWidget(self.fullscreen_btn)
+        layout.addLayout(preview_header)
+
         self.preview = QtWidgets.QTextEdit()
         self.preview.setReadOnly(True)
         self.preview.setPlaceholderText("HTML preview will appear here...")
@@ -248,9 +258,22 @@ class ImportWidget(QtWidgets.QWidget):
         self.save_btn.setEnabled(False)
         layout.addWidget(self.save_btn)
 
+        preview_row = QtWidgets.QHBoxLayout()
+        self.local_btn = QtWidgets.QPushButton("Preview Locally")
+        self.local_btn.setEnabled(False)
+        self.local_btn.clicked.connect(self._preview_local)
+        preview_row.addWidget(self.local_btn)
+        self.online_btn = QtWidgets.QPushButton("Preview Online")
+        self.online_btn.setEnabled(False)
+        self.online_btn.clicked.connect(self._preview_online)
+        preview_row.addWidget(self.online_btn)
+        layout.addLayout(preview_row)
+
         self.current_html = ""
         self.current_title = ""
         self.current_path = ""
+        self._last_saved_path = ""
+        self._last_saved_rel = ""
 
         browse_btn.clicked.connect(self.browse)
         self.path_input.returnPressed.connect(self.convert)
@@ -272,6 +295,9 @@ class ImportWidget(QtWidgets.QWidget):
         if ext not in ('.zip', '.mht', '.mhtml'):
             self.status_label.setText("Unsupported file type. Use .zip, .mht, or .mhtml.")
             return
+        self.current_html = ""
+        self.save_btn.setEnabled(False)
+        self.fullscreen_btn.setEnabled(False)
         self.current_path = p
         self.status_label.setText("Extracting & cleaning...")
         QtWidgets.QApplication.processEvents()
@@ -291,6 +317,65 @@ class ImportWidget(QtWidgets.QWidget):
         self.preview.setHtml(html)
         self.status_label.setText(f"Imported: {title} ({len(html)} chars)")
         self.save_btn.setEnabled(True)
+        self.fullscreen_btn.setEnabled(True)
+
+    def _show_fullscreen(self):
+        if not self.current_html and not self.preview.toHtml().strip():
+            return
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle("Preview – Full Screen")
+        dlg.setStyleSheet("QDialog { background: #1a1a1a; }")
+        dl = QtWidgets.QVBoxLayout(dlg)
+        dl.setContentsMargins(0, 0, 0, 0)
+        viewer = QtWidgets.QTextEdit()
+        viewer.setReadOnly(True)
+        viewer.setHtml(self.current_html or self.preview.toHtml())
+        viewer.setStyleSheet("""
+            QTextEdit { background: #fff; color: #000; border: none; }
+        """)
+        dl.addWidget(viewer)
+        bar = QtWidgets.QWidget()
+        bar.setStyleSheet("background: #2a2a2a; padding: 6px 12px;")
+        bl = QtWidgets.QHBoxLayout(bar)
+        bl.setContentsMargins(0, 0, 0, 0)
+        close_btn = QtWidgets.QPushButton("Close")
+        close_btn.setStyleSheet("""
+            QPushButton { background: #555; color: #fff; border: none;
+                          border-radius: 4px; padding: 6px 16px; }
+            QPushButton:hover { background: #666; }
+        """)
+        close_btn.clicked.connect(dlg.accept)
+        bl.addStretch()
+        bl.addWidget(close_btn)
+        dl.addWidget(bar)
+        dlg.resize(1000, 750)
+        dlg.exec_()
+
+    def _preview_local(self):
+        if self._last_saved_path and os.path.exists(self._last_saved_path):
+            webbrowser.open(f'file://{os.path.abspath(self._last_saved_path)}')
+
+    def _preview_online(self):
+        cfg_path = os.path.join(SITE_DIR, "config.json")
+        if not os.path.exists(cfg_path):
+            return
+        with open(cfg_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+        url = cfg.get("git_remote_url", "")
+        if not url or 'github.com/' not in url:
+            self.status_label.setText("No GitHub remote URL configured")
+            return
+        after = url.split('github.com/', 1)[1]
+        if after.endswith('.git'):
+            after = after[:-4]
+        if '/' in after:
+            user, repo = after.split('/', 1)
+            if repo == f'{user}.github.io':
+                base = f"https://{user}.github.io/"
+            else:
+                base = f"https://{user}.github.io/{repo}/"
+            page = self._last_saved_rel.lstrip('/')
+            webbrowser.open(base + page)
 
     def save_to_site(self):
         dlg = QtWidgets.QDialog(self)
@@ -368,6 +453,10 @@ class ImportWidget(QtWidgets.QWidget):
                 sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel_path}]})
             sidebar_util.save_sidebar(sidebar_data)
 
+            self._last_saved_path = fpath
+            self._last_saved_rel = rel_path
+            self.local_btn.setEnabled(True)
+            self.online_btn.setEnabled(True)
             dlg.accept()
             self.navigate_to_management.emit(fpath, cat)
 

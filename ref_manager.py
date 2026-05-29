@@ -133,7 +133,10 @@ class RefManagerWidget(QtWidgets.QWidget):
                 entry_item = cat_item.child(j)
                 entry_data = entry_item.data(0, QtCore.Qt.UserRole)
                 if entry_data and "file" in entry_data:
-                    entries.append({"name": entry_item.text(0), "file": entry_data["file"]})
+                    d = {"name": entry_item.text(0), "file": entry_data["file"]}
+                    if "comments" in entry_data:
+                        d["comments"] = entry_data["comments"]
+                    entries.append(d)
             data.append({"category": cat_name, "entries": entries})
         return data
 
@@ -148,7 +151,8 @@ class RefManagerWidget(QtWidgets.QWidget):
                 entry_item = QtWidgets.QTreeWidgetItem([entry["name"]])
                 entry_item.setData(0, QtCore.Qt.UserRole, {
                     "type": "entry", "category": cat["category"],
-                    "name": entry["name"], "file": entry["file"]
+                    "name": entry["name"], "file": entry["file"],
+                    "comments": entry.get("comments", True)
                 })
                 entry_item.setFlags(entry_item.flags() | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled)
                 cat_item.addChild(entry_item)
@@ -220,11 +224,16 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             rename_action = menu.addAction("Rename")
             delete_action = menu.addAction("Delete")
+            menu.addSeparator()
+            comments_on = data.get("comments", True)
+            comments_action = menu.addAction("Comments: On" if comments_on else "Comments: Off")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
             if action == rename_action:
                 self.tree.editItem(item, 0)
             elif action == delete_action:
                 self._delete_entry(data)
+            elif action == comments_action:
+                self._toggle_comments(data)
         elif data.get("type") == "category":
             delete_action = menu.addAction("Delete Category")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
@@ -270,6 +279,18 @@ class RefManagerWidget(QtWidgets.QWidget):
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
         self.status.setText(f"Added '{name}' to new category '{category}'")
+
+    def _toggle_comments(self, data):
+        for cat in self._sidebar_data:
+            if cat["category"] == data["category"]:
+                for entry in cat["entries"]:
+                    if entry["file"] == data["file"]:
+                        current = entry.get("comments", True)
+                        entry["comments"] = not current
+                        sidebar_util.save_sidebar(self._sidebar_data)
+                        self.refresh_all()
+                        self.status.setText(f"{'Enabled' if not current else 'Disabled'} comments for '{data['name']}'")
+                        return
 
     def delete_selected(self):
         item = self.tree.currentItem()

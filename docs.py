@@ -24,22 +24,22 @@ DOCS_HTML = """\
 <hr>
 
 <h2>Quick Start</h2>
-<div class="step"><b>1.</b> Go to <b>Setup</b> tab → enter your GitHub repo URL + token → click <b>Initialize</b> then <b>Generate</b></div>
-<div class="step"><b>2.</b> Go to <b>Owner</b> tab → add your name and photo → click <b>Save</b></div>
-<div class="step"><b>3.</b> Go to <b>Import</b> tab → pick a <code>.zip</code> or <code>.mht</code> file → click <b>Save to Site</b></div>
+<div class="step"><b>1.</b> Go to <b>Settings</b> tab → enter your GitHub repo URL + token → click <b>Initialize</b> then <b>Generate</b></div>
+<div class="step"><b>2.</b> Go to <b>Design</b> tab → add your name and photo → click <b>Save</b></div>
+<div class="step"><b>3.</b> Go to <b>Content</b> tab → pick a <code>.zip</code> or <code>.mht</code> file → click <b>Save to Site</b></div>
 <p>Your site is live at <code>https://yourusername.github.io/repo/</code></p>
 
 <hr>
 
-<h2>Adding Pages (Import tab)</h2>
-<div class="step"><b>Google Docs:</b> <b>File → Download → Web page (.html, zipped)</b> → pick the <code>.zip</code> in the Import tab</div>
-<div class="step"><b>Microsoft Word:</b> <b>File → Save As → Web Page, Single File (.mht)</b> → pick the <code>.mht</code> in the Import tab</div>
+<h2>Adding Pages (Content tab)</h2>
+<div class="step"><b>Google Docs:</b> <b>File → Download → Web page (.html, zipped)</b> → pick the <code>.zip</code> in the Content tab (top section)</div>
+<div class="step"><b>Microsoft Word:</b> <b>File → Save As → Web Page, Single File (.mht)</b> → pick the <code>.mht</code> in the Content tab (top section)</div>
 <div class="step"><b>Then:</b> Click <b>Save to Site</b> → enter a <b>Category</b> (folder) and <b>Page title</b> → done</div>
 <p>The page is automatically added to your site's sidebar.</p>
 
 <hr>
 
-<h2>Organizing Pages (Management tab)</h2>
+<h2>Organizing Pages (Content tab, bottom section)</h2>
 <p>Drag entries to reorder them. Double-click to rename. Right-click to delete.</p>
 <div class="step"><b>Reorder:</b> drag the handle to move pages up/down or into a different category</div>
 <div class="step"><b>Rename:</b> double-click a name and type a new one</div>
@@ -48,21 +48,21 @@ DOCS_HTML = """\
 
 <hr>
 
-<h2>Customizing the Look (Theme tab)</h2>
+<h2>Customizing the Look (Design tab, bottom section)</h2>
 <div class="step"><b>Preset:</b> pick a theme from the dropdown → click <b>Apply Theme</b></div>
 <div class="step"><b>Custom colors:</b> select <b>Custom...</b> → click <b>Customize Colors...</b> → pick your colors → <b>Apply Theme</b></div>
 <div class="step"><b>Custom font:</b> paste a Google Fonts URL and family name → <b>Apply Theme</b></div>
 
 <hr>
 
-<h2>Profile & Contacts (Owner tab)</h2>
+<h2>Profile & Contacts (Design tab, top section)</h2>
 <p>Your name, bio, photo, and social links appear as the first card on the homepage and in the sidebar.</p>
 <div class="step">Add contacts like <b>WhatsApp</b>, <b>Telegram</b>, <b>YouTube</b>, <b>GitHub</b>, <b>Email</b> — the app auto-detects the link type</div>
 <div class="step">Click <b>Save</b> — your site regenerates automatically</div>
 
 <hr>
 
-<h2>GitHub Setup (Setup tab)</h2>
+<h2>GitHub Setup (Settings tab)</h2>
 <div class="step"><b>Remote URL:</b> <code>https://github.com/username/repo.git</code></div>
 <div class="step"><b>Token:</b> get one at <a href="https://github.com/settings/tokens">github.com/settings/tokens</a> → <b>Generate new token (classic)</b> → check <code>repo</code> → paste it here (NOT a GPG key)</div>
 <div class="step"><b>Initialize:</b> click to set up the repo and remote</div>
@@ -84,7 +84,7 @@ ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "anon_insert" ON comments FOR INSERT TO anon WITH CHECK (true);
 CREATE POLICY "anon_select" ON comments FOR SELECT TO anon USING (true);</pre>
 </div>
-<div class="step"><b>Connect the app:</b> Paste your Supabase <b>Project URL</b> and <b>anon key</b> into the <b>Setup</b> tab → check <b>Enable comments</b> → <b>Generate</b></div>
+<div class="step"><b>Connect the app:</b> Paste your Supabase <b>Project URL</b> and <b>anon key</b> into the <b>Settings</b> tab → check <b>Enable comments</b> → <b>Generate</b></div>
 <div class="step"><b>Manage comments:</b> use the <b>Comments</b> tab to view, edit, or delete comments</div>
 """
 

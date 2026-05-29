@@ -30,22 +30,18 @@ class App(QtWidgets.QMainWindow):
         """)
         self.setCentralWidget(tabs)
 
+        import content_tab
+        content_tab.SITE_DIR = SITE_DIR
+        self.content_widget = content_tab.ContentWidget()
+        tabs.addTab(self.content_widget, "Content")
+
+        import design_tab
+        design_tab.SITE_DIR = SITE_DIR
+        tabs.addTab(design_tab.DesignWidget(), "Design")
+
         import setup_git
-        tabs.addTab(setup_git.SetupGitWidget(), "Setup")
-
-        import owner_tab
-        tabs.addTab(owner_tab.OwnerWidget(), "Owner")
-
-        import docx2html
-        self.docx_widget = docx2html.ImportWidget()
-        tabs.addTab(self.docx_widget, "Import")
-
-        import ref_manager
-        self.ref_mgr = ref_manager.RefManagerWidget()
-        tabs.addTab(self.ref_mgr, "Management")
-
-        import theme_customizer
-        tabs.addTab(theme_customizer.ThemeCustomizerWidget(), "Theme")
+        setup_git.SITE_DIR = SITE_DIR
+        tabs.addTab(setup_git.SetupGitWidget(), "Settings")
 
         import admin
         tabs.addTab(admin.CommentAdminWidget(), "Comments")
@@ -54,11 +50,8 @@ class App(QtWidgets.QMainWindow):
         tabs.addTab(docs.DocsWidget(), "Help & Guide")
 
         self.statusBar().showMessage(
-            "Ready. Add content via Import tab, then click Generate.")
+            "Ready. Add content in the Content tab, pick a theme in Design, configure in Settings.")
         tabs.setCurrentIndex(0)
-
-        self.docx_widget.navigate_to_management.connect(
-            lambda path, cat: self._go_to_management(path, cat, tabs))
 
     def _check_first_run(self):
         local_path = os.path.join(SITE_DIR, "config.local.json")
@@ -117,9 +110,7 @@ class App(QtWidgets.QMainWindow):
             with open(gi, "w", encoding="utf-8") as f:
                 f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Local config (contains tokens, never commit)\nconfig.local.json\n# Build\nbuild_venv/\n*.spec\ndist/\n")
 
-    def _go_to_management(self, path, category, tabs):
-        self.ref_mgr.set_file_path(path, category)
-        tabs.setCurrentIndex(tabs.indexOf(self.ref_mgr))
+
 
 def main():
     app = QtWidgets.QApplication(sys.argv)

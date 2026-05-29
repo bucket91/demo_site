@@ -111,10 +111,16 @@ def extract_title(html):
 def make_comments_block(filepath):
     if not CONFIG.get("comments_enabled", True):
         return '', ''
-    page = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
-    page = page.replace('/index.html', '/').replace('.html', '')
     url = CONFIG.get("supabase_url", "")
     key = CONFIG.get("supabase_anon_key", "")
+    if not url or not key:
+        return '', ''
+    rel = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
+    for cat in sidebar_util.load_sidebar():
+        for entry in cat["entries"]:
+            if entry["file"] == rel and entry.get("comments") is False:
+                return '', ''
+    page = rel.replace('/index.html', '/').replace('.html', '')
     block = '''  <div id="comments-section" data-page="''' + page + '''">
     <h3>Comments</h3>
     <div id="comments-list"></div>

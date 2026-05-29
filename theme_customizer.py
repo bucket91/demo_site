@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, json
+import os, sys, json, webbrowser
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -312,6 +312,11 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         apply_btn.setMinimumHeight(40)
         apply_btn.clicked.connect(self.apply_theme)
         selector_row.addWidget(apply_btn)
+
+        preview_btn = QtWidgets.QPushButton("Preview Site")
+        preview_btn.setMinimumHeight(40)
+        preview_btn.clicked.connect(self._preview_site)
+        selector_row.addWidget(preview_btn)
         layout.addLayout(selector_row)
 
         # Font selector
@@ -671,3 +676,13 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         import gui_theme
         gui_theme.apply(t)
+
+    def _preview_site(self):
+        self.status.setText("Opening site preview...")
+        QtWidgets.QApplication.processEvents()
+        index = os.path.join(SITE_DIR, "index.html")
+        if not os.path.exists(index):
+            self.apply_theme()
+        if os.path.exists(index):
+            webbrowser.open(f'file://{os.path.abspath(index)}')
+            self.status.setText("Site preview opened in browser")
