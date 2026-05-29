@@ -1,0 +1,11 @@
+[
+  {
+    "category": "blog",
+    "entries": [
+      {
+        "name": "Test1",
+        "file": "/blog/test1.html"
+      }
+    ]
+  }
+]

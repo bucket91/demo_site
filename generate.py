@@ -4,9 +4,11 @@ from git_util import git_run as _git_run, get_git_path as _get_git_path
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
-REF_FILE = os.path.join(SITE_DIR, "template reference.txt")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
+
+import sidebar_util
+sidebar_util.SITE_DIR = SITE_DIR
 
 def load_config():
     default = {
@@ -40,46 +42,17 @@ def load_config():
 
 CONFIG = load_config()
 
-def parse_ref_names():
-    ref = {}
-    if not os.path.exists(REF_FILE):
-        return ref
-    with open(REF_FILE, encoding="utf-8") as f:
-        lines = f.readlines()
-    i = 0
-    while i < len(lines):
-        line = lines[i]
-        stripped = line.strip()
-        if stripped.startswith('{Name:'):
-            name = stripped.split('"')[1]
-            i += 1
-            fl = lines[i].strip()
-            file_path = fl.split('"')[1]
-            ref[file_path] = name
-        i += 1
-    return ref
-
 def scan_categories():
-    ref_names = parse_ref_names()
+    sidebar_data = sidebar_util.load_sidebar()
     categories = []
-    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
-    for item in sorted(os.listdir(SITE_DIR)):
-        dirpath = os.path.join(SITE_DIR, item)
-        if not os.path.isdir(dirpath) or item in skip:
-            continue
-        html_files = sorted(glob.glob(os.path.join(dirpath, "*.html")))
-        if not html_files:
-            continue
-        cat_name = item.capitalize()
+    for cat in sidebar_data:
         entries = []
-        for fp in html_files:
-            rel_fp = '/' + os.path.relpath(fp, SITE_DIR).replace('\\', '/')
-            name = ref_names.get(rel_fp)
-            if not name:
-                name = os.path.splitext(os.path.basename(fp))[0]
-                name = name.replace('-', ' ').replace('_', ' ').title()
-            entries.append((name, rel_fp))
-        categories.append((cat_name, entries))
+        for entry in cat["entries"]:
+            full_path = os.path.join(SITE_DIR, entry["file"].lstrip('/'))
+            if os.path.exists(full_path):
+                entries.append((entry["name"], entry["file"]))
+        if entries:
+            categories.append((cat["category"], entries))
     return categories
 
 def rel_path(from_file, to_absolute):
@@ -333,55 +306,7 @@ def build_page(filepath, categories):
         f.write(result)
     return True
 
-def clean_ref_file(log_func=print):
-    if not os.path.exists(REF_FILE):
-        return
-    with open(REF_FILE, encoding="utf-8") as f:
-        lines = f.readlines()
-    out = []
-    i = 0
-    header = ''
-    entries_buffer = []
-    removed = 0
-    while i < len(lines):
-        stripped = lines[i].strip()
-        if stripped and not stripped.startswith('{Name:') and not stripped.startswith('File:'):
-            if header and entries_buffer:
-                out.append(header)
-                for name_line, file_line in entries_buffer:
-                    out.append(name_line)
-                    out.append(file_line)
-                out.append('\n')
-            elif header:
-                pass
-            header = lines[i]
-            entries_buffer = []
-        elif stripped.startswith('{Name:'):
-            name_line = lines[i]
-            i += 1
-            file_line = lines[i] if i < len(lines) else ''
-            file_path = ''
-            if file_line.strip().startswith('File:'):
-                try:
-                    file_path = file_line.strip().split('"')[1]
-                except IndexError:
-                    pass
-            full_path = os.path.join(SITE_DIR, file_path.lstrip('/')) if file_path else ''
-            if full_path and os.path.exists(full_path):
-                entries_buffer.append((name_line, file_line))
-            else:
-                removed += 1
-        i += 1
-    if header and entries_buffer:
-        out.append(header)
-        for name_line, file_line in entries_buffer:
-            out.append(name_line)
-            out.append(file_line)
-        out.append('\n')
-    with open(REF_FILE, 'w', encoding="utf-8") as f:
-        f.write(''.join(out).rstrip('\n') + '\n')
-    if removed:
-        log_func(f"  Cleaned {removed} stale reference(s)")
+
 
 def generate_404(categories, log_func=print):
     path = os.path.join(SITE_DIR, "404.html")
@@ -410,7 +335,6 @@ def generate_404(categories, log_func=print):
 
 def generate_all(log_func=print):
     CONFIG.update(load_config())
-    clean_ref_file(log_func)
 
     categories = scan_categories()
     log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")

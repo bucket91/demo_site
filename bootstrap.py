@@ -187,6 +187,16 @@ def ensure_site_files(site_dir):
         created.append("config.local.json")
 
     check(_path(".nojekyll"), "")
-    check(_path("template reference.txt"), "SideMenu\n")
+
+    old_ref = _path("template reference.txt")
+    if os.path.exists(old_ref):
+        os.remove(old_ref)
+
+    sidebar_path = _path("sidebar.json")
+    if not os.path.exists(sidebar_path):
+        import sidebar_util
+        sidebar_util.SITE_DIR = site_dir
+        created.append("sidebar.json")
+        sidebar_util.init_from_filesystem()
 
     return created

@@ -5,6 +5,9 @@ from PyQt5 import QtWidgets, QtCore
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
+import sidebar_util
+sidebar_util.SITE_DIR = SITE_DIR
+
 
 class _HtmlCleaner(HTMLParser):
     REMOVE_KEEP_CONTENT = {'html', 'head', 'body'}
@@ -100,10 +103,17 @@ def convert_zip(path):
         return None, "Not a valid zip file"
     try:
         with zipfile.ZipFile(path, 'r') as z:
-            if 'index.html' not in z.namelist():
-                return None, "No index.html found in zip (is this a Google Docs export?)"
+            html_candidates = [n for n in z.namelist() if n.endswith('.html')]
+            if 'index.html' in z.namelist():
+                chosen = 'index.html'
+            elif len(html_candidates) == 1:
+                chosen = html_candidates[0]
+            elif len(html_candidates) == 0:
+                return None, "No HTML file found in zip"
+            else:
+                return None, f"Multiple HTML files found ({len(html_candidates)}). Expected a single file."
 
-            html_bytes = z.read('index.html')
+            html_bytes = z.read(chosen)
             try:
                 html_content = html_bytes.decode('utf-8')
             except UnicodeDecodeError:
@@ -175,16 +185,9 @@ class ImportWidget(QtWidgets.QWidget):
         self.status_label.setProperty("class", "dim")
         layout.addWidget(self.status_label)
 
-        save_row = QtWidgets.QHBoxLayout()
-        self.save_standalone = QtWidgets.QPushButton("Save as HTML")
-        self.save_standalone.setEnabled(False)
-        save_row.addWidget(self.save_standalone)
-
-        self.save_to_site = QtWidgets.QPushButton("Add to Site")
-        self.save_to_site.setEnabled(False)
-        save_row.addWidget(self.save_to_site)
-
-        layout.addLayout(save_row)
+        self.save_btn = QtWidgets.QPushButton("Save to Site")
+        self.save_btn.setEnabled(False)
+        layout.addWidget(self.save_btn)
 
         self.current_html = ""
         self.current_title = ""
@@ -192,8 +195,7 @@ class ImportWidget(QtWidgets.QWidget):
 
         browse_btn.clicked.connect(self.browse)
         self.path_input.returnPressed.connect(self.convert)
-        self.save_standalone.clicked.connect(self.save_as)
-        self.save_to_site.clicked.connect(self.add_to_site)
+        self.save_btn.clicked.connect(self.save_to_site)
 
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -224,37 +226,11 @@ class ImportWidget(QtWidgets.QWidget):
         self.current_title = title
         self.preview.setHtml(html)
         self.status_label.setText(f"Imported: {title} ({len(html)} chars)")
-        self.save_standalone.setEnabled(True)
-        self.save_to_site.setEnabled(True)
+        self.save_btn.setEnabled(True)
 
-    def save_as(self):
-        p, _ = QtWidgets.QFileDialog.getSaveFileName(
-            self, "Save HTML", self.current_title + ".html", "HTML Files (*.html)")
-        if p:
-            full = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{html_mod.escape(self.current_title)}</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <header>
-    <h1>{html_mod.escape(self.current_title)}</h1>
-  </header>
-  <main>
-{self.current_html}
-  </main>
-</body>
-</html>"""
-            with open(p, 'w', encoding="utf-8") as f:
-                f.write(full)
-            self.status_label.setText(f"Saved: {p}")
-
-    def add_to_site(self):
+    def save_to_site(self):
         dlg = QtWidgets.QDialog(self)
-        dlg.setWindowTitle("Add to Site")
+        dlg.setWindowTitle("Save to Site")
         dlg.setMinimumWidth(400)
         dl = QtWidgets.QVBoxLayout(dlg)
 
@@ -315,6 +291,19 @@ class ImportWidget(QtWidgets.QWidget):
 </html>"""
             with open(fpath, 'w', encoding="utf-8") as f:
                 f.write(full)
+
+            rel_path = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
+            sidebar_data = sidebar_util.load_sidebar()
+            found = False
+            for c in sidebar_data:
+                if c["category"] == cat:
+                    c["entries"].append({"name": title, "file": rel_path})
+                    found = True
+                    break
+            if not found:
+                sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel_path}]})
+            sidebar_util.save_sidebar(sidebar_data)
+
             dlg.accept()
             self.navigate_to_management.emit(fpath, cat)
 

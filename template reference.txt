@@ -1,3 +1,0 @@
-	Blog
-		{Name:"test1"
-		 File: "/blog/test1.html"}
