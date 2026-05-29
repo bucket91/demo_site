@@ -270,16 +270,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         init_btn.clicked.connect(self.init_repo)
         btn_row.addWidget(init_btn)
 
-        commit_btn = QtWidgets.QPushButton("Stage & Commit")
-        commit_btn.setMinimumHeight(36)
-        commit_btn.clicked.connect(self.stage_commit)
-        btn_row.addWidget(commit_btn)
-
-        push_btn = QtWidgets.QPushButton("Push")
-        push_btn.setMinimumHeight(36)
-        push_btn.clicked.connect(self.push)
-        btn_row.addWidget(push_btn)
-
         full_btn = QtWidgets.QPushButton("Full Setup (Init + Commit + Push)")
         full_btn.setMinimumHeight(40)
         full_btn.clicked.connect(self.full_setup)
