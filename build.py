@@ -74,18 +74,14 @@ def download_linux_git():
     os.makedirs(LINUX_GIT_DIR, exist_ok=True)
     with tarfile.open(LINUX_GIT_TGZ, "r:gz") as t:
         for member in t.getmembers():
-            name = member.name
-            if name.startswith("git-binaries/") and not name.endswith("/"):
-                rel = os.path.relpath(name, "git-binaries")
-                t.extract(member, LINUX_GIT_DIR)
-                src = os.path.join(LINUX_GIT_DIR, name)
-                dst = os.path.join(LINUX_GIT_DIR, rel)
-                if src != dst:
-                    os.makedirs(os.path.dirname(dst), exist_ok=True)
-                    shutil.move(src, dst)
-                st = os.stat(dst)
-                os.chmod(dst, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-        shutil.rmtree(os.path.join(LINUX_GIT_DIR, "git-binaries"), ignore_errors=True)
+            if member.isfile():
+                base = os.path.basename(member.name)
+                if base:
+                    member.name = base
+                    t.extract(member, LINUX_GIT_DIR)
+                    dst = os.path.join(LINUX_GIT_DIR, base)
+                    st = os.stat(dst)
+                    os.chmod(dst, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     os.remove(LINUX_GIT_TGZ)
     print(f"Static git extracted to {LINUX_GIT_DIR}")
 
