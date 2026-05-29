@@ -438,7 +438,10 @@ def generate_all(log_func=print):
 
 def _make_push_url(url, token):
     if token and url.startswith('https://'):
-        return url.replace('https://', f'https://{token}@', 1)
+        after = url[8:]
+        if '@' in after:
+            after = after.split('@', 1)[1]
+        return f'https://{token}@{after}'
     return url
 
 
