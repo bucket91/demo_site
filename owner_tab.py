@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Owner identity tab — name, title, bio, avatar, contacts."""
-import os, json
+import os, sys, json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
 
