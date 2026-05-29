@@ -58,7 +58,7 @@ class App(QtWidgets.QMainWindow):
         tabs.setCurrentIndex(0)
 
         self.docx_widget.navigate_to_management.connect(
-            lambda path: self._go_to_management(path, tabs))
+            lambda path, cat: self._go_to_management(path, cat, tabs))
 
     def _check_first_run(self):
         local_path = os.path.join(SITE_DIR, "config.local.json")
@@ -88,8 +88,8 @@ class App(QtWidgets.QMainWindow):
         wizard = first_run.FirstRunWizard(self)
         wizard.exec_()
 
-    def _go_to_management(self, path, tabs):
-        self.ref_mgr.set_file_path(path)
+    def _go_to_management(self, path, category, tabs):
+        self.ref_mgr.set_file_path(path, category)
         tabs.setCurrentIndex(tabs.indexOf(self.ref_mgr))
 
 def main():

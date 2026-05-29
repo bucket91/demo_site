@@ -141,6 +141,21 @@ class SetupGitWidget(QtWidgets.QWidget):
             QPushButton.primary:hover { background: #218c4e; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
+            QSpinBox {
+                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                border-radius: 6px; padding: 6px;
+            }
+            QSpinBox::up-button, QSpinBox::down-button {
+                background: #3a3a3a; border: none; width: 24px;
+            }
+            QSpinBox::up-arrow {
+                image: none; border-left: 5px solid transparent;
+                border-right: 5px solid transparent; border-bottom: 6px solid #999;
+            }
+            QSpinBox::down-arrow {
+                image: none; border-left: 5px solid transparent;
+                border-right: 5px solid transparent; border-top: 6px solid #999;
+            }
             QCheckBox { color: #ccc; }
             QGroupBox {
                 color: #ddd; font-weight: bold;

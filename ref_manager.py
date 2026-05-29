@@ -26,9 +26,9 @@ def parse_entries():
     with open(REF_FILE, encoding="utf-8") as f:
         for line in f:
             line = line.rstrip()
-            m = re.match(r'^\t(\w+)', line)
+            m = re.match(r'^\t(.+)', line)
             if m:
-                current_cat = m.group(1)
+                current_cat = m.group(1).strip()
             entry_m = entry_pattern.search(line)
             if entry_m and current_cat:
                 entries.append((current_cat, entry_m.group(1), entry_m.group(2)))
@@ -93,13 +93,13 @@ def add_ref_entry(category, display_name, file_path):
 
     if not os.path.exists(REF_FILE):
         with open(REF_FILE, 'w', encoding="utf-8") as f:
-            f.write(f'SideMenu\n\t{category.capitalize()}{entry_block}\n')
+            f.write(f'SideMenu\n\t{category}{entry_block}\n')
         return True
 
     with open(REF_FILE, encoding="utf-8") as f:
         content = f.read()
 
-    cat_header = '\t' + category.capitalize()
+    cat_header = '\t' + category
     if cat_header in content:
         lines = content.split('\n')
         new_lines = []
@@ -236,7 +236,7 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         # --- Buttons ---
         btn_row = QtWidgets.QHBoxLayout()
-        self.add_btn = QtWidgets.QPushButton("Add Entry & Generate")
+        self.add_btn = QtWidgets.QPushButton("Generate")
         self.add_btn.setProperty("class", "primary")
         self.add_btn.setMinimumHeight(40)
         self.add_btn.clicked.connect(self.add_entry)
@@ -258,10 +258,12 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.status.setProperty("class", "dim")
         layout.addWidget(self.status)
 
-    def set_file_path(self, path):
+    def set_file_path(self, path, category=None):
         self.path_input.setText(path)
         basename = os.path.splitext(os.path.basename(path))[0]
         self.name_input.setText(basename)
+        if category:
+            self.cat_combo.lineEdit().setText(category)
 
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(

@@ -50,7 +50,7 @@ jobs:
           DATA_ARGS=""
           if [ "${{ runner.os }}" = "Windows" ]; then
             DATA_ARGS="--add-data mingit;mingit"
-            ICON_ARGS="--icon logo.ico"
+            ICON_ARGS="--icon logo.ico --version-file version_info.txt"
           else
             DATA_ARGS="--add-data bundled-git:bundled-git"
             ICON_ARGS="--icon logo.png"

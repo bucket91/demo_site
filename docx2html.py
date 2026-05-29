@@ -136,7 +136,7 @@ def convert_zip(path):
 
 
 class ImportWidget(QtWidgets.QWidget):
-    navigate_to_management = QtCore.pyqtSignal(str)
+    navigate_to_management = QtCore.pyqtSignal(str, str)
 
     def __init__(self):
         super().__init__()
@@ -180,7 +180,7 @@ class ImportWidget(QtWidgets.QWidget):
         self.save_standalone.setEnabled(False)
         save_row.addWidget(self.save_standalone)
 
-        self.save_to_site = QtWidgets.QPushButton("Add to Site + Generate")
+        self.save_to_site = QtWidgets.QPushButton("Add to Site")
         self.save_to_site.setEnabled(False)
         save_row.addWidget(self.save_to_site)
 
@@ -316,7 +316,7 @@ class ImportWidget(QtWidgets.QWidget):
             with open(fpath, 'w', encoding="utf-8") as f:
                 f.write(full)
             dlg.accept()
-            self.navigate_to_management.emit(fpath)
+            self.navigate_to_management.emit(fpath, cat)
 
         ok.clicked.connect(do_add)
         dlg.exec_()

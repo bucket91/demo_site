@@ -106,6 +106,7 @@ def build():
         download_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
         cmd.extend(["--icon", "logo.ico"])
+        cmd.extend(["--version-file", "version_info.txt"])
     else:
         download_linux_git()
         cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])
