@@ -31,7 +31,7 @@ body.dark-mode {
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: 'Noto Sans Bengali', system-ui, -apple-system, sans-serif;
+  font-family: 'Noto Sans Bengali', system-ui, sans-serif;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -195,7 +195,7 @@ main {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid var(--accent);
+  border: 3px solid #a06a3a;
   margin-bottom: 0.75rem;
 }
 .owner-card-name {
@@ -218,18 +218,18 @@ main {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
-  gap: 0.5rem 1rem;
-  margin-top: 0.75rem;
+  gap: 0.6rem 1rem;
+  margin-top: 0.6rem;
 }
-.owner-card-link {
+.owner-contact-link {
   color: var(--accent);
   font-size: 0.85rem;
   text-decoration: none;
-  padding: 0.25rem 0.5rem;
+  padding: 0.2rem 0.4rem;
   border-radius: 4px;
   transition: background 0.2s;
 }
-.owner-card-link:hover {
+.owner-contact-link:hover {
   background: var(--card-border);
   text-decoration: underline;
 }

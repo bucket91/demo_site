@@ -105,12 +105,12 @@ header h1 a:hover { text-decoration: none; }
 .sub-links li a { display: block; padding: 0.4rem 1rem 0.4rem 2rem; color: var(--link-muted); font-size: 0.85rem; }
 .sub-links li a:hover { color: var(--link-hover-text); background: var(--sidebar-hover); }
 main { flex: 1; padding: 1.25rem; max-width: 860px; margin: 0 auto; width: 100%; }
-.home-owner { text-align: center; padding: 2rem 1rem 0.5rem; }
-.home-owner-avatar { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 3px solid var(--avatar-border); margin-bottom: 0.5rem; }
-.home-owner-name { font-size: 1.3rem; font-weight: 700; color: var(--text); }
-.home-owner-title { font-size: 1rem; color: var(--accent); margin-top: 0.15rem; }
-.home-owner-bio { font-size: 0.9rem; color: var(--muted); margin-top: 0.2rem; }
-.home-owner-contacts { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.6rem 1rem; margin-top: 0.6rem; }
+.owner-card { text-align: center; }
+.owner-card-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--avatar-border); margin-bottom: 0.75rem; }
+.owner-card-name { font-size: 1.2rem; font-weight: 700; color: var(--label); }
+.owner-card-title { font-size: 0.95rem; color: var(--accent); margin-top: 0.2rem; }
+.owner-card-bio { font-size: 0.85rem; color: var(--muted); margin-top: 0.3rem; line-height: 1.4; }
+.owner-card-contacts { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem 1rem; margin-top: 0.75rem; }
 .owner-contact-link { color: var(--accent); font-size: 0.85rem; text-decoration: none; padding: 0.2rem 0.4rem; border-radius: 4px; transition: background 0.2s; }
 .owner-contact-link:hover { background: var(--card-border); text-decoration: underline; }
 .home-hero { text-align: center; padding: 1rem 1rem 1.5rem; }

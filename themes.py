@@ -190,34 +190,34 @@ main {
   transition: background 0.3s;
 }
 
-.home-owner {
+.owner-card {
   text-align: center;
-  padding: 2rem 1rem 0.5rem;
 }
-.home-owner-avatar {
-  width: 72px;
-  height: 72px;
+.owner-card-avatar {
+  width: 80px;
+  height: 80px;
   border-radius: 50%;
   object-fit: cover;
   border: 3px solid $avatar_border;
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.75rem;
 }
-.home-owner-name {
-  font-size: 1.3rem;
+.owner-card-name {
+  font-size: 1.2rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--label);
 }
-.home-owner-title {
-  font-size: 1rem;
+.owner-card-title {
+  font-size: 0.95rem;
   color: var(--accent);
-  margin-top: 0.15rem;
-}
-.home-owner-bio {
-  font-size: 0.9rem;
-  color: var(--muted);
   margin-top: 0.2rem;
 }
-.home-owner-contacts {
+.owner-card-bio {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+.owner-card-contacts {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
