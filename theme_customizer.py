@@ -85,14 +85,14 @@ FORMAT_MAP = {".ttf": "truetype", ".otf": "opentype", ".woff": "woff", ".woff2":
 
 def load_custom_fonts():
     if os.path.exists(FONTS_JSON):
-        with open(FONTS_JSON) as f:
+        with open(FONTS_JSON, encoding="utf-8") as f:
             return json.load(f)
     return []
 
 
 def save_custom_fonts(fonts):
     os.makedirs(FONTS_DIR, exist_ok=True)
-    with open(FONTS_JSON, "w") as f:
+    with open(FONTS_JSON, "w", encoding="utf-8") as f:
         json.dump(fonts, f, indent=2)
 
 
@@ -431,7 +431,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         # Load saved font URL and family
         cfg = {}
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
         self.font_url_input.setText(cfg.get("custom_font_url", ""))
         self.font_family_input.setText(cfg.get("custom_font_family", ""))
@@ -556,17 +556,17 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
     def load_custom_theme(self):
         cfg = {}
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
         return cfg.get("custom_theme", {})
 
     def save_custom_theme(self, colors):
         cfg = {}
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
         cfg["custom_theme"] = colors
-        with open(CONFIG_FILE, "w") as f:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
 
     def open_color_dialog(self):
@@ -646,7 +646,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         css = CSS_TEMPLATE.substitute(**t)
         try:
-            with open(STYLE_FILE, "w") as f:
+            with open(STYLE_FILE, "w", encoding="utf-8") as f:
                 f.write(css)
         except Exception as e:
             self.status.setText(f"Error writing CSS: {e}")
@@ -661,12 +661,12 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         cfg = {}
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
         cfg["gui_theme"] = self.theme_combo.currentData() or "Dark"
         cfg["custom_font_url"] = self.font_url_input.text().strip()
         cfg["custom_font_family"] = self.font_family_input.text().strip()
-        with open(CONFIG_FILE, "w") as f:
+        with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
 
         import gui_theme

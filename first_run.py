@@ -110,7 +110,7 @@ class FirstRunWizard(QtWidgets.QDialog):
 
         cfg = {}
         if os.path.exists(cfg_path):
-            with open(cfg_path) as f:
+            with open(cfg_path, encoding="utf-8") as f:
                 cfg = json.load(f)
 
         cfg["git_remote_url"] = remote
@@ -119,15 +119,15 @@ class FirstRunWizard(QtWidgets.QDialog):
         if "github_token" in cfg:
             del cfg["github_token"]
 
-        with open(cfg_path, "w") as f:
+        with open(cfg_path, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
 
         local = {}
         if os.path.exists(local_path):
-            with open(local_path) as f:
+            with open(local_path, encoding="utf-8") as f:
                 local = json.load(f)
         local["github_token"] = token
-        with open(local_path, "w") as f:
+        with open(local_path, "w", encoding="utf-8") as f:
             json.dump(local, f, indent=2)
 
         self.accept()

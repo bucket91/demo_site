@@ -248,7 +248,7 @@ class ImportWidget(QtWidgets.QWidget):
   </main>
 </body>
 </html>"""
-            with open(p, 'w') as f:
+            with open(p, 'w', encoding="utf-8") as f:
                 f.write(full)
             self.status_label.setText(f"Saved: {p}")
 
@@ -313,7 +313,7 @@ class ImportWidget(QtWidgets.QWidget):
   </div>
 </body>
 </html>"""
-            with open(fpath, 'w') as f:
+            with open(fpath, 'w', encoding="utf-8") as f:
                 f.write(full)
             dlg.accept()
             self.navigate_to_management.emit(fpath)

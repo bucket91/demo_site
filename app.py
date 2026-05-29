@@ -64,7 +64,7 @@ class App(QtWidgets.QMainWindow):
     def _check_first_run(self):
         local_path = os.path.join(SITE_DIR, "config.local.json")
         if os.path.exists(local_path):
-            with open(local_path) as f:
+            with open(local_path, encoding="utf-8") as f:
                 local = json.load(f)
             if local.get("github_token", ""):
                 return

@@ -16,13 +16,13 @@ def load_config():
         "owner_contacts": [],
     }
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             return {**default, **json.load(f)}
     return default
 
 
 def save_config(cfg):
-    with open(CONFIG_FILE, "w") as f:
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
 
@@ -157,7 +157,7 @@ class OwnerWidget(QtWidgets.QWidget):
     def _save(self):
         cfg = {}
         if os.path.exists(CONFIG_FILE):
-            with open(CONFIG_FILE) as f:
+            with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
 
         cfg["owner_name"] = self.name_edit.text().strip()

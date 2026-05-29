@@ -8,7 +8,7 @@ def _cfg():
     if SITE_DIR:
         cf = os.path.join(SITE_DIR, "config.json")
         if os.path.exists(cf):
-            with open(cf) as f:
+            with open(cf, encoding="utf-8") as f:
                 return json.load(f)
     return {}
 

@@ -165,7 +165,7 @@ def ensure_site_files(site_dir):
     def check(path, content, mode="w"):
         if not os.path.exists(path):
             os.makedirs(os.path.dirname(path), exist_ok=True)
-            with open(path, mode) as f:
+            with open(path, mode, encoding="utf-8") as f:
                 f.write(content)
             created.append(os.path.basename(path))
 
@@ -173,12 +173,12 @@ def ensure_site_files(site_dir):
     check(_path("style.css"), DEFAULT_CSS)
 
     if not os.path.exists(_path("config.json")):
-        with open(_path("config.json"), "w") as f:
+        with open(_path("config.json"), "w", encoding="utf-8") as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
         created.append("config.json")
 
     if not os.path.exists(_path("config.local.json")):
-        with open(_path("config.local.json"), "w") as f:
+        with open(_path("config.local.json"), "w", encoding="utf-8") as f:
             json.dump({"github_token": ""}, f, indent=2)
         created.append("config.local.json")
 

@@ -11,7 +11,7 @@ def load():
         "supabase_anon_key": "",
     }
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             return {**default, **json.load(f)}
     return default
 

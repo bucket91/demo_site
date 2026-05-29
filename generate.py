@@ -30,10 +30,10 @@ def load_config():
     }
     cfg = default
     if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE) as f:
+        with open(CONFIG_FILE, encoding="utf-8") as f:
             cfg = {**default, **json.load(f)}
     if os.path.exists(LOCAL_CONFIG_FILE):
-        with open(LOCAL_CONFIG_FILE) as f:
+        with open(LOCAL_CONFIG_FILE, encoding="utf-8") as f:
             cfg.update(json.load(f))
     return cfg
 
@@ -43,7 +43,7 @@ def parse_ref_names():
     ref = {}
     if not os.path.exists(REF_FILE):
         return ref
-    with open(REF_FILE) as f:
+    with open(REF_FILE, encoding="utf-8") as f:
         lines = f.readlines()
     i = 0
     while i < len(lines):
@@ -293,7 +293,7 @@ def make_homepage_content(categories, current_file):
     return html
 
 def build_page(filepath, categories):
-    with open(filepath) as f:
+    with open(filepath, encoding="utf-8") as f:
         src = f.read()
 
     if not os.path.exists(TEMPLATE_FILE):
@@ -309,7 +309,7 @@ def build_page(filepath, categories):
     style_rel = style_rel.replace('\\', '/')
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
-    with open(TEMPLATE_FILE) as f:
+    with open(TEMPLATE_FILE, encoding="utf-8") as f:
         tmpl = f.read()
 
     site_title = CONFIG.get("site_title", "Placeholder")
@@ -328,14 +328,14 @@ def build_page(filepath, categories):
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
 
-    with open(filepath, 'w') as f:
+    with open(filepath, 'w', encoding="utf-8") as f:
         f.write(result)
     return True
 
 def clean_ref_file(log_func=print):
     if not os.path.exists(REF_FILE):
         return
-    with open(REF_FILE) as f:
+    with open(REF_FILE, encoding="utf-8") as f:
         lines = f.readlines()
     out = []
     i = 0
@@ -377,14 +377,14 @@ def clean_ref_file(log_func=print):
             out.append(name_line)
             out.append(file_line)
         out.append('\n')
-    with open(REF_FILE, 'w') as f:
+    with open(REF_FILE, 'w', encoding="utf-8") as f:
         f.write(''.join(out).rstrip('\n') + '\n')
     if removed:
         log_func(f"  Cleaned {removed} stale reference(s)")
 
 def generate_404(categories, log_func=print):
     path = os.path.join(SITE_DIR, "404.html")
-    with open(path, "w") as f:
+    with open(path, "w", encoding="utf-8") as f:
         f.write("""<!DOCTYPE html>
 <html lang="en">
 <head>

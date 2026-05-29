@@ -23,7 +23,7 @@ def parse_entries():
     entries = []
     current_cat = None
     entry_pattern = re.compile(r'\{Name:"([^"]*)"\s*File:\s*"([^"]*)"\}')
-    with open(REF_FILE) as f:
+    with open(REF_FILE, encoding="utf-8") as f:
         for line in f:
             line = line.rstrip()
             m = re.match(r'^\t(\w+)', line)
@@ -44,7 +44,7 @@ def delete_entry(category, display_name):
     """Remove a specific entry from the reference file by category + name."""
     if not os.path.exists(REF_FILE):
         return False
-    with open(REF_FILE) as f:
+    with open(REF_FILE, encoding="utf-8") as f:
         lines = f.readlines()
 
     cat_header = '\t' + category
@@ -80,7 +80,7 @@ def delete_entry(category, display_name):
 
     content = ''.join(new_lines).strip()
     if content:
-        with open(REF_FILE, 'w') as f:
+        with open(REF_FILE, 'w', encoding="utf-8") as f:
             f.write(content + '\n')
     else:
         os.remove(REF_FILE)
@@ -92,11 +92,11 @@ def add_ref_entry(category, display_name, file_path):
     entry_block = f'\n\t\t{{Name:"{display_name}"\n\t\t File: "{rel_path}"}}'
 
     if not os.path.exists(REF_FILE):
-        with open(REF_FILE, 'w') as f:
+        with open(REF_FILE, 'w', encoding="utf-8") as f:
             f.write(f'SideMenu\n\t{category.capitalize()}{entry_block}\n')
         return True
 
-    with open(REF_FILE) as f:
+    with open(REF_FILE, encoding="utf-8") as f:
         content = f.read()
 
     cat_header = '\t' + category.capitalize()
@@ -122,7 +122,7 @@ def add_ref_entry(category, display_name, file_path):
     else:
         content += f'\n{cat_header}{entry_block}\n'
 
-    with open(REF_FILE, 'w') as f:
+    with open(REF_FILE, 'w', encoding="utf-8") as f:
         f.write(content)
     return True
 
@@ -286,7 +286,7 @@ class RefManagerWidget(QtWidgets.QWidget):
 
     def refresh_raw(self):
         if os.path.exists(REF_FILE):
-            with open(REF_FILE) as f:
+            with open(REF_FILE, encoding="utf-8") as f:
                 self.raw_preview.setPlainText(f.read())
         else:
             self.raw_preview.setPlainText("(file does not exist yet)")
