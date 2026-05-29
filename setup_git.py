@@ -265,15 +265,10 @@ class SetupGitWidget(QtWidgets.QWidget):
         btn_row = QtWidgets.QHBoxLayout()
         btn_row.setSpacing(8)
 
-        init_btn = QtWidgets.QPushButton("Init Repo")
+        init_btn = QtWidgets.QPushButton("Initialize")
         init_btn.setMinimumHeight(36)
         init_btn.clicked.connect(self.init_repo)
         btn_row.addWidget(init_btn)
-
-        full_btn = QtWidgets.QPushButton("Full Setup (Init + Commit + Push)")
-        full_btn.setMinimumHeight(40)
-        full_btn.clicked.connect(self.full_setup)
-        btn_row.addWidget(full_btn)
 
         sl.addLayout(btn_row)
 
@@ -428,24 +423,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         if orig:
             _git_run(["remote", "set-url", "origin", orig], cwd=SITE_DIR, capture_output=True)
         self.check_status()
-
-    def full_setup(self):
-        self.log.clear()
-        self.status.setText("Running full setup...")
-        self.save_config_fields()
-        QtWidgets.QApplication.processEvents()
-        if not is_git_installed():
-            self.log_msg("ERROR: git is not installed")
-            self.status.setText("Failed: git not found")
-            return
-        if not is_git_repo():
-            self.init_repo()
-        self.stage_commit()
-        if self.auto_push_cb.isChecked():
-            self.push()
-        self.check_status()
-        self.status.setText("Full setup complete")
-
 
 class _SetupWorker(QtCore.QThread):
     logged = QtCore.pyqtSignal(str)
