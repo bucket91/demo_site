@@ -12,7 +12,7 @@ Usage:
 """
 import os, sys, platform, subprocess, shutil, argparse, tarfile, urllib.request, zipfile, stat
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 IS_WINDOWS = platform.system() == "Windows"
 EXE_NAME = "SiteTools.exe" if IS_WINDOWS else "SiteTools"
 VENV_DIR = os.path.join(SITE_DIR, "build_venv")

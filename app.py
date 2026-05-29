@@ -98,6 +98,7 @@ def main():
     app.setStyle("Fusion")
 
     import gui_theme
+    gui_theme.SITE_DIR = SITE_DIR
     gui_theme.apply()
 
     w = App()
