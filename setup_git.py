@@ -227,19 +227,36 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         sl.addWidget(git_group)
 
-        # ── Status box ──
+        # ── Side-by-side: Status + Output ──
+        side = QtWidgets.QHBoxLayout()
+        side.setSpacing(12)
+
+        # Left: Status
+        left = QtWidgets.QVBoxLayout()
         status_label = QtWidgets.QLabel("Status")
         status_label.setProperty("class", "dim")
-        sl.addWidget(status_label)
-
+        left.addWidget(status_label)
         self.status_box = QtWidgets.QTextEdit()
         self.status_box.setReadOnly(True)
-        self.status_box.setMaximumHeight(100)
-        sl.addWidget(self.status_box)
-
+        self.status_box.setMaximumHeight(120)
+        left.addWidget(self.status_box, 1)
         refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
         refresh_status_btn.clicked.connect(self.check_status)
-        sl.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
+        left.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
+        side.addLayout(left, 1)
+
+        # Right: Output
+        right = QtWidgets.QVBoxLayout()
+        log_label = QtWidgets.QLabel("Output:")
+        log_label.setProperty("class", "dim")
+        right.addWidget(log_label)
+        self.log = QtWidgets.QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.setPlaceholderText("Command output will appear here...")
+        right.addWidget(self.log, 1)
+        side.addLayout(right, 1)
+
+        sl.addLayout(side, 1)
 
         # Generate button
         gen_row = QtWidgets.QHBoxLayout()
@@ -251,25 +268,13 @@ class SetupGitWidget(QtWidgets.QWidget):
         gen_row.addWidget(self.gen_btn)
         sl.addLayout(gen_row)
 
-        # Output log
-        log_label = QtWidgets.QLabel("Output:")
-        log_label.setProperty("class", "dim")
-        sl.addWidget(log_label)
-
-        self.log = QtWidgets.QTextEdit()
-        self.log.setReadOnly(True)
-        self.log.setPlaceholderText("Command output will appear here...")
-        sl.addWidget(self.log, 1)
-
         # Buttons
         btn_row = QtWidgets.QHBoxLayout()
         btn_row.setSpacing(8)
-
         init_btn = QtWidgets.QPushButton("Initialize")
         init_btn.setMinimumHeight(36)
         init_btn.clicked.connect(self.init_repo)
         btn_row.addWidget(init_btn)
-
         sl.addLayout(btn_row)
 
         # Status bar
