@@ -16,6 +16,7 @@ def load_config():
         "git_remote_url": "", "git_user_name": "", "git_user_email": "",
         "git_commit_message": "Initial site setup", "git_auto_push": True,
         "github_token": "",
+        "gui_font_size": 14,
     }
     cfg = default
     if os.path.exists(CONFIG_FILE):
@@ -34,7 +35,7 @@ def save_config(cfg):
 
 def save_setup_config(url, name, email, msg, auto_push,
                       supabase_url, supabase_anon_key, comments_enabled, site_title,
-                      github_token):
+                      github_token, gui_font_size=14):
     # Write safe fields to config.json (pushed to repo)
     cfg = {}
     if os.path.exists(CONFIG_FILE):
@@ -43,7 +44,8 @@ def save_setup_config(url, name, email, msg, auto_push,
     cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
                git_commit_message=msg, git_auto_push=auto_push,
                supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
-               comments_enabled=comments_enabled, site_title=site_title)
+               comments_enabled=comments_enabled, site_title=site_title,
+               gui_font_size=gui_font_size)
     cfg.pop("github_token", None)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
@@ -103,19 +105,19 @@ class SetupGitWidget(QtWidgets.QWidget):
         super().__init__()
         self.setStyleSheet("""
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 11px; }
-            QLabel.heading { font-size: 14px; font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel.dim { color: #999; }
+            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
             QLineEdit {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 8px 10px; font-size: 13px;
+                border-radius: 6px; padding: 8px 10px;
             }
             QTextEdit {
                 background: #1a1a1a; color: #ccc; border: 1px solid #333;
-                border-radius: 6px; padding: 6px; font-size: 12px; font-family: monospace;
+                border-radius: 6px; padding: 6px; font-family: monospace;
             }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+                border-radius: 6px; padding: 8px 16px;
             }
             QPushButton:hover { background: #666; }
             QPushButton:disabled { background: #333; color: #666; }
@@ -123,9 +125,9 @@ class SetupGitWidget(QtWidgets.QWidget):
             QPushButton.primary:hover { background: #218c4e; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
-            QCheckBox { color: #ccc; font-size: 12px; }
+            QCheckBox { color: #ccc; }
             QGroupBox {
-                color: #ddd; font-size: 13px; font-weight: bold;
+                color: #ddd; font-weight: bold;
                 border: 1px solid #333; border-radius: 6px; margin-top: 12px;
                 padding: 12px 8px 8px;
             }
@@ -192,6 +194,12 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.site_title.setPlaceholderText("My Awesome Site")
         sifl.addRow("Site Title:", self.site_title)
 
+        self.font_size_spin = QtWidgets.QSpinBox()
+        self.font_size_spin.setRange(10, 24)
+        self.font_size_spin.setValue(cfg.get("gui_font_size", 14))
+        self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
+        sifl.addRow("UI Font Size:", self.font_size_spin)
+
         sl.addWidget(site_group)
 
         # ── Git ──
@@ -238,7 +246,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         left.addWidget(status_label)
         self.status_box = QtWidgets.QTextEdit()
         self.status_box.setReadOnly(True)
-        self.status_box.setMaximumHeight(120)
         left.addWidget(self.status_box, 1)
         side.addLayout(left, 1)
 
@@ -310,6 +317,7 @@ class SetupGitWidget(QtWidgets.QWidget):
             self.comments_cb.isChecked(),
             self.site_title.text().strip(),
             self.token_input.text().strip(),
+            self.font_size_spin.value(),
         )
 
     @QtCore.pyqtSlot()
@@ -343,6 +351,12 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.gen_btn.setText("Generate")
         if not ok:
             self.log_msg("[ERROR] Check output above.")
+
+    @QtCore.pyqtSlot(int)
+    def _on_font_size_changed(self, size):
+        self.save_config_fields()
+        import gui_theme
+        gui_theme.apply()
 
     def check_status(self):
         lines = get_git_status()

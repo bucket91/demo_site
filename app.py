@@ -26,7 +26,6 @@ class App(QtWidgets.QMainWindow):
             QTabBar::tab {
                 padding: 8px 28px;
                 margin: 0 1px;
-                font-size: 13px;
             }
         """)
         self.setCentralWidget(tabs)

@@ -146,17 +146,17 @@ class CommentAdminWidget(QtWidgets.QWidget):
         self.setStyleSheet("""
             QTableView {
                 background: #333; color: #eee; gridline-color: #2a2a2a;
-                border: none; font-size: 13px; selection-background-color: #555;
+                border: none; selection-background-color: #555;
             }
             QTableView::item { padding: 6px; }
             QHeaderView::section {
                 background: #2a2a2a; color: #eee; padding: 8px;
-                border: none; font-weight: bold; font-size: 12px;
+                border: none; font-weight: bold;
             }
-            QLabel { color: #999; font-size: 13px; }
+            QLabel { color: #999; }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+                border-radius: 6px; padding: 8px 16px;
             }
             QPushButton:hover { background: #666; }
             QPushButton.danger { background: #b71c1c; }
@@ -173,7 +173,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
         hdr.setStyleSheet("background: #2a2a2a; padding: 16px 20px;")
         hl = QtWidgets.QHBoxLayout(hdr)
         title = QtWidgets.QLabel("Comment Admin")
-        title.setStyleSheet("font-size: 18px; font-weight: bold; color: #eee;")
+        title.setStyleSheet("font-weight: bold; color: #eee;")
         hl.addWidget(title)
         hl.addStretch()
         self.status = QtWidgets.QLabel("")
@@ -213,7 +213,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
 
         delete_btn = QtWidgets.QPushButton("Delete Selected")
         delete_btn.setProperty("class", "danger")
-        delete_btn.setStyleSheet("background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 8px 16px; font-size: 13px;")
+        delete_btn.setStyleSheet("background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 8px 16px;")
         delete_btn.clicked.connect(self.delete_selected)
         bl.addWidget(delete_btn)
 

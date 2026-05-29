@@ -27,6 +27,7 @@ def load_config():
         "site_title": "Placeholder",
         "custom_font_url": "",
         "custom_font_family": "",
+        "gui_font_size": 14,
     }
     cfg = default
     if os.path.exists(CONFIG_FILE):

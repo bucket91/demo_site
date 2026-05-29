@@ -17,7 +17,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         layout.setContentsMargins(28, 24, 28, 24)
 
         title = QtWidgets.QLabel("First-Time Setup")
-        title.setStyleSheet("font-size: 20px; font-weight: bold; color: #eee;")
+        title.setStyleSheet("font-weight: bold; color: #eee;")
         layout.addWidget(title)
 
         subtitle = QtWidgets.QLabel(
@@ -26,7 +26,7 @@ class FirstRunWizard(QtWidgets.QDialog):
             "Supabase enables comments."
         )
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet("color: #999; font-size: 13px; margin-bottom: 8px;")
+        subtitle.setStyleSheet("color: #999; margin-bottom: 8px;")
         layout.addWidget(subtitle)
 
         fields = [
@@ -45,13 +45,13 @@ class FirstRunWizard(QtWidgets.QDialog):
             fl = QtWidgets.QFormLayout()
             fl.setSpacing(4)
             lbl = QtWidgets.QLabel(label)
-            lbl.setStyleSheet("color: #ccc; font-size: 12px;")
+            lbl.setStyleSheet("color: #ccc;")
             inp = QtWidgets.QLineEdit()
             inp.setPlaceholderText(placeholder)
             inp.setStyleSheet("""
                 QLineEdit {
                     background: #333; color: #eee; border: 1px solid #555;
-                    border-radius: 6px; padding: 8px 10px; font-size: 13px;
+                    border-radius: 6px; padding: 8px 10px;
                 }
                 QLineEdit:focus { border-color: #777; }
             """)
@@ -70,7 +70,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         skip_btn.setStyleSheet("""
             QPushButton {
                 background: #444; color: #999; border: none;
-                border-radius: 8px; padding: 10px 24px; font-size: 13px;
+                border-radius: 8px; padding: 10px 24px;
             }
             QPushButton:hover { background: #555; }
         """)
@@ -81,7 +81,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         save_btn.setStyleSheet("""
             QPushButton {
                 background: #4a9eff; color: #fff; border: none;
-                border-radius: 8px; padding: 10px 28px; font-size: 14px;
+                border-radius: 8px; padding: 10px 28px;
                 font-weight: bold;
             }
             QPushButton:hover { background: #3a7acc; }

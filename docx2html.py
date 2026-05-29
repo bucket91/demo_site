@@ -142,14 +142,14 @@ class ImportWidget(QtWidgets.QWidget):
         super().__init__()
         self.setStyleSheet("""
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 11px; }
+            QLabel.dim { color: #999; }
             QTextEdit, QLineEdit {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 6px; font-size: 13px;
+                border-radius: 6px; padding: 6px;
             }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+                border-radius: 6px; padding: 8px 16px;
             }
             QPushButton:hover { background: #666; }
             QPushButton:disabled { background: #333; color: #666; }

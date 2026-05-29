@@ -154,6 +154,7 @@ DEFAULT_CONFIG = {
     "gui_theme": "Dark",
     "custom_font_url": "",
     "custom_font_family": "",
+    "gui_font_size": 14,
 }
 
 

@@ -131,11 +131,11 @@ class RefManagerWidget(QtWidgets.QWidget):
         super().__init__()
         self.setStyleSheet("""
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 11px; }
-            QLabel.heading { font-size: 14px; font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel.dim { color: #999; }
+            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
             QLineEdit, QComboBox {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 6px 10px; font-size: 13px;
+                border-radius: 6px; padding: 6px 10px;
             }
             QComboBox::drop-down { border: none; }
             QComboBox::down-arrow { image: none; border-left: 5px solid #999; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
@@ -145,7 +145,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+                border-radius: 6px; padding: 8px 16px;
             }
             QPushButton:hover { background: #666; }
             QPushButton:disabled { background: #333; color: #666; }
@@ -153,7 +153,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             QPushButton.primary:hover { background: #218c4e; }
             QTextEdit, QListWidget {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 6px; font-size: 13px;
+                border-radius: 6px; padding: 6px;
             }
             QListWidget::item:selected { background: #555; }
             QListWidget::item:hover { background: #3a3a3a; }
@@ -227,7 +227,7 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         self.raw_preview = QtWidgets.QTextEdit()
         self.raw_preview.setReadOnly(True)
-        self.raw_preview.setStyleSheet("font-family: monospace; font-size: 12px;")
+        self.raw_preview.setStyleSheet("font-family: monospace;")
         right_layout.addWidget(self.raw_preview)
         splitter.addWidget(right_panel)
 

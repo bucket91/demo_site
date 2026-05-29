@@ -127,11 +127,11 @@ class CustomColorDialog(QtWidgets.QDialog):
         self.setStyleSheet("""
             QDialog { background: #1a1a1a; }
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 10px; }
-            QLabel.heading { color: #ccc; font-size: 11px; font-weight: bold; padding-top: 6px; }
+            QLabel.dim { color: #999; }
+            QLabel.heading { color: #ccc; font-weight: bold; padding-top: 6px; }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 20px; font-size: 13px;
+                border-radius: 6px; padding: 8px 20px;
             }
             QPushButton:hover { background: #666; }
             QPushButton.primary { background: #1a6b3c; }
@@ -151,7 +151,7 @@ class CustomColorDialog(QtWidgets.QDialog):
         layout.setSpacing(4)
 
         heading = QtWidgets.QLabel("Click any color swatch to open the picker")
-        heading.setStyleSheet("font-size: 14px; font-weight: bold; color: #eee; padding-bottom: 4px;")
+        heading.setStyleSheet("font-weight: bold; color: #eee; padding-bottom: 4px;")
         layout.addWidget(heading)
 
         scroll = QtWidgets.QScrollArea()
@@ -248,11 +248,11 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         super().__init__()
         self.setStyleSheet("""
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 11px; }
-            QLabel.heading { font-size: 15px; font-weight: bold; color: #eee; padding-top: 4px; }
+            QLabel.dim { color: #999; }
+            QLabel.heading { font-weight: bold; color: #eee; padding-top: 4px; }
             QComboBox {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 8px 10px; font-size: 14px;
+                border-radius: 6px; padding: 8px 10px;
             }
             QComboBox::drop-down { border: none; width: 30px; }
             QComboBox::down-arrow { image: none; border-left: 6px solid #999; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
@@ -262,7 +262,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 8px; padding: 10px 24px; font-size: 14px; font-weight: bold;
+                border-radius: 8px; padding: 10px 24px; font-weight: bold;
             }
             QPushButton:hover { background: #666; }
             QPushButton:disabled { background: #333; color: #666; }
@@ -272,11 +272,11 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             QPushButton.danger:hover { background: #d32f2f; }
             QTextEdit {
                 background: #2a2a2a; color: #a0a0a0; border: 1px solid #333;
-                border-radius: 6px; padding: 6px; font-size: 11px; font-family: monospace;
+                border-radius: 6px; padding: 6px; font-family: monospace;
             }
             QLineEdit {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 6px 10px; font-size: 13px;
+                border-radius: 6px; padding: 6px 10px;
             }
         """)
 
@@ -317,7 +317,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         # Font selector
         font_row = QtWidgets.QHBoxLayout()
         font_label = QtWidgets.QLabel("Font:")
-        font_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_label.setStyleSheet("color: #999;")
         font_row.addWidget(font_label)
         self.font_combo = QtWidgets.QComboBox()
         self.rebuild_font_combo()
@@ -341,7 +341,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             sw.setToolTip(label)
             sw_layout.addWidget(sw, 0, col)
             lbl = QtWidgets.QLabel(label)
-            lbl.setStyleSheet("color: #999; font-size: 10px;")
+            lbl.setStyleSheet("color: #999;")
             sw_layout.addWidget(lbl, 1, col, alignment=QtCore.Qt.AlignCenter)
             self.swatch_widgets.append((sw, key))
         layout.addWidget(self.swatch_grid)
@@ -372,7 +372,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         font_url_row = QtWidgets.QHBoxLayout()
         font_url_label = QtWidgets.QLabel("URL:")
-        font_url_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_url_label.setStyleSheet("color: #999;")
         font_url_row.addWidget(font_url_label)
         self.font_url_input = QtWidgets.QLineEdit()
         self.font_url_input.setPlaceholderText("https://fonts.googleapis.com/css2?family=...")
@@ -381,7 +381,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         font_family_row = QtWidgets.QHBoxLayout()
         font_family_label = QtWidgets.QLabel("Family:")
-        font_family_label.setStyleSheet("color: #999; font-size: 12px;")
+        font_family_label.setStyleSheet("color: #999;")
         font_family_row.addWidget(font_family_label)
         self.font_family_input = QtWidgets.QLineEdit()
         self.font_family_input.setPlaceholderText("'Noto Sans Bengali', sans-serif")
@@ -404,7 +404,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         name_row = QtWidgets.QHBoxLayout()
         name_label = QtWidgets.QLabel("Family name:")
-        name_label.setStyleSheet("color: #999; font-size: 12px;")
+        name_label.setStyleSheet("color: #999;")
         name_row.addWidget(name_label)
         self.import_name = QtWidgets.QLineEdit()
         self.import_name.setPlaceholderText("e.g. MyFont")
@@ -520,12 +520,12 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         for cf in customs:
             row = QtWidgets.QHBoxLayout()
             lbl = QtWidgets.QLabel(f"{cf['name']}  ({cf['file']})")
-            lbl.setStyleSheet("color: #999; font-size: 12px;")
+            lbl.setStyleSheet("color: #999;")
             row.addWidget(lbl, 1)
             rm_btn = QtWidgets.QPushButton("Remove")
             rm_btn.setProperty("class", "danger")
             rm_btn.setStyleSheet(
-                "background: #b71c1c; color: #fff; border: none; border-radius: 4px; padding: 4px 10px; font-size: 11px;")
+                "background: #b71c1c; color: #fff; border: none; border-radius: 4px; padding: 4px 10px;")
             rm_btn.cf_name = cf["name"]
             rm_btn.clicked.connect(self.remove_font)
             row.addWidget(rm_btn)

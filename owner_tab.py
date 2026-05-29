@@ -36,15 +36,15 @@ class OwnerWidget(QtWidgets.QWidget):
     def _setup_ui(self):
         self.setStyleSheet("""
             QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; font-size: 11px; }
-            QLabel.heading { font-size: 14px; font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel.dim { color: #999; }
+            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
             QLineEdit, QTextEdit {
                 background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
-                border-radius: 6px; padding: 8px 10px; font-size: 13px;
+                border-radius: 6px; padding: 8px 10px;
             }
             QPushButton {
                 background: #555; color: #fff; border: none;
-                border-radius: 6px; padding: 8px 16px; font-size: 13px;
+                border-radius: 6px; padding: 8px 16px;
             }
             QPushButton:hover { background: #666; }
             QPushButton.primary { background: #1a6b3c; }
@@ -121,7 +121,7 @@ class OwnerWidget(QtWidgets.QWidget):
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setMaximumHeight(80)
-        self.log.setStyleSheet("background: #1a1a1a; color: #999; border: 1px solid #333; font-family: monospace; font-size: 12px; padding: 6px;")
+        self.log.setStyleSheet("background: #1a1a1a; color: #999; border: 1px solid #333; font-family: monospace; padding: 6px;")
         layout.addWidget(self.log)
 
     def _load_fields(self):

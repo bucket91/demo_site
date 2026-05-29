@@ -239,7 +239,7 @@ class DocsWidget(QtWidgets.QWidget):
         browser.setStyleSheet("""
             QTextBrowser {
                 background: #1a1a1a; color: #e0e0e0;
-                border: none; font-size: 13px;
+                border: none;
             }
         """)
         browser.setHtml(DOCS_HTML)
