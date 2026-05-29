@@ -54,7 +54,7 @@ class App(QtWidgets.QMainWindow):
         tabs.addTab(docs.DocsWidget(), "Help & Guide")
 
         self.statusBar().showMessage(
-            "Welcome! Start with the Setup tab to configure git, site title, and Supabase.")
+            "Ready. Add content via Import tab, then click Generate.")
         tabs.setCurrentIndex(0)
 
         self.docx_widget.navigate_to_management.connect(
@@ -86,7 +86,36 @@ class App(QtWidgets.QMainWindow):
         import first_run
         first_run.SITE_DIR = SITE_DIR
         wizard = first_run.FirstRunWizard(self)
-        wizard.exec_()
+        if wizard.exec_() == QtWidgets.QDialog.Accepted:
+            self._auto_init_git()
+
+    def _auto_init_git(self):
+        from git_util import git_run
+        cfg_path = os.path.join(SITE_DIR, "config.json")
+        if not os.path.exists(cfg_path):
+            return
+        with open(cfg_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+        name = cfg.get("git_user_name", "")
+        email = cfg.get("git_user_email", "")
+        url = cfg.get("git_remote_url", "")
+        if not name or not url:
+            return
+        git_run(["init"], cwd=SITE_DIR)
+        if name:
+            git_run(["config", "user.name", name], cwd=SITE_DIR)
+        if email:
+            git_run(["config", "user.email", email], cwd=SITE_DIR)
+        if url:
+            r = git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True)
+            if r and r.returncode == 0:
+                git_run(["remote", "set-url", "origin", url], cwd=SITE_DIR)
+            else:
+                git_run(["remote", "add", "origin", url], cwd=SITE_DIR)
+        gi = os.path.join(SITE_DIR, ".gitignore")
+        if not os.path.exists(gi):
+            with open(gi, "w", encoding="utf-8") as f:
+                f.write("# MS Word\n*.doc\n*.docx\n*.dot\n*.dotx\n*.docm\n*.dotm\n# Local config (contains tokens, never commit)\nconfig.local.json\n# Build\nbuild_venv/\n*.spec\ndist/\n")
 
     def _go_to_management(self, path, category, tabs):
         self.ref_mgr.set_file_path(path, category)
