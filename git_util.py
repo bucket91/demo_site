@@ -23,8 +23,11 @@ def is_git_available():
         return False
 
 
+def _dummy_result():
+    return subprocess.CompletedProcess(args=[], returncode=-1, stdout="", stderr="")
+
 def git_run(args, cwd=None, **kwargs):
     try:
         return subprocess.run([get_git_path()] + args, cwd=cwd, **kwargs)
     except FileNotFoundError:
-        return None
+        return _dummy_result()
