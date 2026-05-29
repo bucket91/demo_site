@@ -86,15 +86,26 @@ class OwnerWidget(QtWidgets.QWidget):
         self.bio_edit.setMaximumHeight(100)
         fl.addRow("Bio:", self.bio_edit)
 
-        avatar_row = QtWidgets.QHBoxLayout()
+        avatar_preview_row = QtWidgets.QHBoxLayout()
+        self.avatar_preview = QtWidgets.QLabel()
+        self.avatar_preview.setFixedSize(80, 80)
+        self.avatar_preview.setStyleSheet("""
+            border-radius: 40px;
+            border: 3px solid #4a9eff;
+            background: #2a2a2a;
+        """)
+        self.avatar_preview.setAlignment(QtCore.Qt.AlignCenter)
+        avatar_preview_row.addWidget(self.avatar_preview)
+        avatar_fields = QtWidgets.QVBoxLayout()
         self.avatar_path = QtWidgets.QLineEdit()
         self.avatar_path.setReadOnly(True)
         self.avatar_path.setPlaceholderText("No file selected")
         browse_btn = QtWidgets.QPushButton("Browse…")
         browse_btn.clicked.connect(self._pick_avatar)
-        avatar_row.addWidget(self.avatar_path)
-        avatar_row.addWidget(browse_btn)
-        fl.addRow("Avatar:", avatar_row)
+        avatar_fields.addWidget(self.avatar_path)
+        avatar_fields.addWidget(browse_btn)
+        avatar_preview_row.addLayout(avatar_fields, 1)
+        fl.addRow("Avatar:", avatar_preview_row)
 
         self.contacts_edit = QtWidgets.QTextEdit()
         self.contacts_edit.setPlaceholderText(
@@ -131,12 +142,41 @@ class OwnerWidget(QtWidgets.QWidget):
         avatar = self.cfg.get("owner_avatar", "")
         self.avatar_path.setText(os.path.basename(avatar) if avatar else "")
         self.avatar_path.setProperty("full_path", avatar)
+        self._update_avatar_preview()
         contacts = self.cfg.get("owner_contacts", [])
         if isinstance(contacts, list):
             lines = [f"{c.get('label', '')} | {c.get('url', '')}" for c in contacts]
             self.contacts_edit.setPlainText("\n".join(lines))
         else:
             self.contacts_edit.clear()
+
+    def _update_avatar_preview(self):
+        path = self.avatar_path.property("full_path") or ""
+        full = os.path.join(SITE_DIR, path) if path else ""
+        if full and os.path.exists(full):
+            pixmap = QtGui.QPixmap(full)
+            if not pixmap.isNull():
+                size = min(pixmap.width(), pixmap.height())
+                cropped = pixmap.copy(
+                    (pixmap.width() - size) // 2,
+                    (pixmap.height() - size) // 2,
+                    size, size
+                )
+                scaled = cropped.scaled(
+                    74, 74, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                )
+                rounded = QtGui.QPixmap(74, 74)
+                rounded.fill(QtCore.Qt.transparent)
+                painter = QtGui.QPainter(rounded)
+                painter.setRenderHint(QtGui.QPainter.Antialiasing)
+                clip = QtGui.QPainterPath()
+                clip.addEllipse(0, 0, 74, 74)
+                painter.setClipPath(clip)
+                painter.drawPixmap(0, 0, scaled)
+                painter.end()
+                self.avatar_preview.setPixmap(rounded)
+                return
+        self.avatar_preview.clear()
 
     def _pick_avatar(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -150,6 +190,7 @@ class OwnerWidget(QtWidgets.QWidget):
                 copy2(path, dst)
                 self.avatar_path.setText(f"avatar{ext}")
                 self.avatar_path.setProperty("full_path", f"avatar{ext}")
+                self._update_avatar_preview()
                 self.log.append(f"✅ Avatar copied → avatar{ext}")
             except Exception as e:
                 self.log.append(f"⚠️ Copy failed: {e}")
