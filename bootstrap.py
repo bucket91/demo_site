@@ -32,9 +32,6 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     </main>
 {{COMMENTS}}
   </div>
-  <footer>
-    <p>&copy; 2026</p>
-  </footer>
   <script>
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
@@ -48,10 +45,16 @@ TEMPLATE_HTML = """<!DOCTYPE html>
   <script>
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
-      localStorage.setItem('theme', document.body.classList.contains('dark-mode') ? 'dark' : 'light');
+      var b = document.body.classList.contains('dark-mode');
+      localStorage.setItem('theme', b ? 'dark' : 'light');
+      document.querySelector('.theme-toggle').textContent = b ? '\\u{1F319}' : '\\u2600\\uFE0F';
     }
     (function() {
-      if (localStorage.getItem('theme') === 'dark') document.body.classList.add('dark-mode');
+      var btn = document.querySelector('.theme-toggle');
+      if (localStorage.getItem('theme') === 'dark') {
+        document.body.classList.add('dark-mode');
+        if (btn) btn.textContent = '\\u{1F319}';
+      }
     })();
   </script>
 </body>
