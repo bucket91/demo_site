@@ -105,9 +105,11 @@ def build():
     if IS_WINDOWS:
         download_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
+        cmd.extend(["--icon", "logo.ico"])
     else:
         download_linux_git()
         cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])
+        cmd.extend(["--icon", "logo.png"])
 
     print("Running PyInstaller...")
     subprocess.run(cmd, check=True)

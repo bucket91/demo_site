@@ -50,12 +50,14 @@ jobs:
           DATA_ARGS=""
           if [ "${{ runner.os }}" = "Windows" ]; then
             DATA_ARGS="--add-data mingit;mingit"
+            ICON_ARGS="--icon logo.ico"
           else
             DATA_ARGS="--add-data bundled-git:bundled-git"
+            ICON_ARGS="--icon logo.png"
           fi
           pyinstaller --onefile --name SiteTools \
             --hidden-import PyQt5.sip \
-            $DATA_ARGS app.py
+            $DATA_ARGS $ICON_ARGS app.py
         shell: bash
         working-directory: ${{ github.workspace }}
 
