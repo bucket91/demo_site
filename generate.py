@@ -120,16 +120,42 @@ def generate_sidebar(categories, current_file):
         html += '      </div>\n'
     return html
 
-def write_comments_js():
+
+
+def extract_main(html):
+    m = re.search(r'<main>(.*?)</main>', html, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return html.strip()
+
+def extract_title(html):
+    m = re.search(r'<title>(.*?)</title>', html, re.DOTALL)
+    if m:
+        return m.group(1).strip()
+    return "Page"
+
+def make_comments_block(filepath):
+    if not CONFIG.get("comments_enabled", True):
+        return '', ''
+    page = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
+    page = page.replace('/index.html', '/').replace('.html', '')
     url = CONFIG.get("supabase_url", "")
     key = CONFIG.get("supabase_anon_key", "")
-    js = '''const SUPABASE_URL = $URL;
-const SUPABASE_ANON_KEY = $KEY;
-
+    block = '''  <div id="comments-section" data-page="''' + page + '''">
+    <h3>Comments</h3>
+    <div id="comments-list"></div>
+    <form id="comment-form">
+      <input id="comment-name" type="text" placeholder="Your name" required>
+      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
+      <button type="submit">Post Comment</button>
+    </form>
+  </div>
+  <script>
+const SUPABASE_URL = ''' + repr(url) + ''';
+const SUPABASE_ANON_KEY = ''' + repr(key) + ''';
 (function() {
   var section = document.getElementById('comments-section');
   var page = section ? section.getAttribute('data-page') : '/';
-
   async function loadComments() {
     var res = await fetch(
       SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
@@ -153,7 +179,6 @@ const SUPABASE_ANON_KEY = $KEY;
       '</div>';
     }).join('');
   }
-
   async function submitComment(e) {
     e.preventDefault();
     var nameInput = document.getElementById('comment-name');
@@ -177,13 +202,11 @@ const SUPABASE_ANON_KEY = $KEY;
     btn.disabled = false;
     loadComments();
   }
-
   function esc(s) {
     var d = document.createElement('div');
     d.textContent = s;
     return d.innerHTML;
   }
-
   document.addEventListener('DOMContentLoaded', function() {
     var form = document.getElementById('comment-form');
     if (form) {
@@ -192,39 +215,8 @@ const SUPABASE_ANON_KEY = $KEY;
     }
   });
 })();
-'''.replace('$URL', repr(url)).replace('$KEY', repr(key))
-    with open(os.path.join(SITE_DIR, 'comments.js'), 'w') as f:
-        f.write(js)
-
-def extract_main(html):
-    m = re.search(r'<main>(.*?)</main>', html, re.DOTALL)
-    if m:
-        return m.group(1).strip()
-    return html.strip()
-
-def extract_title(html):
-    m = re.search(r'<title>(.*?)</title>', html, re.DOTALL)
-    if m:
-        return m.group(1).strip()
-    return "Page"
-
-def make_comments_block(filepath):
-    if not CONFIG.get("comments_enabled", True):
-        return '', ''
-    page = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
-    page = page.replace('/index.html', '/').replace('.html', '')
-    js_rel = os.path.relpath(os.path.join(SITE_DIR, 'comments.js'), os.path.dirname(os.path.abspath(filepath)))
-    block = '''  <div id="comments-section" data-page="''' + page + '''">
-    <h3>Comments</h3>
-    <div id="comments-list"></div>
-    <form id="comment-form">
-      <input id="comment-name" type="text" placeholder="Your name" required>
-      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
-      <button type="submit">Post Comment</button>
-    </form>
-  </div>
-  <script src="''' + js_rel + '''"></script>'''
-    return block, js_rel
+  </script>'''
+    return block, ''
 
 def make_nav(filepath):
     rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(filepath)))
@@ -312,7 +304,7 @@ def build_page(filepath, categories):
     content = make_homepage_content(categories, filepath) if is_home else extract_main(src)
     sidebar = generate_sidebar(categories, filepath)
     nav = make_nav(filepath)
-    comments_block, comments_js_path = make_comments_block(filepath)
+    comments_block, _ = make_comments_block(filepath)
     style_rel = os.path.relpath(os.path.join(SITE_DIR, 'style.css'), os.path.dirname(os.path.abspath(filepath)))
     style_rel = style_rel.replace('\\', '/')
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
@@ -335,7 +327,6 @@ def build_page(filepath, categories):
     result = result.replace('{{SIDEBAR}}', sidebar)
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
-    result = result.replace('{{COMMENTS_JS_PATH}}', comments_js_path)
 
     with open(filepath, 'w') as f:
         f.write(result)
@@ -419,7 +410,6 @@ def generate_404(categories, log_func=print):
 def generate_all(log_func=print):
     CONFIG.update(load_config())
     clean_ref_file(log_func)
-    write_comments_js()
 
     categories = scan_categories()
     log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")
@@ -495,7 +485,6 @@ def run_generate_captured():
         print(msg)
         buf.write(msg + '\n')
     CONFIG.update(load_config())
-    write_comments_js()
     generate_all(log)
     git_commit_push(log)
     output = buf.getvalue().strip()

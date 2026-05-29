@@ -214,7 +214,6 @@ class _OwnerWorker(QtCore.QThread):
         try:
             import generate
             generate.CONFIG.update(self.cfg)
-            generate.write_comments_js()
             if not generate.generate_all(log_func=self.logged.emit):
                 ok = False
             generate.git_commit_push(log_func=self.logged.emit)

@@ -9,6 +9,9 @@
 # Local config (contains tokens, never commit)
 config.local.json
 
+# Generated (credentials inlined in each page)
+comments.js
+
 # Build artifacts
 SiteTools
 SiteTools.exe
