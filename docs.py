@@ -26,15 +26,15 @@ DOCS_HTML = """\
 <h2>Quick Start</h2>
 <div class="step"><b>1.</b> Go to <b>Setup</b> tab → enter your GitHub repo URL + token → click <b>Initialize</b> then <b>Generate</b></div>
 <div class="step"><b>2.</b> Go to <b>Owner</b> tab → add your name and photo → click <b>Save</b></div>
-<div class="step"><b>3.</b> Go to <b>Import</b> tab → pick a Google Docs <code>.zip</code> → click <b>Save to Site</b></div>
+<div class="step"><b>3.</b> Go to <b>Import</b> tab → pick a <code>.zip</code> or <code>.mht</code> file → click <b>Save to Site</b></div>
 <p>Your site is live at <code>https://yourusername.github.io/repo/</code></p>
 
 <hr>
 
 <h2>Adding Pages (Import tab)</h2>
-<div class="step"><b>1.</b> In Google Docs: <b>File → Download → Web page (.html, zipped)</b></div>
-<div class="step"><b>2.</b> Open the <b>Import</b> tab → pick your <code>.zip</code> file</div>
-<div class="step"><b>3.</b> Click <b>Save to Site</b> → enter a <b>Category</b> (folder) and <b>Page title</b> → done</div>
+<div class="step"><b>Google Docs:</b> <b>File → Download → Web page (.html, zipped)</b> → pick the <code>.zip</code> in the Import tab</div>
+<div class="step"><b>Microsoft Word:</b> <b>File → Save As → Web Page, Single File (.mht)</b> → pick the <code>.mht</code> in the Import tab</div>
+<div class="step"><b>Then:</b> Click <b>Save to Site</b> → enter a <b>Category</b> (folder) and <b>Page title</b> → done</div>
 <p>The page is automatically added to your site's sidebar.</p>
 
 <hr>

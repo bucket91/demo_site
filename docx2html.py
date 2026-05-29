@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, re, html as html_mod, zipfile, base64
+import os, sys, re, html as html_mod, zipfile, base64, email, email.policy, email.parser
 from html.parser import HTMLParser
 from PyQt5 import QtWidgets, QtCore
 
@@ -145,6 +145,65 @@ def convert_zip(path):
         return None, str(e)
 
 
+def convert_mht(path):
+    try:
+        with open(path, 'rb') as f:
+            msg = email.parser.BytesParser(policy=email.policy.default).parse(f)
+
+        images = {}
+        html_content = None
+
+        for part in msg.walk():
+            ct = part.get_content_type()
+            if ct == 'text/html' and html_content is None:
+                charset = part.get_content_charset() or 'utf-8'
+                payload = part.get_payload(decode=True)
+                if payload:
+                    html_content = payload.decode(charset, errors='replace')
+            elif part.get_content_maintype() == 'image':
+                data = part.get_payload(decode=True)
+                if not data:
+                    continue
+                cl = part.get('Content-Location', '') or ''
+                filename = os.path.basename(cl)
+                if not filename:
+                    cid = part.get('Content-ID', '')
+                    if cid:
+                        filename = cid.strip('<>')
+                if not filename:
+                    continue
+                ext = os.path.splitext(filename)[1].lower()
+                mime = MIME_MAP.get(ext, 'application/octet-stream')
+                images[filename] = f'data:{mime};base64,{base64.b64encode(data).decode()}'
+
+        if not html_content:
+            return None, "No HTML content found in MHT file"
+
+        html_content = re.sub(r'src="file:///[^"]*?([^"/]+)"', r'src="\1"', html_content)
+
+        title_m = re.search(r'<title>(.*?)</title>', html_content, re.DOTALL | re.IGNORECASE)
+        title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
+
+        cleaner = _HtmlCleaner(images)
+        cleaner.feed(html_content)
+        clean_html = ''.join(cleaner.out)
+        html_body = '<div class="doc-content">\n' + clean_html.strip() + '\n</div>'
+
+        return {'ok': True, 'html': html_body, 'title': title}, None
+    except Exception as e:
+        return None, str(e)
+
+
+def convert_file(path):
+    ext = os.path.splitext(path)[1].lower()
+    if ext in ('.mht', '.mhtml'):
+        return convert_mht(path)
+    elif ext == '.zip':
+        return convert_zip(path)
+    else:
+        return None, "Unsupported file type. Use .zip, .mht, or .mhtml."
+
+
 class ImportWidget(QtWidgets.QWidget):
     navigate_to_management = QtCore.pyqtSignal(str, str)
 
@@ -170,7 +229,7 @@ class ImportWidget(QtWidgets.QWidget):
 
         file_row = QtWidgets.QHBoxLayout()
         self.path_input = QtWidgets.QLineEdit()
-        self.path_input.setPlaceholderText("Select a Google Docs zip export...")
+        self.path_input.setPlaceholderText("Select a .zip (Google Docs) or .mht file (Word)...")
         file_row.addWidget(self.path_input, 1)
         browse_btn = QtWidgets.QPushButton("Browse")
         file_row.addWidget(browse_btn)
@@ -199,19 +258,24 @@ class ImportWidget(QtWidgets.QWidget):
 
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(
-            self, "Select zip export", "", "Google Docs Export (*.zip)")
+            self, "Select file to import", "",
+            "Supported files (*.zip *.mht *.mhtml);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
         if p:
             self.path_input.setText(p)
             self.convert()
 
     def convert(self):
         p = self.path_input.text().strip()
-        if not p or not p.lower().endswith('.zip'):
+        if not p:
+            return
+        ext = os.path.splitext(p)[1].lower()
+        if ext not in ('.zip', '.mht', '.mhtml'):
+            self.status_label.setText("Unsupported file type. Use .zip, .mht, or .mhtml.")
             return
         self.current_path = p
         self.status_label.setText("Extracting & cleaning...")
         QtWidgets.QApplication.processEvents()
-        result, err = convert_zip(p)
+        result, err = convert_file(p)
         if err:
             self.status_label.setText(f"Error: {err}")
             self.preview.setPlainText(err)
