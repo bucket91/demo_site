@@ -1,12 +1,9 @@
 {
   "supabase_url": "https://oorgvolgpoapoediiuxy.supabase.co",
   "supabase_anon_key": "sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5",
-  "comments_enabled": true,
   "git_remote_url": "https://github.com/bucket91/demo_site.git",
   "git_user_name": "bucket91",
   "git_user_email": "bucket91@users.noreply.github.com",
-  "git_commit_message": "update site via generator",
-  "git_auto_push": true,
   "site_title": "Placeholder",
   "custom_theme": {
     "body_bg": "#f0f0f5",
@@ -46,16 +43,16 @@
     "footer_text": "#eee",
     "theme_border": "#eee"
   },
-  "gui_theme": "Sunset",
   "owner_name": "Jon Doe",
   "owner_title": "Maniac",
   "owner_bio": "fugaisv uahfi8asfuxb ausgiavsc   asugcuavsc",
-  "owner_avatar": "avatar.jpg",
   "owner_contacts": [
     {
       "label": "Email",
-      "url": "s.mahadialam@gmail.com"
+      "url": "mailto:s.mahadialam@gmail.com"
     }
   ],
-  "gui_font_size": 14
+  "gui_font_size": 14,
+  "custom_font_url": "",
+  "custom_font_family": ""
 }

@@ -2,84 +2,33 @@
 """Git setup widget for Site Tools."""
 import os, sys, json
 from PyQt5 import QtWidgets, QtCore
-from git_util import is_git_available as _git_available, git_run as _git_run
+from git_util import is_git_available as _git_available, git_run as _git_run, _make_push_url, _extract_github_user
+from generate import load_config, save_config
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
 
 
-def load_config():
-    default = {
-        "supabase_url": "", "supabase_anon_key": "", "comments_enabled": True,
-        "site_title": "Placeholder",
-        "git_remote_url": "", "git_user_name": "", "git_user_email": "",
-        "git_commit_message": "Initial site setup", "git_auto_push": True,
-        "github_token": "",
-        "gui_font_size": 14,
-    }
-    cfg = default
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, encoding="utf-8") as f:
-            cfg = {**default, **json.load(f)}
-    if os.path.exists(LOCAL_CONFIG_FILE):
-        with open(LOCAL_CONFIG_FILE, encoding="utf-8") as f:
-            cfg.update(json.load(f))
-    return cfg
-
-
-def save_config(cfg):
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
-
-
-def save_setup_config(url, name, email, msg, auto_push,
-                      supabase_url, supabase_anon_key, comments_enabled, site_title,
-                      github_token, gui_font_size=14):
-    # Write safe fields to config.json (pushed to repo)
+def save_setup_config(url, token, supabase_url, supabase_anon_key, gui_font_size=14):
     cfg = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, encoding="utf-8") as f:
             cfg = json.load(f)
-    cfg.update(git_remote_url=url, git_user_name=name, git_user_email=email,
-               git_commit_message=msg, git_auto_push=auto_push,
+    cfg.update(git_remote_url=url,
                supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
-               comments_enabled=comments_enabled, site_title=site_title,
                gui_font_size=gui_font_size)
     cfg.pop("github_token", None)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
-    # Write token to local-only config (not pushed)
     local_cfg = {}
     if os.path.exists(LOCAL_CONFIG_FILE):
         with open(LOCAL_CONFIG_FILE, encoding="utf-8") as f:
             local_cfg = json.load(f)
-    local_cfg["github_token"] = github_token
+    local_cfg["github_token"] = token
     with open(LOCAL_CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(local_cfg, f, indent=2)
-
-
-def _make_push_url(url, token):
-    if token and url.startswith('https://'):
-        after = url[8:]
-        if '@' in after:
-            after = after.split('@', 1)[1]
-        return f'https://{token}@{after}'
-    return url
-
-
-def _extract_github_user(url):
-    url = url.strip()
-    if 'github.com/' in url:
-        after = url.split('github.com/', 1)[1]
-        if '/' in after:
-            return after.split('/')[0]
-    if 'github.com:' in url:
-        after = url.split('github.com:', 1)[1]
-        if '/' in after:
-            return after.split('/')[0]
-    return ""
 
 
 def is_git_installed():
@@ -103,10 +52,6 @@ def get_git_status():
         lines.append(f"Remote: {r.stdout.strip()}")
     else:
         lines.append("Remote: not set")
-    r = _git_run(["config", "user.name"], cwd=SITE_DIR, capture_output=True, text=True)
-    lines.append(f"User: {r.stdout.strip() or 'not set'}")
-    r = _git_run(["config", "user.email"], cwd=SITE_DIR, capture_output=True, text=True)
-    lines.append(f"Email: {r.stdout.strip() or 'not set'}")
     r = _git_run(["rev-list", "--count", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
     n = r.stdout.strip()
     lines.append(f"Commits: {n}" if n.isdigit() else "Commits: 0 (no commits yet)")
@@ -120,46 +65,46 @@ class SetupGitWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setStyleSheet("""
-            QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; }
-            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel { color: #c9d1d9; }
+            QLabel.dim { color: #6e7681; }
+            QLabel.heading { font-weight: bold; color: #c9d1d9; margin-top: 8px; }
             QLineEdit {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 8px 10px;
             }
             QTextEdit {
-                background: #1a1a1a; color: #ccc; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 6px; font-family: monospace;
             }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 6px; padding: 8px 16px;
             }
-            QPushButton:hover { background: #666; }
-            QPushButton:disabled { background: #333; color: #666; }
-            QPushButton.primary { background: #1a6b3c; }
-            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton:hover { background: #30363d; }
+            QPushButton:disabled { background: #30363d; color: #484f58; }
+            QPushButton.primary { background: #58a6ff; }
+            QPushButton.primary:hover { background: #79c0ff; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
             QSpinBox {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 6px;
             }
             QSpinBox::up-button, QSpinBox::down-button {
-                background: #3a3a3a; border: none; width: 24px;
+                background: #21262d; border: none; width: 24px;
             }
             QSpinBox::up-arrow {
                 image: none; border-left: 5px solid transparent;
-                border-right: 5px solid transparent; border-bottom: 6px solid #999;
+                border-right: 5px solid transparent; border-bottom: 6px solid #6e7681;
             }
             QSpinBox::down-arrow {
                 image: none; border-left: 5px solid transparent;
-                border-right: 5px solid transparent; border-top: 6px solid #999;
+                border-right: 5px solid transparent; border-top: 6px solid #6e7681;
             }
-            QCheckBox { color: #ccc; }
+            QCheckBox { color: #c9d1d9; }
             QGroupBox {
-                color: #ddd; font-weight: bold;
-                border: 1px solid #333; border-radius: 6px; margin-top: 12px;
+                color: #c9d1d9; font-weight: bold;
+                border: 1px solid #30363d; border-radius: 6px; margin-top: 12px;
                 padding: 12px 8px 8px;
             }
             QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
@@ -209,29 +154,21 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.supabase_key.setEchoMode(QtWidgets.QLineEdit.Password)
         sfl.addRow("Anon Key:", self.supabase_key)
 
-        self.comments_cb = QtWidgets.QCheckBox("Enable comments")
-        self.comments_cb.setChecked(cfg.get("comments_enabled", True))
-        sfl.addRow("", self.comments_cb)
-
         sl.addWidget(supabase_group)
 
-        # ── Site ──
-        site_group = QtWidgets.QGroupBox("Site")
-        sifl = QtWidgets.QFormLayout(site_group)
-        sifl.setSpacing(6)
-        sifl.setContentsMargins(10, 16, 10, 10)
-
-        self.site_title = QtWidgets.QLineEdit(cfg.get("site_title", "Placeholder"))
-        self.site_title.setPlaceholderText("My Awesome Site")
-        sifl.addRow("Site Title:", self.site_title)
+        # ── UI ──
+        ui_group = QtWidgets.QGroupBox("UI")
+        uifl = QtWidgets.QFormLayout(ui_group)
+        uifl.setSpacing(6)
+        uifl.setContentsMargins(10, 16, 10, 10)
 
         self.font_size_spin = QtWidgets.QSpinBox()
         self.font_size_spin.setRange(10, 24)
         self.font_size_spin.setValue(cfg.get("gui_font_size", 14))
         self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
-        sifl.addRow("UI Font Size:", self.font_size_spin)
+        uifl.addRow("Font Size:", self.font_size_spin)
 
-        sl.addWidget(site_group)
+        sl.addWidget(ui_group)
 
         # ── Git ──
         git_group = QtWidgets.QGroupBox("GitHub / Git")
@@ -249,22 +186,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.token_input.setEchoMode(QtWidgets.QLineEdit.Password)
         gfl.addRow("GitHub Token:", self.token_input)
 
-        self.name_input = QtWidgets.QLineEdit(cfg.get("git_user_name", ""))
-        self.name_input.setPlaceholderText("Your GitHub username")
-        gfl.addRow("User name:", self.name_input)
-
-        self.email_input = QtWidgets.QLineEdit(cfg.get("git_user_email", ""))
-        self.email_input.setPlaceholderText("user@users.noreply.github.com")
-        gfl.addRow("User email:", self.email_input)
-
-        self.msg_input = QtWidgets.QLineEdit(cfg.get("git_commit_message", "Initial site setup"))
-        self.msg_input.setPlaceholderText("Commit message")
-        gfl.addRow("Commit msg:", self.msg_input)
-
-        self.auto_push_cb = QtWidgets.QCheckBox("Auto-push after commit")
-        self.auto_push_cb.setChecked(cfg.get("git_auto_push", True))
-        gfl.addRow("", self.auto_push_cb)
-
         sl.addWidget(git_group)
 
         # ── Side-by-side: Status + Output ──
@@ -278,6 +199,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         left.addWidget(status_label)
         self.status_box = QtWidgets.QTextEdit()
         self.status_box.setReadOnly(True)
+        self.status_box.setMinimumHeight(130)
         left.addWidget(self.status_box, 1)
         side.addLayout(left, 1)
 
@@ -289,6 +211,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setPlaceholderText("Command output will appear here...")
+        self.log.setMinimumHeight(130)
         right.addWidget(self.log, 1)
         side.addLayout(right, 1)
 
@@ -340,15 +263,9 @@ class SetupGitWidget(QtWidgets.QWidget):
     def save_config_fields(self):
         save_setup_config(
             self.remote_input.text().strip(),
-            self.name_input.text().strip(),
-            self.email_input.text().strip(),
-            self.msg_input.text().strip(),
-            self.auto_push_cb.isChecked(),
+            self.token_input.text().strip(),
             self.supabase_url.text().strip(),
             self.supabase_key.text().strip(),
-            self.comments_cb.isChecked(),
-            self.site_title.text().strip(),
-            self.token_input.text().strip(),
             self.font_size_spin.value(),
         )
 
@@ -362,13 +279,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         new = {
             "supabase_url": self.supabase_url.text().strip(),
             "supabase_anon_key": self.supabase_key.text().strip(),
-            "comments_enabled": self.comments_cb.isChecked(),
-            "site_title": self.site_title.text().strip(),
             "git_remote_url": self.remote_input.text().strip(),
-            "git_user_name": self.name_input.text().strip(),
-            "git_user_email": self.email_input.text().strip(),
-            "git_commit_message": self.msg_input.text().strip(),
-            "git_auto_push": self.auto_push_cb.isChecked(),
             "github_token": self.token_input.text().strip(),
         }
 
@@ -381,6 +292,7 @@ class SetupGitWidget(QtWidgets.QWidget):
     def _on_generate_done(self, ok):
         self.gen_btn.setEnabled(True)
         self.gen_btn.setText("Generate")
+        self.check_status()
         if not ok:
             self.log_msg("[ERROR] Check output above.")
 
@@ -394,10 +306,15 @@ class SetupGitWidget(QtWidgets.QWidget):
     def _on_remote_url_changed(self, url):
         user = _extract_github_user(url)
         if user:
-            if not self.name_input.text().strip():
-                self.name_input.setText(user)
-            if not self.email_input.text().strip():
-                self.email_input.setText(f"{user}@users.noreply.github.com")
+            cfg = {}
+            if os.path.exists(CONFIG_FILE):
+                with open(CONFIG_FILE, encoding="utf-8") as f:
+                    cfg = json.load(f)
+            if not cfg.get("git_user_name") and not cfg.get("git_user_email"):
+                cfg["git_user_name"] = user
+                cfg["git_user_email"] = f"{user}@users.noreply.github.com"
+                with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                    json.dump(cfg, f, indent=2)
 
     def check_status(self):
         lines = get_git_status()
@@ -413,8 +330,13 @@ class SetupGitWidget(QtWidgets.QWidget):
             r = self.run_git(["init"])
             if r and r.returncode == 0:
                 self.log_msg("Repository initialized")
-        self.run_git(["config", "user.name", self.name_input.text().strip()])
-        self.run_git(["config", "user.email", self.email_input.text().strip()])
+        cfg = load_config()
+        name = cfg.get("git_user_name", "")
+        email = cfg.get("git_user_email", "")
+        if name:
+            self.run_git(["config", "user.name", name])
+        if email:
+            self.run_git(["config", "user.email", email])
         url = self.remote_input.text().strip()
         if url:
             r = self.run_git(["remote", "get-url", "origin"])
@@ -430,59 +352,6 @@ class SetupGitWidget(QtWidgets.QWidget):
             self.log_msg("Created .gitignore")
         self.check_status()
         self.status.setText("Init complete")
-
-    def stage_commit(self):
-        self.save_config_fields()
-        if not is_git_repo():
-            self.log_msg("Not a git repo. Click 'Init Repo' first.")
-            self.status.setText("Failed: not a repo")
-            return
-        self.log_msg("Staging all files...")
-        r = self.run_git(["add", "-A"])
-        if r and r.returncode != 0:
-            self.status.setText("Stage failed")
-            return
-        msg = self.msg_input.text().strip() or "update site"
-        self.log_msg(f"Committing: {msg}")
-        r = self.run_git(["commit", "-m", msg])
-        if r and r.returncode == 0:
-            self.status.setText("Commit succeeded")
-        elif r and r.returncode != 0:
-            if "nothing to commit" in (r.stdout + r.stderr):
-                self.status.setText("Nothing to commit")
-            else:
-                self.status.setText("Commit failed")
-        self.check_status()
-        if self.auto_push_cb.isChecked() and r and r.returncode == 0:
-            self.push()
-
-    def push(self):
-        self.save_config_fields()
-        cfg = load_config()
-        url = cfg.get("git_remote_url", "")
-        token = cfg.get("github_token", "")
-        push_url = _make_push_url(url, token)
-        orig = None
-        if push_url != url:
-            r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
-            if r and r.returncode == 0:
-                orig = r.stdout.strip()
-            self.log_msg("Using token-authenticated remote URL")
-            _git_run(["remote", "set-url", "origin", push_url], cwd=SITE_DIR, capture_output=True)
-        r = self.run_git(["remote", "get-url", "origin"])
-        if not r or r.returncode != 0:
-            self.log_msg("No remote configured. Set Remote URL first.")
-            self.status.setText("Push failed: no remote")
-            return
-        self.log_msg("Pushing to origin...")
-        r = self.run_git(["push", "-u", "origin", "HEAD"])
-        if r and r.returncode == 0:
-            self.status.setText("Push succeeded")
-        else:
-            self.status.setText("Push failed")
-        if orig:
-            _git_run(["remote", "set-url", "origin", orig], cwd=SITE_DIR, capture_output=True)
-        self.check_status()
 
 class _SetupWorker(QtCore.QThread):
     logged = QtCore.pyqtSignal(str)

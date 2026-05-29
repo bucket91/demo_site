@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, json, webbrowser
+import os, sys, json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -125,22 +125,22 @@ class CustomColorDialog(QtWidgets.QDialog):
         self.setWindowTitle("Custom Colors")
         self.setMinimumSize(580, 500)
         self.setStyleSheet("""
-            QDialog { background: #1a1a1a; }
-            QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; }
-            QLabel.heading { color: #ccc; font-weight: bold; padding-top: 6px; }
+            QDialog { background: #0d1117; }
+            QLabel { color: #c9d1d9; }
+            QLabel.dim { color: #6e7681; }
+            QLabel.heading { color: #c9d1d9; font-weight: bold; padding-top: 6px; }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 6px; padding: 8px 20px;
             }
-            QPushButton:hover { background: #666; }
-            QPushButton.primary { background: #1a6b3c; }
-            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton:hover { background: #30363d; }
+            QPushButton.primary { background: #58a6ff; }
+            QPushButton.primary:hover { background: #79c0ff; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
             QScrollArea { background: transparent; border: none; }
-            QScrollBar:vertical { background: #2a2a2a; width: 8px; }
-            QScrollBar::handle:vertical { background: #555; border-radius: 4px; }
+            QScrollBar:vertical { background: #161b22; width: 8px; }
+            QScrollBar::handle:vertical { background: #484f58; border-radius: 4px; }
         """)
 
         self.colors = dict(colors)
@@ -151,7 +151,7 @@ class CustomColorDialog(QtWidgets.QDialog):
         layout.setSpacing(4)
 
         heading = QtWidgets.QLabel("Click any color swatch to open the picker")
-        heading.setStyleSheet("font-weight: bold; color: #eee; padding-bottom: 4px;")
+        heading.setStyleSheet("font-weight: bold; color: #c9d1d9; padding-bottom: 4px;")
         layout.addWidget(heading)
 
         scroll = QtWidgets.QScrollArea()
@@ -183,7 +183,7 @@ class CustomColorDialog(QtWidgets.QDialog):
                 btn.setFixedSize(32, 32)
                 color = self.colors.get(key, "#000")
                 btn.setStyleSheet(
-                    f"background: {color}; border: 1px solid #555; border-radius: 4px;")
+                    f"background: {color}; border: 1px solid #30363d; border-radius: 4px;")
                 btn.setToolTip(f"{key} = {color}")
                 btn.color_key = key
                 btn.clicked.connect(self.pick_color)
@@ -247,35 +247,35 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setStyleSheet("""
-            QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; }
-            QLabel.heading { font-weight: bold; color: #eee; padding-top: 4px; }
+            QLabel { color: #c9d1d9; }
+            QLabel.dim { color: #6e7681; }
+            QLabel.heading { font-weight: bold; color: #c9d1d9; padding-top: 4px; }
             QComboBox {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 8px 10px;
             }
             QComboBox::drop-down { border: none; width: 30px; }
-            QComboBox::down-arrow { image: none; border-left: 6px solid #999; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+            QComboBox::down-arrow { image: none; border-left: 6px solid transparent; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
             QComboBox QAbstractItemView {
-                background: #2a2a2a; color: #e0e0e0; selection-background-color: #555;
-                border: 1px solid #333; outline: none;
+                background: #0d1117; color: #c9d1d9; selection-background-color: #30363d;
+                border: 1px solid #30363d; outline: none;
             }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 8px; padding: 10px 24px; font-weight: bold;
             }
-            QPushButton:hover { background: #666; }
-            QPushButton:disabled { background: #333; color: #666; }
-            QPushButton.primary { background: #1a6b3c; }
-            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton:hover { background: #30363d; }
+            QPushButton:disabled { background: #30363d; color: #484f58; }
+            QPushButton.primary { background: #58a6ff; }
+            QPushButton.primary:hover { background: #79c0ff; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
             QTextEdit {
-                background: #2a2a2a; color: #a0a0a0; border: 1px solid #333;
+                background: #0d1117; color: #6e7681; border: 1px solid #30363d;
                 border-radius: 6px; padding: 6px; font-family: monospace;
             }
             QLineEdit {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 6px 10px;
             }
         """)
@@ -313,16 +313,17 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         apply_btn.clicked.connect(self.apply_theme)
         selector_row.addWidget(apply_btn)
 
-        preview_btn = QtWidgets.QPushButton("Preview Site")
-        preview_btn.setMinimumHeight(40)
-        preview_btn.clicked.connect(self._preview_site)
-        selector_row.addWidget(preview_btn)
+        preview_theme_btn = QtWidgets.QPushButton("Preview Theme")
+        preview_theme_btn.setMinimumHeight(40)
+        preview_theme_btn.clicked.connect(self.update_preview)
+        selector_row.addWidget(preview_theme_btn)
+
         layout.addLayout(selector_row)
 
         # Font selector
         font_row = QtWidgets.QHBoxLayout()
         font_label = QtWidgets.QLabel("Font:")
-        font_label.setStyleSheet("color: #999;")
+        font_label.setStyleSheet("color: #6e7681;")
         font_row.addWidget(font_label)
         self.font_combo = QtWidgets.QComboBox()
         self.rebuild_font_combo()
@@ -346,7 +347,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             sw.setToolTip(label)
             sw_layout.addWidget(sw, 0, col)
             lbl = QtWidgets.QLabel(label)
-            lbl.setStyleSheet("color: #999;")
+            lbl.setStyleSheet("color: #6e7681;")
             sw_layout.addWidget(lbl, 1, col, alignment=QtCore.Qt.AlignCenter)
             self.swatch_widgets.append((sw, key))
         layout.addWidget(self.swatch_grid)
@@ -356,20 +357,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.current_label.setProperty("class", "dim")
         layout.addWidget(self.current_label)
 
-        # Customize button (visible only when Custom selected)
-        self.customize_btn = QtWidgets.QPushButton("Customize Colors...")
-        self.customize_btn.setMinimumHeight(36)
-        self.customize_btn.setVisible(False)
-        self.customize_btn.clicked.connect(self.open_color_dialog)
-        layout.addWidget(self.customize_btn)
-
-        # Preview log
-        self.preview = QtWidgets.QTextEdit()
-        self.preview.setReadOnly(True)
-        self.preview.setPlaceholderText("Theme preview will appear here...")
-        self.preview.setMaximumHeight(160)
-        layout.addWidget(self.preview, 1)
-
         # --- Custom Font URL ---
         font_url_heading = QtWidgets.QLabel("External Font (Google Fonts, etc.)")
         font_url_heading.setProperty("class", "heading")
@@ -377,7 +364,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         font_url_row = QtWidgets.QHBoxLayout()
         font_url_label = QtWidgets.QLabel("URL:")
-        font_url_label.setStyleSheet("color: #999;")
+        font_url_label.setStyleSheet("color: #6e7681;")
         font_url_row.addWidget(font_url_label)
         self.font_url_input = QtWidgets.QLineEdit()
         self.font_url_input.setPlaceholderText("https://fonts.googleapis.com/css2?family=...")
@@ -386,7 +373,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         font_family_row = QtWidgets.QHBoxLayout()
         font_family_label = QtWidgets.QLabel("Family:")
-        font_family_label.setStyleSheet("color: #999;")
+        font_family_label.setStyleSheet("color: #6e7681;")
         font_family_row.addWidget(font_family_label)
         self.font_family_input = QtWidgets.QLineEdit()
         self.font_family_input.setPlaceholderText("'Noto Sans Bengali', sans-serif")
@@ -409,7 +396,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
 
         name_row = QtWidgets.QHBoxLayout()
         name_label = QtWidgets.QLabel("Family name:")
-        name_label.setStyleSheet("color: #999;")
+        name_label.setStyleSheet("color: #6e7681;")
         name_row.addWidget(name_label)
         self.import_name = QtWidgets.QLineEdit()
         self.import_name.setPlaceholderText("e.g. MyFont")
@@ -525,7 +512,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         for cf in customs:
             row = QtWidgets.QHBoxLayout()
             lbl = QtWidgets.QLabel(f"{cf['name']}  ({cf['file']})")
-            lbl.setStyleSheet("color: #999;")
+            lbl.setStyleSheet("color: #6e7681;")
             row.addWidget(lbl, 1)
             rm_btn = QtWidgets.QPushButton("Remove")
             rm_btn.setProperty("class", "danger")
@@ -614,15 +601,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         for sw, key in self.swatch_widgets:
             color = t.get(key, "#000")
             sw.setStyleSheet(
-                f"background: {color}; border-radius: 4px; border: 1px solid #555;")
-
-        lines = []
-        for key, label in SWATCH_KEYS:
-            lines.append(f"  {label}: {t.get(key, '?')}")
-        lines.append(f"  Font: {font_name}")
-        if self.theme_key() == "Custom":
-            lines.append("  (custom colors)")
-        self.preview.setPlainText(f"Theme: {name}\n" + "\n".join(lines))
+                f"background: {color}; border-radius: 4px; border: 1px solid #30363d;")
 
     def apply_theme(self):
         is_custom = self.theme_key() == "Custom"
@@ -668,21 +647,9 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, encoding="utf-8") as f:
                 cfg = json.load(f)
-        cfg["gui_theme"] = self.theme_combo.currentData() or "Dark"
         cfg["custom_font_url"] = self.font_url_input.text().strip()
         cfg["custom_font_family"] = self.font_family_input.text().strip()
         with open(CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(cfg, f, indent=2)
 
-        import gui_theme
-        gui_theme.apply(t)
 
-    def _preview_site(self):
-        self.status.setText("Opening site preview...")
-        QtWidgets.QApplication.processEvents()
-        index = os.path.join(SITE_DIR, "index.html")
-        if not os.path.exists(index):
-            self.apply_theme()
-        if os.path.exists(index):
-            webbrowser.open(f'file://{os.path.abspath(index)}')
-            self.status.setText("Site preview opened in browser")

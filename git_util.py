@@ -31,3 +31,25 @@ def git_run(args, cwd=None, **kwargs):
         return subprocess.run([get_git_path()] + args, cwd=cwd, **kwargs)
     except FileNotFoundError:
         return _dummy_result()
+
+
+def _make_push_url(url, token):
+    if token and url.startswith('https://'):
+        after = url[8:]
+        if '@' in after:
+            after = after.split('@', 1)[1]
+        return f'https://{token}@{after}'
+    return url
+
+
+def _extract_github_user(url):
+    url = url.strip()
+    if 'github.com/' in url:
+        after = url.split('github.com/', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    if 'github.com:' in url:
+        after = url.split('github.com:', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    return ""

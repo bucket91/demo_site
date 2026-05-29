@@ -3,19 +3,10 @@ import json, os, sys, urllib.request, urllib.error
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
-CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
-def load():
-    default = {
-        "supabase_url": "",
-        "supabase_anon_key": "",
-    }
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, encoding="utf-8") as f:
-            return {**default, **json.load(f)}
-    return default
+from generate import load_config
 
-CFG = load()
+CFG = load_config()
 BASE = CFG.get("supabase_url", "").rstrip("/")
 KEY = CFG.get("supabase_anon_key", "")
 HEADERS = {
@@ -145,23 +136,23 @@ class CommentAdminWidget(QtWidgets.QWidget):
         super().__init__()
         self.setStyleSheet("""
             QTableView {
-                background: #333; color: #eee; gridline-color: #2a2a2a;
-                border: none; selection-background-color: #555;
+                background: #0d1117; color: #c9d1d9; gridline-color: #161b22;
+                border: none; selection-background-color: #58a6ff;
             }
             QTableView::item { padding: 6px; }
             QHeaderView::section {
-                background: #2a2a2a; color: #eee; padding: 8px;
+                background: #161b22; color: #c9d1d9; padding: 8px;
                 border: none; font-weight: bold;
             }
-            QLabel { color: #999; }
+            QLabel { color: #6e7681; }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 6px; padding: 8px 16px;
             }
-            QPushButton:hover { background: #666; }
+            QPushButton:hover { background: #30363d; }
             QPushButton.danger { background: #b71c1c; }
             QPushButton.danger:hover { background: #d32f2f; }
-            QPushButton:disabled { background: #333; color: #666; }
+            QPushButton:disabled { background: #30363d; color: #484f58; }
         """)
 
         layout = QtWidgets.QVBoxLayout(self)
@@ -170,14 +161,14 @@ class CommentAdminWidget(QtWidgets.QWidget):
 
         # header
         hdr = QtWidgets.QFrame()
-        hdr.setStyleSheet("background: #2a2a2a; padding: 16px 20px;")
+        hdr.setStyleSheet("background: #161b22; padding: 16px 20px;")
         hl = QtWidgets.QHBoxLayout(hdr)
         title = QtWidgets.QLabel("Comment Admin")
-        title.setStyleSheet("font-weight: bold; color: #eee;")
+        title.setStyleSheet("font-weight: bold; color: #c9d1d9;")
         hl.addWidget(title)
         hl.addStretch()
         self.status = QtWidgets.QLabel("")
-        self.status.setStyleSheet("color: #999;")
+        self.status.setStyleSheet("color: #6e7681;")
         hl.addWidget(self.status)
         layout.addWidget(hdr)
 
@@ -189,7 +180,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
         self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.table.setAlternatingRowColors(True)
         self.table.setStyleSheet("""
-            QTableView { alternate-background-color: #3a3a3a; }
+            QTableView { alternate-background-color: #161b22; }
         """)
         hdr_v = self.table.horizontalHeader()
         hdr_v.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
@@ -199,7 +190,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
 
         # toolbar
         bar = QtWidgets.QFrame()
-        bar.setStyleSheet("background: #2a2a2a; padding: 10px 20px;")
+        bar.setStyleSheet("background: #161b22; padding: 10px 20px;")
         bl = QtWidgets.QHBoxLayout(bar)
         bl.setSpacing(8)
 
@@ -213,7 +204,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
 
         delete_btn = QtWidgets.QPushButton("Delete Selected")
         delete_btn.setProperty("class", "danger")
-        delete_btn.setStyleSheet("background: #b71c1c; color: #fff; border: none; border-radius: 6px; padding: 8px 16px;")
+        delete_btn.setStyleSheet("background: #b71c1c; color: #c9d1d9; border: none; border-radius: 6px; padding: 8px 16px;")
         delete_btn.clicked.connect(self.delete_selected)
         bl.addWidget(delete_btn)
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import re, os, glob, json, sys
-from git_util import git_run as _git_run, get_git_path as _get_git_path
+from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
@@ -14,16 +14,12 @@ def load_config():
     default = {
         "supabase_url": "",
         "supabase_anon_key": "",
-        "comments_enabled": True,
         "git_remote_url": "",
         "git_user_name": "",
         "git_user_email": "",
-        "git_commit_message": "update site via generator",
-        "git_auto_push": True,
         "github_token": "",
         "owner_name": "",
         "owner_bio": "",
-        "owner_avatar": "",
         "owner_title": "",
         "owner_contacts": [],
         "site_title": "Placeholder",
@@ -41,6 +37,10 @@ def load_config():
     return cfg
 
 CONFIG = load_config()
+
+def save_config(cfg):
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(cfg, f, indent=2)
 
 def scan_categories():
     sidebar_data = sidebar_util.load_sidebar()
@@ -63,7 +63,7 @@ def rel_path(from_file, to_absolute):
 def generate_sidebar(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
-    owner_avatar = CONFIG.get("owner_avatar", "")
+    owner_avatar = "avatar.png" if os.path.exists(os.path.join(SITE_DIR, "avatar.png")) else ""
     owner_title = CONFIG.get("owner_title", "")
     html = ''
     if owner_name:
@@ -109,8 +109,6 @@ def extract_title(html):
     return "Page"
 
 def make_comments_block(filepath):
-    if not CONFIG.get("comments_enabled", True):
-        return '', ''
     url = CONFIG.get("supabase_url", "")
     key = CONFIG.get("supabase_anon_key", "")
     if not url or not key:
@@ -232,7 +230,7 @@ def normalize_contact_url(label, url):
 def make_homepage_content(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
     owner_bio = CONFIG.get("owner_bio", "")
-    owner_avatar = CONFIG.get("owner_avatar", "")
+    owner_avatar = "avatar.png" if os.path.exists(os.path.join(SITE_DIR, "avatar.png")) else ""
     owner_title = CONFIG.get("owner_title", "")
     owner_contacts = CONFIG.get("owner_contacts", [])
     html = '''<div class="home-hero">
@@ -366,18 +364,8 @@ def generate_all(log_func=print):
     log_func(f"\nDone. {updated} files wrapped.")
     return True
 
-def _make_push_url(url, token):
-    if token and url.startswith('https://'):
-        after = url[8:]
-        if '@' in after:
-            after = after.split('@', 1)[1]
-        return f'https://{token}@{after}'
-    return url
-
-
 def git_commit_push(log_func=print):
-    msg = CONFIG.get("git_commit_message", "update site via generator")
-    auto = CONFIG.get("git_auto_push", True)
+    msg = "update site via generator"
     url = CONFIG.get("git_remote_url", "")
     token = CONFIG.get("github_token", "")
     push_url = _make_push_url(url, token)
@@ -402,7 +390,7 @@ def git_commit_push(log_func=print):
             log_func(r.stdout.strip())
         else:
             log_func(r.stderr.strip())
-        if auto and url:
+        if url:
             r2 = _git_run(["push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:

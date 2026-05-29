@@ -6,24 +6,7 @@ from PyQt5 import QtWidgets, QtCore, QtGui
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 
-
-def load_config():
-    default = {
-        "owner_name": "",
-        "owner_title": "",
-        "owner_bio": "",
-        "owner_avatar": "",
-        "owner_contacts": [],
-    }
-    if os.path.exists(CONFIG_FILE):
-        with open(CONFIG_FILE, encoding="utf-8") as f:
-            return {**default, **json.load(f)}
-    return default
-
-
-def save_config(cfg):
-    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
+from generate import load_config, save_config
 
 
 class OwnerWidget(QtWidgets.QWidget):
@@ -35,20 +18,20 @@ class OwnerWidget(QtWidgets.QWidget):
 
     def _setup_ui(self):
         self.setStyleSheet("""
-            QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; }
-            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel { color: #c9d1d9; }
+            QLabel.dim { color: #6e7681; }
+            QLabel.heading { font-weight: bold; color: #c9d1d9; margin-top: 8px; }
             QLineEdit, QTextEdit {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 8px 10px;
             }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 6px; padding: 8px 16px;
             }
-            QPushButton:hover { background: #666; }
-            QPushButton.primary { background: #1a6b3c; }
-            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton:hover { background: #30363d; }
+            QPushButton.primary { background: #58a6ff; }
+            QPushButton.primary:hover { background: #79c0ff; }
         """)
 
         layout = QtWidgets.QVBoxLayout(self)
@@ -67,46 +50,68 @@ class OwnerWidget(QtWidgets.QWidget):
         scroll.setWidgetResizable(True)
         scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
         scroll.setStyleSheet("QScrollArea { background: transparent; }")
-        form_container = QtWidgets.QWidget()
-        form_container.setStyleSheet("background: transparent;")
-        fl = QtWidgets.QFormLayout(form_container)
+        container = QtWidgets.QWidget()
+        container.setStyleSheet("background: transparent;")
+        outer = QtWidgets.QVBoxLayout(container)
+        outer.setContentsMargins(0, 0, 0, 0)
+        outer.setSpacing(12)
+
+        # Row 1: Name + Title (60%) | Avatar (40%)
+        top_row = QtWidgets.QHBoxLayout()
+        top_row.setSpacing(16)
+        left_top = QtWidgets.QWidget()
+        left_top.setStyleSheet("background: transparent;")
+        fl = QtWidgets.QFormLayout(left_top)
         fl.setSpacing(8)
         fl.setContentsMargins(0, 0, 0, 0)
-
         self.name_edit = QtWidgets.QLineEdit()
         self.name_edit.setPlaceholderText("Your name")
         fl.addRow("Name:", self.name_edit)
-
         self.title_edit = QtWidgets.QLineEdit()
         self.title_edit.setPlaceholderText("e.g. Software Developer")
         fl.addRow("Title:", self.title_edit)
+        top_row.addWidget(left_top, 3)
 
-        self.bio_edit = QtWidgets.QTextEdit()
-        self.bio_edit.setPlaceholderText("A short bio about yourself…")
-        self.bio_edit.setMaximumHeight(100)
-        fl.addRow("Bio:", self.bio_edit)
-
-        avatar_preview_row = QtWidgets.QHBoxLayout()
+        avatar_side = QtWidgets.QWidget()
+        avatar_side.setStyleSheet("background: transparent;")
+        al = QtWidgets.QVBoxLayout(avatar_side)
+        al.setContentsMargins(0, 0, 0, 0)
+        al.setAlignment(QtCore.Qt.AlignCenter)
         self.avatar_preview = QtWidgets.QLabel()
         self.avatar_preview.setFixedSize(80, 80)
         self.avatar_preview.setStyleSheet("""
             border-radius: 40px;
-            border: 3px solid #4a9eff;
-            background: #2a2a2a;
+            border: 3px solid #58a6ff;
+            background: #0d1117;
         """)
         self.avatar_preview.setAlignment(QtCore.Qt.AlignCenter)
-        avatar_preview_row.addWidget(self.avatar_preview)
-        avatar_fields = QtWidgets.QVBoxLayout()
-        self.avatar_path = QtWidgets.QLineEdit()
-        self.avatar_path.setReadOnly(True)
-        self.avatar_path.setPlaceholderText("No file selected")
+        al.addWidget(self.avatar_preview, alignment=QtCore.Qt.AlignCenter)
         browse_btn = QtWidgets.QPushButton("Browse…")
+        browse_btn.setFixedWidth(80)
         browse_btn.clicked.connect(self._pick_avatar)
-        avatar_fields.addWidget(self.avatar_path)
-        avatar_fields.addWidget(browse_btn)
-        avatar_preview_row.addLayout(avatar_fields, 1)
-        fl.addRow("Avatar:", avatar_preview_row)
+        al.addWidget(browse_btn, alignment=QtCore.Qt.AlignCenter)
+        top_row.addWidget(avatar_side, 2)
+        outer.addLayout(top_row)
 
+        # Row 2: Bio (40%) | Contacts (60%)
+        bot_row = QtWidgets.QHBoxLayout()
+        bot_row.setSpacing(16)
+        bio_w = QtWidgets.QWidget()
+        bio_w.setStyleSheet("background: transparent;")
+        bl = QtWidgets.QFormLayout(bio_w)
+        bl.setSpacing(8)
+        bl.setContentsMargins(0, 0, 0, 0)
+        self.bio_edit = QtWidgets.QTextEdit()
+        self.bio_edit.setPlaceholderText("A short bio about yourself…")
+        self.bio_edit.setMaximumHeight(120)
+        bl.addRow("Bio:", self.bio_edit)
+        bot_row.addWidget(bio_w, 2)
+
+        contacts_w = QtWidgets.QWidget()
+        contacts_w.setStyleSheet("background: transparent;")
+        cl = QtWidgets.QFormLayout(contacts_w)
+        cl.setSpacing(8)
+        cl.setContentsMargins(0, 0, 0, 0)
         self.contacts_edit = QtWidgets.QTextEdit()
         self.contacts_edit.setPlaceholderText(
             "One per line: label | url\n"
@@ -115,9 +120,11 @@ class OwnerWidget(QtWidgets.QWidget):
             "Email | mailto:user@example.com"
         )
         self.contacts_edit.setMaximumHeight(120)
-        fl.addRow("Contacts:", self.contacts_edit)
+        cl.addRow("Contacts:", self.contacts_edit)
+        bot_row.addWidget(contacts_w, 3)
+        outer.addLayout(bot_row)
 
-        scroll.setWidget(form_container)
+        scroll.setWidget(container)
         layout.addWidget(scroll, stretch=1)
 
         btn_row = QtWidgets.QHBoxLayout()
@@ -132,16 +139,13 @@ class OwnerWidget(QtWidgets.QWidget):
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.setMaximumHeight(80)
-        self.log.setStyleSheet("background: #1a1a1a; color: #999; border: 1px solid #333; font-family: monospace; padding: 6px;")
+        self.log.setStyleSheet("background: #0d1117; color: #6e7681; border: 1px solid #30363d; font-family: monospace; padding: 6px;")
         layout.addWidget(self.log)
 
     def _load_fields(self):
         self.name_edit.setText(self.cfg.get("owner_name", ""))
         self.title_edit.setText(self.cfg.get("owner_title", ""))
         self.bio_edit.setPlainText(self.cfg.get("owner_bio", ""))
-        avatar = self.cfg.get("owner_avatar", "")
-        self.avatar_path.setText(os.path.basename(avatar) if avatar else "")
-        self.avatar_path.setProperty("full_path", avatar)
         self._update_avatar_preview()
         contacts = self.cfg.get("owner_contacts", [])
         if isinstance(contacts, list):
@@ -151,9 +155,8 @@ class OwnerWidget(QtWidgets.QWidget):
             self.contacts_edit.clear()
 
     def _update_avatar_preview(self):
-        path = self.avatar_path.property("full_path") or ""
-        full = os.path.join(SITE_DIR, path) if path else ""
-        if full and os.path.exists(full):
+        full = os.path.join(SITE_DIR, "avatar.png")
+        if os.path.exists(full):
             pixmap = QtGui.QPixmap(full)
             if not pixmap.isNull():
                 size = min(pixmap.width(), pixmap.height())
@@ -184,14 +187,11 @@ class OwnerWidget(QtWidgets.QWidget):
             "Images (*.png *.jpg *.jpeg *.gif *.bmp *.svg);;All files (*)")
         if path:
             from shutil import copy2
-            ext = os.path.splitext(path)[1] or ".png"
-            dst = os.path.join(SITE_DIR, f"avatar{ext}")
+            dst = os.path.join(SITE_DIR, "avatar.png")
             try:
                 copy2(path, dst)
-                self.avatar_path.setText(f"avatar{ext}")
-                self.avatar_path.setProperty("full_path", f"avatar{ext}")
                 self._update_avatar_preview()
-                self.log.append(f"✅ Avatar copied → avatar{ext}")
+                self.log.append("✅ Avatar set (avatar.png)")
             except Exception as e:
                 self.log.append(f"⚠️ Copy failed: {e}")
 
@@ -204,9 +204,6 @@ class OwnerWidget(QtWidgets.QWidget):
         cfg["owner_name"] = self.name_edit.text().strip()
         cfg["owner_title"] = self.title_edit.text().strip()
         cfg["owner_bio"] = self.bio_edit.toPlainText().strip()
-
-        avatar_val = self.avatar_path.property("full_path") or ""
-        cfg["owner_avatar"] = avatar_val
 
         contacts = []
         for line in self.contacts_edit.toPlainText().strip().split("\n"):

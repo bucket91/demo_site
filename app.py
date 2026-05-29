@@ -30,14 +30,14 @@ class App(QtWidgets.QMainWindow):
         """)
         self.setCentralWidget(tabs)
 
+        import design_tab
+        design_tab.SITE_DIR = SITE_DIR
+        tabs.addTab(design_tab.DesignWidget(), "Design")
+
         import content_tab
         content_tab.SITE_DIR = SITE_DIR
         self.content_widget = content_tab.ContentWidget()
         tabs.addTab(self.content_widget, "Content")
-
-        import design_tab
-        design_tab.SITE_DIR = SITE_DIR
-        tabs.addTab(design_tab.DesignWidget(), "Design")
 
         import setup_git
         setup_git.SITE_DIR = SITE_DIR
@@ -47,10 +47,10 @@ class App(QtWidgets.QMainWindow):
         tabs.addTab(admin.CommentAdminWidget(), "Comments")
 
         import docs
-        tabs.addTab(docs.DocsWidget(), "Help & Guide")
+        tabs.addTab(docs.DocsWidget(), "Help")
 
         self.statusBar().showMessage(
-            "Ready. Add content in the Content tab, pick a theme in Design, configure in Settings.")
+            "Ready. Customize your site in Design, add content in Content, configure in Settings.")
         tabs.setCurrentIndex(0)
 
     def _check_first_run(self):
@@ -66,13 +66,12 @@ class App(QtWidgets.QMainWindow):
         if os.path.exists(cfg_path):
             with open(cfg_path, encoding="utf-8") as f:
                 cfg = json.load(f)
-            for k in ["owner_name", "owner_bio", "owner_avatar", "owner_title",
+            for k in ["owner_name", "owner_bio", "owner_title",
                        "owner_contacts", "supabase_url", "supabase_anon_key",
                        "git_remote_url", "git_user_name", "git_user_email",
-                       "git_commit_message", "custom_font_url", "custom_font_family",
+                       "custom_font_url", "custom_font_family",
                        "github_token"]:
                 cfg.pop(k, None)
-            cfg["site_title"] = "Placeholder"
             with open(cfg_path, "w", encoding="utf-8") as f:
                 json.dump(cfg, f, indent=2)
 

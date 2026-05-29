@@ -28,7 +28,7 @@ class ContentWidget(QtWidgets.QWidget):
 
         sep = QtWidgets.QFrame()
         sep.setFrameShape(QtWidgets.QFrame.HLine)
-        sep.setStyleSheet("background: #333; max-height: 1px;")
+        sep.setStyleSheet("background: #30363d; max-height: 1px;")
         cl.addWidget(sep)
 
         import ref_manager

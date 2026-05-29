@@ -1,21 +1,9 @@
 """First-run setup wizard for new Site Tools installations."""
 import os, json
 from PyQt5 import QtWidgets
+from git_util import _extract_github_user
 
 SITE_DIR = None
-
-
-def _extract_github_user(url):
-    url = url.strip()
-    if 'github.com/' in url:
-        after = url.split('github.com/', 1)[1]
-        if '/' in after:
-            return after.split('/')[0]
-    if 'github.com:' in url:
-        after = url.split('github.com:', 1)[1]
-        if '/' in after:
-            return after.split('/')[0]
-    return ""
 
 
 class FirstRunWizard(QtWidgets.QDialog):
@@ -30,7 +18,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         layout.setContentsMargins(28, 24, 28, 24)
 
         title = QtWidgets.QLabel("First-Time Setup")
-        title.setStyleSheet("font-weight: bold; color: #eee;")
+        title.setStyleSheet("font-weight: bold; color: #c9d1d9;")
         layout.addWidget(title)
 
         subtitle = QtWidgets.QLabel(
@@ -39,7 +27,7 @@ class FirstRunWizard(QtWidgets.QDialog):
             "Supabase enables comments."
         )
         subtitle.setWordWrap(True)
-        subtitle.setStyleSheet("color: #999; margin-bottom: 8px;")
+        subtitle.setStyleSheet("color: #6e7681; margin-bottom: 8px;")
         layout.addWidget(subtitle)
 
         fields = [
@@ -59,15 +47,15 @@ class FirstRunWizard(QtWidgets.QDialog):
             fl = QtWidgets.QFormLayout()
             fl.setSpacing(4)
             lbl = QtWidgets.QLabel(label)
-            lbl.setStyleSheet("color: #ccc;")
+            lbl.setStyleSheet("color: #c9d1d9;")
             inp = QtWidgets.QLineEdit()
             inp.setPlaceholderText(placeholder)
             inp.setStyleSheet("""
                 QLineEdit {
-                    background: #333; color: #eee; border: 1px solid #555;
+                    background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                     border-radius: 6px; padding: 8px 10px;
                 }
-                QLineEdit:focus { border-color: #777; }
+                QLineEdit:focus { border-color: #58a6ff; }
             """)
             if key == "github_token":
                 inp.setEchoMode(QtWidgets.QLineEdit.Password)
@@ -85,10 +73,10 @@ class FirstRunWizard(QtWidgets.QDialog):
         skip_btn = QtWidgets.QPushButton("Skip")
         skip_btn.setStyleSheet("""
             QPushButton {
-                background: #444; color: #999; border: none;
+                background: #21262d; color: #6e7681; border: none;
                 border-radius: 8px; padding: 10px 24px;
             }
-            QPushButton:hover { background: #555; }
+            QPushButton:hover { background: #30363d; }
         """)
         skip_btn.clicked.connect(self.reject)
         btn_layout.addWidget(skip_btn)
@@ -96,11 +84,11 @@ class FirstRunWizard(QtWidgets.QDialog):
         save_btn = QtWidgets.QPushButton("Save & Start")
         save_btn.setStyleSheet("""
             QPushButton {
-                background: #4a9eff; color: #fff; border: none;
+                background: #58a6ff; color: #fff; border: none;
                 border-radius: 8px; padding: 10px 28px;
                 font-weight: bold;
             }
-            QPushButton:hover { background: #3a7acc; }
+            QPushButton:hover { background: #79c0ff; }
         """)
         save_btn.clicked.connect(self._save)
         btn_layout.addWidget(save_btn)
@@ -124,32 +112,18 @@ class FirstRunWizard(QtWidgets.QDialog):
             )
             return
 
-        cfg_path = os.path.join(SITE_DIR, "config.json")
-        local_path = os.path.join(SITE_DIR, "config.local.json")
+        from setup_git import save_setup_config
+        save_setup_config(remote, token, supabase_url, supabase_key)
 
-        cfg = {}
-        if os.path.exists(cfg_path):
-            with open(cfg_path, encoding="utf-8") as f:
-                cfg = json.load(f)
-
-        cfg["git_remote_url"] = remote
         if self._extracted_user:
+            cfg_path = os.path.join(SITE_DIR, "config.json")
+            cfg = {}
+            if os.path.exists(cfg_path):
+                with open(cfg_path, encoding="utf-8") as f:
+                    cfg = json.load(f)
             cfg["git_user_name"] = self._extracted_user
             cfg["git_user_email"] = f"{self._extracted_user}@users.noreply.github.com"
-        cfg["supabase_url"] = supabase_url
-        cfg["supabase_anon_key"] = supabase_key
-        if "github_token" in cfg:
-            del cfg["github_token"]
-
-        with open(cfg_path, "w", encoding="utf-8") as f:
-            json.dump(cfg, f, indent=2)
-
-        local = {}
-        if os.path.exists(local_path):
-            with open(local_path, encoding="utf-8") as f:
-                local = json.load(f)
-        local["github_token"] = token
-        with open(local_path, "w", encoding="utf-8") as f:
-            json.dump(local, f, indent=2)
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
 
         self.accept()

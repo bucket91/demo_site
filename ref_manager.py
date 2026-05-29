@@ -20,37 +20,37 @@ class RefManagerWidget(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setStyleSheet("""
-            QLabel { color: #e0e0e0; }
-            QLabel.dim { color: #999; }
-            QLabel.heading { font-weight: bold; color: #eee; margin-top: 8px; }
+            QLabel { color: #c9d1d9; }
+            QLabel.dim { color: #6e7681; }
+            QLabel.heading { font-weight: bold; color: #c9d1d9; margin-top: 8px; }
             QLineEdit, QComboBox {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 6px 10px;
             }
             QComboBox::drop-down { border: none; }
-            QComboBox::down-arrow { image: none; border-left: 5px solid #999; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
+            QComboBox::down-arrow { image: none; border-left: 5px solid transparent; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
             QComboBox QAbstractItemView {
-                background: #2a2a2a; color: #e0e0e0; selection-background-color: #555;
-                border: 1px solid #333;
+                background: #0d1117; color: #c9d1d9; selection-background-color: #21262d;
+                border: 1px solid #30363d;
             }
             QPushButton {
-                background: #555; color: #fff; border: none;
+                background: #21262d; color: #c9d1d9; border: none;
                 border-radius: 6px; padding: 8px 16px;
             }
-            QPushButton:hover { background: #666; }
-            QPushButton:disabled { background: #333; color: #666; }
-            QPushButton.primary { background: #1a6b3c; }
-            QPushButton.primary:hover { background: #218c4e; }
+            QPushButton:hover { background: #30363d; }
+            QPushButton:disabled { background: #30363d; color: #484f58; }
+            QPushButton.primary { background: #58a6ff; }
+            QPushButton.primary:hover { background: #79c0ff; }
             QTreeWidget {
-                background: #2a2a2a; color: #e0e0e0; border: 1px solid #333;
+                background: #161b22; color: #c9d1d9; border: 1px solid #30363d;
                 border-radius: 6px; padding: 4px;
             }
             QTreeWidget::item { padding: 4px 2px; }
-            QTreeWidget::item:selected { background: #555; }
-            QTreeWidget::item:hover { background: #3a3a3a; }
+            QTreeWidget::item:selected { background: #21262d; }
+            QTreeWidget::item:hover { background: #21262d; }
             QGroupBox {
-                color: #ddd; font-weight: bold;
-                border: 1px solid #333; border-radius: 6px; margin-top: 8px;
+                color: #c9d1d9; font-weight: bold;
+                border: 1px solid #30363d; border-radius: 6px; margin-top: 8px;
                 padding: 10px 8px 6px;
             }
             QGroupBox::title { subcontrol-origin: margin; left: 10px; padding: 0 4px; }
@@ -176,7 +176,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             row = QtWidgets.QHBoxLayout()
             row.setContentsMargins(4, 2, 4, 2)
             label = QtWidgets.QLabel(f"{d['category']} / {d['name']}")
-            label.setStyleSheet("color: #ccc;")
+            label.setStyleSheet("color: #c9d1d9;")
             row.addWidget(label, 1)
             add_btn = QtWidgets.QPushButton("+")
             add_btn.setFixedWidth(30)
@@ -316,7 +316,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         dl.setSpacing(8)
 
         file_label = QtWidgets.QLabel("HTML File:")
-        file_label.setStyleSheet("color: #ccc;")
+        file_label.setStyleSheet("color: #c9d1d9;")
         dl.addWidget(file_label)
         file_row = QtWidgets.QHBoxLayout()
         file_input = QtWidgets.QLineEdit()
@@ -327,7 +327,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         dl.addLayout(file_row)
 
         cat_label = QtWidgets.QLabel("Category:")
-        cat_label.setStyleSheet("color: #ccc;")
+        cat_label.setStyleSheet("color: #c9d1d9;")
         dl.addWidget(cat_label)
         cat_combo = QtWidgets.QComboBox()
         cat_combo.setEditable(True)
@@ -337,7 +337,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         dl.addWidget(cat_combo)
 
         name_label = QtWidgets.QLabel("Display Name (shown in sidebar):")
-        name_label.setStyleSheet("color: #ccc;")
+        name_label.setStyleSheet("color: #c9d1d9;")
         dl.addWidget(name_label)
         name_input = QtWidgets.QLineEdit()
         name_input.setPlaceholderText("My Page")

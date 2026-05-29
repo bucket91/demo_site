@@ -1,126 +1,108 @@
-"""Map website theme colors to a PyQt5 GUI stylesheet."""
+"""Hardcoded Midnight Dark theme for the PyQt5 GUI."""
 import os, json
 
 SITE_DIR = None
 
+MIDNIGHT = {
+    "dark_body_bg": "#0d1117",
+    "dark_text": "#c9d1d9",
+    "dark_muted": "#6e7681",
+    "dark_accent": "#58a6ff",
+    "dark_accent_hover": "#79c0ff",
+    "dark_accent_text": "#0d1117",
+    "dark_input_bg": "#0d1117",
+    "dark_input_border": "#30363d",
+    "dark_card_bg": "#161b22",
+    "dark_card_border": "#30363d",
+    "button_bg": "#21262d",
+    "button_hover": "#30363d",
+    "dark_disabled": "#484f58",
+}
 
-def _cfg():
-    if SITE_DIR:
-        cf = os.path.join(SITE_DIR, "config.json")
-        if os.path.exists(cf):
-            with open(cf, encoding="utf-8") as f:
-                return json.load(f)
-    return {}
 
-
-def make_gui_stylesheet(colors, base_size=14):
-    """Build a QSS stylesheet string from a dict of web theme colors and a base font size."""
-    c = colors or {}
-    def v(k, fallback="#eee"):
-        return c.get(k, fallback)
-
+def make_gui_stylesheet(base_size=14):
     dim = max(base_size - 2, 9)
     heading = base_size + 1
     checkbox = base_size - 1
     combo = base_size + 1
-
+    c = MIDNIGHT
     qss = f"""
-QMainWindow {{ background: {v("dark_body_bg", v("body_bg", "#1e1e1e"))}; }}
-QTabWidget::pane {{ background: {v("dark_body_bg", v("body_bg", "#1e1e1e"))}; border: none; }}
+QMainWindow {{ background: {c["dark_body_bg"]}; }}
+QTabWidget::pane {{ background: {c["dark_body_bg"]}; border: none; }}
 QTabBar::tab {{
-    background: {v("sidebar_bg", "#2a2a2a")}; color: {v("dark_muted", v("muted", "#999"))};
+    background: {c["dark_card_bg"]}; color: {c["dark_muted"]};
     padding: 10px 10px; border: none; font-size: {base_size}px;
 }}
-QTabBar::tab:selected {{ background: {v("dark_body_bg", v("body_bg", "#1e1e1e"))}; color: {v("dark_text", v("text", "#eee"))}; }}
-QTabBar::tab:hover {{ color: {v("dark_text", v("text", "#eee"))}; }}
-QLabel {{ color: {v("dark_text", v("text", "#eee"))}; }}
+QTabBar::tab:selected {{ background: {c["dark_body_bg"]}; color: {c["dark_text"]}; }}
+QTabBar::tab:hover {{ color: {c["dark_text"]}; }}
+QLabel {{ color: {c["dark_text"]}; }}
 QLabel.heading {{ font-size: {heading}px; font-weight: bold; }}
-QLabel.dim {{ color: {v("dark_muted", v("muted", "#888"))}; font-size: {dim}px; }}
+QLabel.dim {{ color: {c["dark_muted"]}; font-size: {dim}px; }}
 QLineEdit, QTextEdit {{
-    background: {v("dark_input_bg", v("input_bg", "#2a2a2a"))};
-    color: {v("dark_text", v("text", "#eee"))};
-    border: 1px solid {v("dark_input_border", v("input_border", "#444"))};
+    background: {c["dark_input_bg"]};
+    color: {c["dark_text"]};
+    border: 1px solid {c["dark_input_border"]};
     border-radius: 6px; padding: 6px 10px; font-size: {base_size}px;
 }}
-QLineEdit:focus, QTextEdit:focus {{ border-color: {v("dark_accent", v("accent", "#555"))}; }}
-QTextEdit[readOnly="true"] {{ color: {v("dark_muted", v("muted", "#888"))}; }}
+QLineEdit:focus, QTextEdit:focus {{ border-color: {c["dark_accent"]}; }}
+QTextEdit[readOnly="true"] {{ color: {c["dark_muted"]}; }}
 QPushButton {{
-    background: {v("dark_accent_hover", v("accent_hover", "#555"))};
-    color: {v("dark_accent_text", v("accent_text", "#fff"))};
+    background: {c["button_bg"]};
+    color: {c["dark_text"]};
     border: none; border-radius: 6px; padding: 8px 16px; font-size: {base_size}px;
 }}
-QPushButton:hover {{ background: {v("dark_accent", v("accent", "#666"))}; }}
-QPushButton:disabled {{ background: {v("dark_card_border", v("card_border", "#333"))}; color: {v("dark_muted", v("muted", "#666"))}; }}
-QCheckBox {{ color: {v("dark_text", v("text", "#eee"))}; font-size: {checkbox}px; spacing: 8px; }}
+QPushButton:hover {{ background: {c["button_hover"]}; }}
+QPushButton:disabled {{ background: {c["dark_card_border"]}; color: {c["dark_disabled"]}; }}
+QCheckBox {{ color: {c["dark_text"]}; font-size: {checkbox}px; spacing: 8px; }}
 QCheckBox::indicator {{
     width: 18px; height: 18px; border-radius: 4px;
-    background: {v("dark_input_bg", v("input_bg", "#333"))};
-    border: 1px solid {v("dark_input_border", v("input_border", "#555"))};
+    background: {c["dark_input_bg"]};
+    border: 1px solid {c["dark_input_border"]};
 }}
-QCheckBox::indicator:checked {{ background: {v("dark_accent", v("accent", "#555"))}; }}
+QCheckBox::indicator:checked {{ background: {c["dark_accent"]}; }}
 QComboBox {{
-    background: {v("dark_input_bg", v("input_bg", "#2a2a2a"))};
-    color: {v("dark_text", v("text", "#eee"))};
-    border: 1px solid {v("dark_input_border", v("input_border", "#444"))};
+    background: {c["dark_input_bg"]};
+    color: {c["dark_text"]};
+    border: 1px solid {c["dark_input_border"]};
     border-radius: 6px; padding: 8px 10px; font-size: {combo}px;
 }}
 QComboBox QAbstractItemView {{
-    background: {v("dark_input_bg", v("input_bg", "#2a2a2a"))};
-    color: {v("dark_text", v("text", "#eee"))};
-    selection-background-color: {v("dark_accent", v("accent", "#555"))};
-    border: 1px solid {v("dark_input_border", v("input_border", "#444"))};
+    background: {c["dark_input_bg"]};
+    color: {c["dark_text"]};
+    selection-background-color: {c["dark_accent"]};
+    border: 1px solid {c["dark_input_border"]};
     outline: none;
 }}
 QComboBox::drop-down {{ border: none; width: 30px; }}
-QScrollBar:vertical {{ background: {v("sidebar_bg", "#2a2a2a")}; width: 10px; }}
-QScrollBar::handle:vertical {{ background: {v("dark_muted", v("muted", "#555"))}; border-radius: 5px; }}
-QScrollBar:horizontal {{ background: {v("sidebar_bg", "#2a2a2a")}; height: 10px; }}
-QScrollBar::handle:horizontal {{ background: {v("dark_muted", v("muted", "#555"))}; border-radius: 5px; }}
+QScrollBar:vertical {{ background: {c["dark_card_bg"]}; width: 10px; }}
+QScrollBar::handle:vertical {{ background: {c["dark_disabled"]}; border-radius: 5px; }}
+QScrollBar:horizontal {{ background: {c["dark_card_bg"]}; height: 10px; }}
+QScrollBar::handle:horizontal {{ background: {c["dark_disabled"]}; border-radius: 5px; }}
 QGroupBox {{
-    color: {v("dark_text", v("text", "#eee"))}; font-size: {base_size}px; font-weight: bold;
-    border: 1px solid {v("dark_input_border", v("input_border", "#444"))};
+    color: {c["dark_text"]}; font-size: {base_size}px; font-weight: bold;
+    border: 1px solid {c["dark_input_border"]};
     border-radius: 6px; margin-top: 12px; padding: 12px 8px 8px;
 }}
 QGroupBox::title {{ subcontrol-origin: margin; left: 10px; padding: 0 4px; }}
-QDialog {{ background: {v("dark_body_bg", v("body_bg", "#1a1a1a"))}; }}
-QFrame#header {{
-    background: {v("dark_header_bg", v("header_bg", "#2a2a2a"))};
-    color: {v("dark_header_text", v("header_text", "#eee"))};
-}}
-QPushButton.primary {{ background: {v("dark_accent", v("accent", "#4a9eff"))}; }}
-QPushButton.primary:hover {{ background: {v("dark_accent_hover", v("accent_hover", "#3a7acc"))}; }}
-QPushButton.danger {{ background: #b71c1c; }}
+QDialog {{ background: {c["dark_body_bg"]}; }}
+QPushButton.primary {{ background: {c["dark_accent"]}; color: #fff; }}
+QPushButton.primary:hover {{ background: {c["dark_accent_hover"]}; }}
+QPushButton.danger {{ background: #b71c1c; color: #fff; }}
 QPushButton.danger:hover {{ background: #d32f2f; }}
 """
     return qss
 
 
-def get_theme_colors():
-    """Load saved theme colors from config."""
-    cfg = _cfg()
-    custom = cfg.get("custom_theme", {})
-    if custom:
-        # Use custom if it has enough keys
-        if len(custom) > 5:
-            return custom
-    theme_name = cfg.get("gui_theme", "Dark")
-    try:
-        from themes import THEMES
-        return dict(THEMES.get(theme_name, THEMES["Dark"]))
-    except ImportError:
-        return {}
-
-
 def apply(colors=None):
-    """Apply theme colors and font size to the running QApplication."""
     from PyQt5 import QtWidgets
     app = QtWidgets.QApplication.instance()
     if app is None:
         return
-    if colors is None:
-        colors = get_theme_colors()
-    if not colors:
-        return
-    cfg = _cfg()
+    cfg = {}
+    if SITE_DIR:
+        cf = os.path.join(SITE_DIR, "config.json")
+        if os.path.exists(cf):
+            with open(cf, encoding="utf-8") as f:
+                cfg = json.load(f)
     base_size = cfg.get("gui_font_size", 14)
-    app.setStyleSheet(make_gui_stylesheet(colors, base_size=base_size))
+    app.setStyleSheet(make_gui_stylesheet(base_size=base_size))
