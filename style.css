@@ -80,7 +80,7 @@ main {
   width: 100%;
 }
 .doc-content {
-  padding-right: 0.5rem;
+  padding: 0 0.5rem;
 }
 .doc-content img, .doc-content table, .doc-content pre, .doc-content div {
   max-width: 100%;
