@@ -68,6 +68,22 @@ class App(QtWidgets.QMainWindow):
                 local = json.load(f)
             if local.get("github_token", ""):
                 return
+
+        # First run: wipe personal info from config.json so tabs load clean
+        cfg_path = os.path.join(SITE_DIR, "config.json")
+        if os.path.exists(cfg_path):
+            with open(cfg_path, encoding="utf-8") as f:
+                cfg = json.load(f)
+            for k in ["owner_name", "owner_bio", "owner_avatar", "owner_title",
+                       "owner_contacts", "supabase_url", "supabase_anon_key",
+                       "git_remote_url", "git_user_name", "git_user_email",
+                       "git_commit_message", "custom_font_url", "custom_font_family",
+                       "github_token"]:
+                cfg.pop(k, None)
+            cfg["site_title"] = "Placeholder"
+            with open(cfg_path, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+
         import first_run
         first_run.SITE_DIR = SITE_DIR
         wizard = first_run.FirstRunWizard(self)
