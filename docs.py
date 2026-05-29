@@ -19,212 +19,73 @@ DOCS_HTML = """\
 
 <h1>How to Use This App</h1>
 
-<p>This app manages a static website hosted on <b>GitHub Pages</b>. It wraps your HTML pages in a shared template (header, sidebar, comments, footer), handles theming, and publishes everything with one click.</p>
+<p>This app turns Google Docs exports into a styled website and publishes it on GitHub Pages. Just import, organize, and generate.</p>
 
 <hr>
 
-<h2>The Big Picture</h2>
-<ol>
-  <li>Place HTML files in folders inside <code>site/</code> — each folder becomes a sidebar category, each file becomes a page</li>
-  <li>Use the tabs below to configure, add content, and customize the look</li>
-  <li>Click <b>Apply</b> or <b>Generate &amp; Push</b> — the app rewrites your pages with the template and pushes to GitHub</li>
-  <li>GitHub Pages auto-deploys — your site goes live instantly</li>
-</ol>
+<h2>Quick Start</h2>
+<div class="step"><b>1.</b> Go to <b>Setup</b> tab → enter your GitHub repo URL + token → click <b>Initialize</b> then <b>Generate</b></div>
+<div class="step"><b>2.</b> Go to <b>Owner</b> tab → add your name and photo → click <b>Save</b></div>
+<div class="step"><b>3.</b> Go to <b>Import</b> tab → pick a Google Docs <code>.zip</code> → click <b>Save to Site</b></div>
+<p>Your site is live at <code>https://yourusername.github.io/repo/</code></p>
 
 <hr>
 
-<h2>Site Generator Tab</h2>
-<div class="step">
-  <b>Step 1:</b> Enter your Supabase Project URL and Anon Key (get these from your Supabase dashboard → Settings → API).
-</div>
-<div class="step">
-  <b>Step 2:</b> Check "Enable comments" if you want a comment form on every page.
-</div>
-<div class="step">
-  <b>Step 3:</b> Enter your GitHub repository URL (e.g. <code>https://github.com/you/repo.git</code>), your git name/email, and a commit message.
-</div>
-<div class="step">
-  <b>Step 3b:</b> If using HTTPS (recommended), generate a <b>GitHub personal access token</b> (NOT a GPG key — starts with <code>ghp_</code>) with <code>repo</code> scope and paste it into the <b>GitHub Token</b> field. The token avoids credential prompts on push.
-  <br><br>
-  Where to get it:
-  <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>
-  → <b>Generate new token (classic)</b> → give it a name, check <code>repo</code> → copy the token.
-</div>
-<div class="step">
-  <b>Step 4:</b> Fill in your name, bio, and avatar URL — these appear in the sidebar and homepage.
-</div>
-<div class="step">
-  <b>Step 5:</b> Click <b>Generate &amp; Push</b>. Watch the log — it will wrap all pages, commit, and push. Your site is now live.
-</div>
+<h2>Adding Pages (Import tab)</h2>
+<div class="step"><b>1.</b> In Google Docs: <b>File → Download → Web page (.html, zipped)</b></div>
+<div class="step"><b>2.</b> Open the <b>Import</b> tab → pick your <code>.zip</code> file</div>
+<div class="step"><b>3.</b> Click <b>Save to Site</b> → enter a <b>Category</b> (folder) and <b>Page title</b> → done</div>
+<p>The page is automatically added to your site's sidebar.</p>
 
 <hr>
 
-<h2>Comment Admin Tab</h2>
-<p>Manage comments left on your site.</p>
-<div class="step">
-  <b>Step 1:</b> Click <b>Refresh</b> to load comments from Supabase.
-</div>
-<div class="step">
-  <b>Step 2:</b> Select a row and click <b>Edit Selected</b> to change the name, page, or body text.
-</div>
-<div class="step">
-  <b>Step 3:</b> Select a row and click <b>Delete Selected</b> to remove it (confirmation required).
-</div>
-
+<h2>Organizing Pages (Management tab)</h2>
+<p>Drag entries to reorder them. Double-click to rename. Right-click to delete.</p>
+<div class="step"><b>Reorder:</b> drag the handle to move pages up/down or into a different category</div>
+<div class="step"><b>Rename:</b> double-click a name and type a new one</div>
+<div class="step"><b>Add existing HTML:</b> click <b>+ Add</b> → pick a file → choose category + name</div>
+<div class="step"><b>New files found:</b> click <b>⟳</b> to scan — new HTML files appear in the "Discovered" section with <b>+</b> to add them</div>
 
 <hr>
 
-<h2>Import Tab</h2>
-<p>Import a Google Docs export (<code>.zip</code>) as a site page.</p>
-<div class="step">
-  <b>Step 1:</b> In Google Docs, go to <b>File → Download → Web page (.html, zipped)</b>.
-</div>
-<div class="step">
-  <b>Step 2:</b> Click <b>Browse</b> and pick the <code>.zip</code> file.
-</div>
-<div class="step">
-  <b>Step 3:</b> Preview the cleaned HTML — colors are stripped so the page inherits your site theme.
-</div>
-<div class="step">
-  <b>Step 4:</b> Click <b>Save as HTML</b> (standalone file) or <b>Add to Site + Generate</b> (adds to a category and rebuilds the site).
-</div>
-<p>When adding to site, you'll enter a category name, page title, and sidebar label.</p>
+<h2>Customizing the Look (Theme tab)</h2>
+<div class="step"><b>Preset:</b> pick a theme from the dropdown → click <b>Apply Theme</b></div>
+<div class="step"><b>Custom colors:</b> select <b>Custom...</b> → click <b>Customize Colors...</b> → pick your colors → <b>Apply Theme</b></div>
+<div class="step"><b>Custom font:</b> paste a Google Fonts URL and family name → <b>Apply Theme</b></div>
 
 <hr>
 
-<h2>Reference Manager Tab</h2>
-<p>Add existing HTML files to your site with proper sidebar entries.</p>
-<div class="step">
-  <b>Step 1:</b> Browse and select an HTML file.
-</div>
-<div class="step">
-  <b>Step 2:</b> Enter the display name (how it appears in the sidebar menu).
-</div>
-<div class="step">
-  <b>Step 3:</b> Select or type a category (folder name). A new folder is created if it doesn't exist.
-</div>
-<div class="step">
-  <b>Step 4:</b> Click <b>Add Entry &amp; Generate</b> — the file is copied, the sidebar reference file is updated, and the site regenerates.
-</div>
+<h2>Profile & Contacts (Owner tab)</h2>
+<p>Your name, bio, photo, and social links appear as the first card on the homepage and in the sidebar.</p>
+<div class="step">Add contacts like <b>WhatsApp</b>, <b>Telegram</b>, <b>YouTube</b>, <b>GitHub</b>, <b>Email</b> — the app auto-detects the link type</div>
+<div class="step">Click <b>Save</b> — your site regenerates automatically</div>
 
 <hr>
 
-<h2>Theme Customizer Tab</h2>
-<p>Change colors, fonts, and the site title.</p>
-
-<h3>Apply a preset theme</h3>
-<div class="step">
-  <b>Step 1:</b> Pick a theme from the dropdown (Dark, Light, Ocean, Forest, etc.).
-</div>
-<div class="step">
-  <b>Step 2:</b> Optionally pick a font and type a site title.
-</div>
-<div class="step">
-  <b>Step 3:</b> Click <b>Apply Theme</b> — the CSS is rewritten and the site regenerates.
-</div>
-
-<h3>Create your own colors</h3>
-<div class="step">
-  <b>Step 1:</b> Select <b>Custom...</b> from the theme dropdown.
-</div>
-<div class="step">
-  <b>Step 2:</b> Click <b>Customize Colors...</b> to open the color picker popup.
-</div>
-<div class="step">
-  <b>Step 3:</b> Click any color swatch — the system color picker opens. Choose a color and it updates instantly.
-</div>
-<div class="step">
-  <b>Step 4:</b> Click <b>Save Colors</b> to keep your changes, or <b>Reset to Default</b> to start over.
-</div>
-<div class="step">
-  <b>Step 5:</b> Back in the main tab, click <b>Apply Theme</b> to write your colors to the site.
-</div>
-
-<h3>Import a custom font</h3>
-<div class="step">
-  <b>Step 1:</b> In the "Import Custom Font" section, click <b>Browse</b> and pick a <code>.ttf</code>, <code>.otf</code>, <code>.woff</code>, or <code>.woff2</code> file.
-</div>
-<div class="step">
-  <b>Step 2:</b> Type a family name (e.g. "MyFont") and click <b>Import</b>.
-</div>
-<div class="step">
-  <b>Step 3:</b> Select your imported font from the font dropdown, then click <b>Apply Theme</b>.
-</div>
+<h2>GitHub Setup (Setup tab)</h2>
+<div class="step"><b>Remote URL:</b> <code>https://github.com/username/repo.git</code></div>
+<div class="step"><b>Token:</b> get one at <a href="https://github.com/settings/tokens">github.com/settings/tokens</a> → <b>Generate new token (classic)</b> → check <code>repo</code> → paste it here (NOT a GPG key)</div>
+<div class="step"><b>Initialize:</b> click to set up the repo and remote</div>
+<div class="step"><b>Generate:</b> wraps all pages with the template, commits, and pushes live</div>
 
 <hr>
 
-<h2>Quick Start (First Time)</h2>
-<ol>
-  <li>Open the <b>Setup</b> tab — enter your Supabase URL, anon key, GitHub remote URL, <b>GitHub Token</b>, and owner info</li>
-  <li>Click <b>Generate &amp; Push</b> — this creates your initial site and pushes it live</li>
-  <li>Open the <b>Theme</b> tab — pick a theme and font, click <b>Apply Theme</b></li>
-  <li>Your site is live. Add pages with the <b>Import</b> tab (Google Docs exports) or <b>Management</b> tab (existing HTML files)</li>
-</ol>
-
-<hr>
-
-<hr>
-
-<h2>Git Setup Tab</h2>
-<p>Initialize git, configure your remote, and push your site to GitHub.</p>
-<div class="step">
-  <b>Step 1:</b> Enter your Remote URL, User name, and User email in the fields (pre-filled from <code>config.json</code> / <code>config.local.json</code>).
-</div>
-<div class="step">
-  <b>Step 1b:</b> If your remote URL uses <code>https://</code>, paste a <b>GitHub personal access token</b> (NOT a GPG key — starts with <code>ghp_</code>) into the <b>GitHub Token</b> field. This lets the app authenticate automatically when pushing.
-  <br><br>
-  Get one at
-  <a href="https://github.com/settings/tokens">github.com/settings/tokens</a>
-  → <b>Generate new token (classic)</b> → check <code>repo</code> → copy the token.
-</div>
-<div class="step">
-  <b>Step 2:</b> Click <b>Init Repo</b> to create the git repository, set your identity, and add the remote.
-</div>
-<div class="step">
-  <b>Step 3:</b> Click <b>Stage &amp; Commit</b> to add all files and create the initial commit. Check <b>Auto-push</b> to push immediately.
-</div>
-<div class="step">
-  <b>Step 4:</b> Click <b>Full Setup</b> to do all steps at once.
-</div>
-
-<hr>
-
-<h2>Supabase Setup</h2>
-<p>The comment system uses <b>Supabase</b> as its database. Follow these steps to set it up:</p>
-
-<div class="step">
-  <b>Step 1:</b> Go to <a href="https://supabase.com">supabase.com</a> and create a project.
-</div>
-<div class="step">
-  <b>Step 2:</b> In your project dashboard, go to <b>Settings → API</b>. Copy the <b>Project URL</b> and the <b>anon public key</b>.
-</div>
-<div class="step">
-  <b>Step 3:</b> In your Supabase dashboard, go to the <b>SQL Editor</b> and run this query to create the comments table:
-  <pre>CREATE TABLE comments (
+<h2>Comments (Supabase)</h2>
+<p>Your site has a comment form on every page. It uses <b>Supabase</b> as the database.</p>
+<div class="step"><b>Set up the database (one-time):</b> Go to <a href="https://supabase.com">supabase.com</a> → create a project → open <b>SQL Editor</b> and run this:
+<pre>CREATE TABLE comments (
   id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
   page TEXT NOT NULL,
   name TEXT NOT NULL,
   body TEXT NOT NULL,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
-
--- Allow anonymous inserts (anyone can post a comment)
-CREATE POLICY "anon_insert" ON comments
-  FOR INSERT TO anon WITH CHECK (true);
-
--- Allow anonymous selects (anyone can read comments)
-CREATE POLICY "anon_select" ON comments
-  FOR SELECT TO anon USING (true);
-
--- Enable Row Level Security
-ALTER TABLE comments ENABLE ROW LEVEL SECURITY;</pre>
+ALTER TABLE comments ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "anon_insert" ON comments FOR INSERT TO anon WITH CHECK (true);
+CREATE POLICY "anon_select" ON comments FOR SELECT TO anon USING (true);</pre>
 </div>
-<div class="step">
-  <b>Step 4:</b> Go to the <b>Setup</b> tab in this app. Paste your Project URL and anon key into the Supabase fields.
-</div>
-<div class="step">
-  <b>Step 5:</b> Check <b>Enable comments</b> and click <b>Generate &amp; Push</b>. Every page now has a comment form.
-</div>
+<div class="step"><b>Connect the app:</b> Paste your Supabase <b>Project URL</b> and <b>anon key</b> into the <b>Setup</b> tab → check <b>Enable comments</b> → <b>Generate</b></div>
+<div class="step"><b>Manage comments:</b> use the <b>Comments</b> tab to view, edit, or delete comments</div>
 """
 
 
