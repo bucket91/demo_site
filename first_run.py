@@ -23,7 +23,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         subtitle = QtWidgets.QLabel(
             "Enter your credentials below to get started. "
             "GitHub fields are needed to publish your site. "
-            "Supabase is optional (enables comments)."
+            "Supabase enables comments."
         )
         subtitle.setWordWrap(True)
         subtitle.setStyleSheet("color: #999; font-size: 13px; margin-bottom: 8px;")
@@ -34,10 +34,10 @@ class FirstRunWizard(QtWidgets.QDialog):
              "https://github.com/username/repo.git", True),
             ("GitHub Token (required to push)", "github_token",
              "ghp_...", True),
-            ("Supabase URL (optional)", "supabase_url",
+            ("Supabase URL", "supabase_url",
              "https://xxx.supabase.co", False),
-            ("Supabase Anon Key (optional)", "supabase_anon_key",
-             "sb_publishable_...", False),
+            ("Supabase Anon Key", "supabase_anon_key",
+             "eyJhbGciOiJIUzI1NiIs...", False),
         ]
 
         self.inputs = {}
