@@ -5,6 +5,19 @@ from PyQt5 import QtWidgets
 SITE_DIR = None
 
 
+def _extract_github_user(url):
+    url = url.strip()
+    if 'github.com/' in url:
+        after = url.split('github.com/', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    if 'github.com:' in url:
+        after = url.split('github.com:', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    return ""
+
+
 class FirstRunWizard(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -37,10 +50,11 @@ class FirstRunWizard(QtWidgets.QDialog):
             ("Supabase URL", "supabase_url",
              "https://xxx.supabase.co", False),
             ("Supabase Anon Key", "supabase_anon_key",
-             "eyJhbGciOiJIUzI1NiIs...", False),
+              "eyJhbGciOiJIUzI1NiIs...", False),
         ]
 
         self.inputs = {}
+        self._extracted_user = ""
         for label, key, placeholder, required in fields:
             fl = QtWidgets.QFormLayout()
             fl.setSpacing(4)
@@ -60,6 +74,8 @@ class FirstRunWizard(QtWidgets.QDialog):
             fl.addRow(lbl, inp)
             layout.addLayout(fl)
             self.inputs[key] = inp
+
+        self.inputs["git_remote_url"].textChanged.connect(self._on_url_changed)
 
         layout.addStretch()
 
@@ -91,6 +107,9 @@ class FirstRunWizard(QtWidgets.QDialog):
 
         layout.addLayout(btn_layout)
 
+    def _on_url_changed(self, url):
+        self._extracted_user = _extract_github_user(url)
+
     def _save(self):
         remote = self.inputs["git_remote_url"].text().strip()
         token = self.inputs["github_token"].text().strip()
@@ -114,6 +133,9 @@ class FirstRunWizard(QtWidgets.QDialog):
                 cfg = json.load(f)
 
         cfg["git_remote_url"] = remote
+        if self._extracted_user:
+            cfg["git_user_name"] = self._extracted_user
+            cfg["git_user_email"] = f"{self._extracted_user}@users.noreply.github.com"
         cfg["supabase_url"] = supabase_url
         cfg["supabase_anon_key"] = supabase_key
         if "github_token" in cfg:

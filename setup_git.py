@@ -62,8 +62,24 @@ def save_setup_config(url, name, email, msg, auto_push,
 
 def _make_push_url(url, token):
     if token and url.startswith('https://'):
-        return url.replace('https://', f'https://{token}@', 1)
+        after = url[8:]
+        if '@' in after:
+            after = after.split('@', 1)[1]
+        return f'https://{token}@{after}'
     return url
+
+
+def _extract_github_user(url):
+    url = url.strip()
+    if 'github.com/' in url:
+        after = url.split('github.com/', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    if 'github.com:' in url:
+        after = url.split('github.com:', 1)[1]
+        if '/' in after:
+            return after.split('/')[0]
+    return ""
 
 
 def is_git_installed():
@@ -210,6 +226,7 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         self.remote_input = QtWidgets.QLineEdit(cfg.get("git_remote_url", ""))
         self.remote_input.setPlaceholderText("https://github.com/user/repo.git")
+        self.remote_input.textChanged.connect(self._on_remote_url_changed)
         gfl.addRow("Remote URL:", self.remote_input)
 
         self.token_input = QtWidgets.QLineEdit(cfg.get("github_token", ""))
@@ -357,6 +374,15 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.save_config_fields()
         import gui_theme
         gui_theme.apply()
+
+    @QtCore.pyqtSlot(str)
+    def _on_remote_url_changed(self, url):
+        user = _extract_github_user(url)
+        if user:
+            if not self.name_input.text().strip():
+                self.name_input.setText(user)
+            if not self.email_input.text().strip():
+                self.email_input.setText(f"{user}@users.noreply.github.com")
 
     def check_status(self):
         lines = get_git_status()
