@@ -49,7 +49,7 @@ jobs:
         run: |
           DATA_ARGS=""
           if [ "${{ runner.os }}" = "Windows" ]; then
-            DATA_ARGS="--add-data mingit:mingit"
+            DATA_ARGS="--add-data mingit;mingit"
           else
             DATA_ARGS="--add-data bundled-git:bundled-git"
           fi
