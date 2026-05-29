@@ -55,6 +55,19 @@ class DesignWidget(QtWidgets.QWidget):
         self.preview_status.setStyleSheet("color: #6e7681; margin: 0 16px 8px;")
         cl.addWidget(self.preview_status)
 
+        font_row = QtWidgets.QHBoxLayout()
+        font_row.setContentsMargins(16, 0, 16, 4)
+        font_label = QtWidgets.QLabel("UI Font Size:")
+        font_label.setStyleSheet("color: #6e7681;")
+        font_row.addWidget(font_label)
+        self.font_size_spin = QtWidgets.QSpinBox()
+        self.font_size_spin.setRange(10, 24)
+        self.font_size_spin.setValue(cfg.get("gui_font_size", 14))
+        self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
+        font_row.addWidget(self.font_size_spin)
+        font_row.addStretch()
+        cl.addLayout(font_row)
+
         # ── Owner ──
         import owner_tab
         owner_tab.SITE_DIR = SITE_DIR
@@ -94,6 +107,12 @@ class DesignWidget(QtWidgets.QWidget):
 
     def _on_title_changed(self, text):
         self._save_cfg({"site_title": text.strip()})
+
+    @QtCore.pyqtSlot(int)
+    def _on_font_size_changed(self, size):
+        self._save_cfg({"gui_font_size": size})
+        import gui_theme
+        gui_theme.apply()
 
     def _preview_local(self):
         index = os.path.join(SITE_DIR, "index.html")

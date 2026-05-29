@@ -69,7 +69,6 @@ class App(QtWidgets.QMainWindow):
             for k in ["owner_name", "owner_bio", "owner_title",
                        "owner_contacts", "supabase_url", "supabase_anon_key",
                        "git_remote_url", "git_user_name", "git_user_email",
-                       "custom_font_url", "custom_font_family",
                        "github_token"]:
                 cfg.pop(k, None)
             with open(cfg_path, "w", encoding="utf-8") as f:

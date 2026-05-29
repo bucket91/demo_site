@@ -23,8 +23,6 @@ def load_config():
         "owner_title": "",
         "owner_contacts": [],
         "site_title": "Placeholder",
-        "custom_font_url": "",
-        "custom_font_family": "",
         "gui_font_size": 14,
     }
     cfg = default
@@ -297,9 +295,6 @@ def build_page(filepath, categories):
     result = result.replace('{{SITE_TITLE}}', site_title)
     result = result.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
-    font_url = CONFIG.get("custom_font_url", "") or ""
-    font_link = f'  <link href="{font_url}" rel="stylesheet">' if font_url else ""
-    result = result.replace('{{FONT_LINK}}', font_link)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
     result = result.replace('{{SIDEBAR}}', sidebar)

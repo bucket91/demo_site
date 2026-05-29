@@ -153,8 +153,6 @@ DEFAULT_CONFIG = {
     "owner_title": "",
     "owner_contacts": [],
     "site_title": "Placeholder",
-    "custom_font_url": "",
-    "custom_font_family": "",
     "gui_font_size": 14,
 }
 

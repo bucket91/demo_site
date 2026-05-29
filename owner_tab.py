@@ -35,16 +35,8 @@ class OwnerWidget(QtWidgets.QWidget):
         """)
 
         layout = QtWidgets.QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(8)
-
-        heading = QtWidgets.QLabel("Owner")
-        heading.setProperty("class", "heading")
-        layout.addWidget(heading)
-
-        desc = QtWidgets.QLabel("Set your site author identity.")
-        desc.setProperty("class", "dim")
-        layout.addWidget(desc)
+        layout.setContentsMargins(16, 8, 16, 8)
+        layout.setSpacing(4)
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
@@ -54,73 +46,89 @@ class OwnerWidget(QtWidgets.QWidget):
         container.setStyleSheet("background: transparent;")
         outer = QtWidgets.QVBoxLayout(container)
         outer.setContentsMargins(0, 0, 0, 0)
-        outer.setSpacing(12)
+        outer.setSpacing(8)
 
-        # Row 1: Name + Title (60%) | Avatar (40%)
+        frame_style = "QFrame { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 8px; }"
+
+        # Row 1: Name + Title (40%) | Avatar (30%) | Log (30%)
         top_row = QtWidgets.QHBoxLayout()
-        top_row.setSpacing(16)
-        left_top = QtWidgets.QWidget()
-        left_top.setStyleSheet("background: transparent;")
-        fl = QtWidgets.QFormLayout(left_top)
-        fl.setSpacing(8)
-        fl.setContentsMargins(0, 0, 0, 0)
+        top_row.setSpacing(12)
+        ROW_HEIGHT = 120
+
+        name_frame = QtWidgets.QFrame()
+        name_frame.setStyleSheet(frame_style)
+        name_frame.setMinimumHeight(ROW_HEIGHT)
+        nl = QtWidgets.QVBoxLayout(name_frame)
+        nl.setContentsMargins(0, 0, 0, 0)
+        nl.setSpacing(6)
         self.name_edit = QtWidgets.QLineEdit()
         self.name_edit.setPlaceholderText("Your name")
-        fl.addRow("Name:", self.name_edit)
+        nl.addWidget(self.name_edit)
         self.title_edit = QtWidgets.QLineEdit()
         self.title_edit.setPlaceholderText("e.g. Software Developer")
-        fl.addRow("Title:", self.title_edit)
-        top_row.addWidget(left_top, 3)
+        nl.addWidget(self.title_edit)
+        top_row.addWidget(name_frame, 4)
 
-        avatar_side = QtWidgets.QWidget()
-        avatar_side.setStyleSheet("background: transparent;")
-        al = QtWidgets.QVBoxLayout(avatar_side)
+        avatar_frame = QtWidgets.QFrame()
+        avatar_frame.setStyleSheet(frame_style)
+        avatar_frame.setMinimumHeight(ROW_HEIGHT)
+        al = QtWidgets.QVBoxLayout(avatar_frame)
         al.setContentsMargins(0, 0, 0, 0)
         al.setAlignment(QtCore.Qt.AlignCenter)
         self.avatar_preview = QtWidgets.QLabel()
-        self.avatar_preview.setFixedSize(80, 80)
+        self.avatar_preview.setFixedSize(64, 64)
         self.avatar_preview.setStyleSheet("""
-            border-radius: 40px;
+            border-radius: 32px;
             border: 3px solid #58a6ff;
             background: #0d1117;
         """)
         self.avatar_preview.setAlignment(QtCore.Qt.AlignCenter)
         al.addWidget(self.avatar_preview, alignment=QtCore.Qt.AlignCenter)
         browse_btn = QtWidgets.QPushButton("Browse…")
-        browse_btn.setFixedWidth(80)
         browse_btn.clicked.connect(self._pick_avatar)
         al.addWidget(browse_btn, alignment=QtCore.Qt.AlignCenter)
-        top_row.addWidget(avatar_side, 2)
+        top_row.addWidget(avatar_frame, 3)
+
+        log_frame = QtWidgets.QFrame()
+        log_frame.setStyleSheet(frame_style)
+        log_frame.setMinimumHeight(ROW_HEIGHT)
+        log_frame.setMaximumHeight(ROW_HEIGHT)
+        ll = QtWidgets.QVBoxLayout(log_frame)
+        ll.setContentsMargins(8, 8, 8, 8)
+        self.log = QtWidgets.QTextEdit()
+        self.log.setReadOnly(True)
+        self.log.document().setMaximumBlockCount(5)
+        self.log.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.log.setStyleSheet("background: transparent; color: #6e7681; border: none; font-family: monospace;")
+        ll.addWidget(self.log)
+        top_row.addWidget(log_frame, 3)
+
         outer.addLayout(top_row)
 
         # Row 2: Bio (40%) | Contacts (60%)
         bot_row = QtWidgets.QHBoxLayout()
-        bot_row.setSpacing(16)
+        bot_row.setSpacing(12)
         bio_w = QtWidgets.QWidget()
         bio_w.setStyleSheet("background: transparent;")
-        bl = QtWidgets.QFormLayout(bio_w)
-        bl.setSpacing(8)
+        bl = QtWidgets.QVBoxLayout(bio_w)
         bl.setContentsMargins(0, 0, 0, 0)
         self.bio_edit = QtWidgets.QTextEdit()
-        self.bio_edit.setPlaceholderText("A short bio about yourself…")
-        self.bio_edit.setMaximumHeight(120)
-        bl.addRow("Bio:", self.bio_edit)
+        self.bio_edit.setPlaceholderText("Bio (short paragraph about yourself)")
+        self.bio_edit.setMaximumHeight(80)
+        bl.addWidget(self.bio_edit)
         bot_row.addWidget(bio_w, 2)
 
         contacts_w = QtWidgets.QWidget()
         contacts_w.setStyleSheet("background: transparent;")
-        cl = QtWidgets.QFormLayout(contacts_w)
-        cl.setSpacing(8)
+        cl = QtWidgets.QVBoxLayout(contacts_w)
         cl.setContentsMargins(0, 0, 0, 0)
         self.contacts_edit = QtWidgets.QTextEdit()
         self.contacts_edit.setPlaceholderText(
-            "One per line: label | url\n"
-            "Example:\n"
-            "GitHub | https://github.com/username\n"
-            "Email | mailto:user@example.com"
+            "Contacts — one per line: label | url\n"
+            "e.g. GitHub | https://github.com/username"
         )
-        self.contacts_edit.setMaximumHeight(120)
-        cl.addRow("Contacts:", self.contacts_edit)
+        self.contacts_edit.setMaximumHeight(80)
+        cl.addWidget(self.contacts_edit)
         bot_row.addWidget(contacts_w, 3)
         outer.addLayout(bot_row)
 
@@ -129,18 +137,12 @@ class OwnerWidget(QtWidgets.QWidget):
 
         btn_row = QtWidgets.QHBoxLayout()
         btn_row.addStretch()
-        self.save_btn = QtWidgets.QPushButton("Save Owner Settings")
+        self.save_btn = QtWidgets.QPushButton("Save & Generate")
         self.save_btn.setProperty("class", "primary")
         self.save_btn.setMinimumHeight(40)
         self.save_btn.clicked.connect(self._save)
         btn_row.addWidget(self.save_btn)
         layout.addLayout(btn_row)
-
-        self.log = QtWidgets.QTextEdit()
-        self.log.setReadOnly(True)
-        self.log.setMaximumHeight(80)
-        self.log.setStyleSheet("background: #0d1117; color: #6e7681; border: 1px solid #30363d; font-family: monospace; padding: 6px;")
-        layout.addWidget(self.log)
 
     def _load_fields(self):
         self.name_edit.setText(self.cfg.get("owner_name", ""))
@@ -165,15 +167,16 @@ class OwnerWidget(QtWidgets.QWidget):
                     (pixmap.height() - size) // 2,
                     size, size
                 )
+                size = 58
                 scaled = cropped.scaled(
-                    74, 74, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                    size, size, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
                 )
-                rounded = QtGui.QPixmap(74, 74)
+                rounded = QtGui.QPixmap(size, size)
                 rounded.fill(QtCore.Qt.transparent)
                 painter = QtGui.QPainter(rounded)
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
                 clip = QtGui.QPainterPath()
-                clip.addEllipse(0, 0, 74, 74)
+                clip.addEllipse(0, 0, size, size)
                 painter.setClipPath(clip)
                 painter.drawPixmap(0, 0, scaled)
                 painter.end()
@@ -232,7 +235,7 @@ class OwnerWidget(QtWidgets.QWidget):
 
     def _on_generate_done(self, ok):
         self.save_btn.setEnabled(True)
-        self.save_btn.setText("Save Owner Settings")
+        self.save_btn.setText("Save & Generate")
         if ok:
             self.log.append("✅ Site generated and pushed")
         else:

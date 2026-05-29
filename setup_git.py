@@ -10,14 +10,13 @@ CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
 
 
-def save_setup_config(url, token, supabase_url, supabase_anon_key, gui_font_size=14):
+def save_setup_config(url, token, supabase_url, supabase_anon_key):
     cfg = {}
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, encoding="utf-8") as f:
             cfg = json.load(f)
     cfg.update(git_remote_url=url,
-               supabase_url=supabase_url, supabase_anon_key=supabase_anon_key,
-               gui_font_size=gui_font_size)
+               supabase_url=supabase_url, supabase_anon_key=supabase_anon_key)
     cfg.pop("github_token", None)
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
@@ -156,20 +155,6 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         sl.addWidget(supabase_group)
 
-        # ── UI ──
-        ui_group = QtWidgets.QGroupBox("UI")
-        uifl = QtWidgets.QFormLayout(ui_group)
-        uifl.setSpacing(6)
-        uifl.setContentsMargins(10, 16, 10, 10)
-
-        self.font_size_spin = QtWidgets.QSpinBox()
-        self.font_size_spin.setRange(10, 24)
-        self.font_size_spin.setValue(cfg.get("gui_font_size", 14))
-        self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
-        uifl.addRow("Font Size:", self.font_size_spin)
-
-        sl.addWidget(ui_group)
-
         # ── Git ──
         git_group = QtWidgets.QGroupBox("GitHub / Git")
         gfl = QtWidgets.QFormLayout(git_group)
@@ -266,7 +251,6 @@ class SetupGitWidget(QtWidgets.QWidget):
             self.token_input.text().strip(),
             self.supabase_url.text().strip(),
             self.supabase_key.text().strip(),
-            self.font_size_spin.value(),
         )
 
     @QtCore.pyqtSlot()
@@ -295,12 +279,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.check_status()
         if not ok:
             self.log_msg("[ERROR] Check output above.")
-
-    @QtCore.pyqtSlot(int)
-    def _on_font_size_changed(self, size):
-        self.save_config_fields()
-        import gui_theme
-        gui_theme.apply()
 
     @QtCore.pyqtSlot(str)
     def _on_remote_url_changed(self, url):
