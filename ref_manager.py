@@ -248,6 +248,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         btn_row.addWidget(self.delete_btn)
 
         refresh_btn = QtWidgets.QPushButton("Refresh")
+        refresh_btn.setMinimumHeight(40)
         refresh_btn.clicked.connect(self.refresh_all)
         btn_row.addWidget(refresh_btn)
         layout.addLayout(btn_row)

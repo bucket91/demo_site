@@ -240,9 +240,6 @@ class SetupGitWidget(QtWidgets.QWidget):
         self.status_box.setReadOnly(True)
         self.status_box.setMaximumHeight(120)
         left.addWidget(self.status_box, 1)
-        refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
-        refresh_status_btn.clicked.connect(self.check_status)
-        left.addWidget(refresh_status_btn, alignment=QtCore.Qt.AlignLeft)
         side.addLayout(left, 1)
 
         # Right: Output
@@ -258,23 +255,26 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         sl.addLayout(side, 1)
 
-        # Generate button
-        gen_row = QtWidgets.QHBoxLayout()
-        gen_row.addStretch()
-        self.gen_btn = QtWidgets.QPushButton("Generate & Push")
-        self.gen_btn.setProperty("class", "primary")
-        self.gen_btn.setMinimumHeight(44)
-        self.gen_btn.clicked.connect(self.on_generate)
-        gen_row.addWidget(self.gen_btn)
-        sl.addLayout(gen_row)
-
-        # Buttons
+        # Bottom row: Initialize | Refresh Status | Generate
         btn_row = QtWidgets.QHBoxLayout()
         btn_row.setSpacing(8)
+
         init_btn = QtWidgets.QPushButton("Initialize")
-        init_btn.setMinimumHeight(36)
+        init_btn.setMinimumHeight(40)
         init_btn.clicked.connect(self.init_repo)
         btn_row.addWidget(init_btn)
+
+        refresh_status_btn = QtWidgets.QPushButton("Refresh Status")
+        refresh_status_btn.setMinimumHeight(40)
+        refresh_status_btn.clicked.connect(self.check_status)
+        btn_row.addWidget(refresh_status_btn)
+
+        self.gen_btn = QtWidgets.QPushButton("Generate")
+        self.gen_btn.setMinimumHeight(40)
+        self.gen_btn.setProperty("class", "primary")
+        self.gen_btn.clicked.connect(self.on_generate)
+        btn_row.addWidget(self.gen_btn)
+
         sl.addLayout(btn_row)
 
         # Status bar
@@ -340,7 +340,7 @@ class SetupGitWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot(bool)
     def _on_generate_done(self, ok):
         self.gen_btn.setEnabled(True)
-        self.gen_btn.setText("Generate & Push")
+        self.gen_btn.setText("Generate")
         if not ok:
             self.log_msg("[ERROR] Check output above.")
 
