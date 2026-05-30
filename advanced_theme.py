@@ -423,6 +423,7 @@ def generate_css(data):
                 lc = light_cols[0] if light_cols else "var(--body-bg)"
                 dc = dark_cols[0] if dark_cols else "var(--body-bg)"
                 root_vars.append(f"  --adv-pattern-color: {pc};")
+                dark_vars.append("  --adv-pattern-color: var(--text);")
                 root_vars.append(f"  --adv-pattern-opacity: {po / 100.0};")
                 root_vars.append(f"  --adv-bg: {lc};")
                 dark_vars.append(f"  --adv-bg: {dc};")
@@ -596,7 +597,10 @@ def generate_css(data):
                     ocss = f"rgba({r},{g},{b},{overlay_opacity})"
                     lines.append(f"  background-image: linear-gradient({ocss}, {ocss}), url('{img_path}') !important;")
                 elif overlay_type == "gradient":
-                    ov_grad = _build_gradient_function(backgrounds, ", ".join(light_cols[:3])) if len(light_cols) >= 2 else f"rgba(0,0,0,{overlay_opacity})"
+                    lc_str = ", ".join(light_cols[:3]) if len(light_cols) >= 2 else f"rgba(0,0,0,{overlay_opacity})"
+                    dc_str = ", ".join(dark_cols[:3]) if len(dark_cols) >= 2 else lc_str
+                    ov_grad = _build_gradient_function(backgrounds, lc_str)
+                    ov_grad_dark = _build_gradient_function(backgrounds, dc_str)
                     lines.append(f"  background-image: {ov_grad}, url('{img_path}') !important;")
                 else:
                     lines.append(f"  background-image: url('{img_path}') !important;")
@@ -678,6 +682,20 @@ def generate_css(data):
         lines.append("}")
         lines.append("")
 
+        # Dark-mode override for image overlay gradient
+        if (has_bg_image or bg_type == "image") and len(dark_cols) >= 2:
+            img_path = backgrounds.get("bg_image", "")
+            ov_type = backgrounds.get("image_overlay", "none")
+            if img_path and ov_type == "gradient":
+                dc_str = ", ".join(dark_cols[:3])
+                ov_grad_dark = _build_gradient_function(backgrounds, dc_str)
+                lc_str = ", ".join(light_cols[:3]) if len(light_cols) >= 2 else ""
+                if dc_str != lc_str:
+                    lines.append("body.dark-mode {")
+                    lines.append(f"  background-image: {ov_grad_dark}, url('{img_path}') !important;")
+                    lines.append("}")
+                    lines.append("")
+
         # --- Video background element CSS ---
         if bg_type == "video":
             has_video = bool(backgrounds.get("bg_video", ""))
@@ -715,10 +733,17 @@ def generate_css(data):
                         lines.append(f"  background: rgba({r},{g},{b},{max(0, min(100, oo)) / 100.0});")
                     elif ov_type == "gradient":
                         lc = backgrounds.get("light_colors", ["#000", "#000"])
+                        dc = backgrounds.get("dark_colors", ["#000", "#000"])
                         ov_grad_fn = _build_gradient_function(backgrounds, ", ".join(lc[:3]))
+                        ov_grad_dark = _build_gradient_function(backgrounds, ", ".join(dc[:3]))
                         lines.append(f"  background: {ov_grad_fn};")
                     lines.append("}")
                     lines.append("")
+                    if ov_type == "gradient" and ", ".join(dc[:3]) != ", ".join(lc[:3]):
+                        lines.append("body.dark-mode #bg-video-container::after {")
+                        lines.append(f"  background: {ov_grad_dark};")
+                        lines.append("}")
+                        lines.append("")
                 # Animation on video element
                 if animation != "none":
                     anim_name = _get_animation_name("video", animation, False)
