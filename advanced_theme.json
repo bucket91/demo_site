@@ -35,9 +35,9 @@
       "#0d1117"
     ],
     "direction": "to bottom",
-    "animation": "none",
-    "pattern": "none",
-    "pattern_opacity": 15,
+    "animation": "slow",
+    "pattern": "grid",
+    "pattern_opacity": 100,
     "pattern_color": "#000000",
     "bg_image": "",
     "bg_size": "cover"

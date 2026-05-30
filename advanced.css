@@ -12,8 +12,9 @@
   --adv-radius-header: 0px;
   --adv-radius-sidebar: 0px;
   --adv-pattern-color: #000000;
-  --adv-pattern-opacity: 0.15;
+  --adv-pattern-opacity: 1.0;
   --adv-bg: linear-gradient(to bottom, #e8ecf0, #dce0e8);
+  --adv-bg-animation: 8s;
 }
 
 body.dark-mode {
@@ -61,7 +62,15 @@ header {
 
 body {
   background: var(--adv-bg) !important;
+  background-size: 400% 400%;
+  animation: advGradient var(--adv-bg-animation) ease infinite;
   transition: background 0.3s;
+}
+
+@keyframes advGradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
 }
 
 .home-card:hover, .comment:hover { transform: translateY(var(--adv-hover-lift, -6px)); box-shadow: var(--adv-shadow); }
