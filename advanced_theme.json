@@ -65,6 +65,8 @@
     "blend_mode": "lighten",
     "bg_opacity": 100,
     "bg_video": "videos/test_input.webm",
+    "video_fallback": "",
+    "video_opacity": 100,
     "video_overlay": "color",
     "video_overlay_color": "#000000",
     "video_overlay_opacity": 30
@@ -110,5 +112,9 @@
     "content_padding": 20,
     "header_position": "static"
   },
-  "custom_css": ""
+  "custom_css": "",
+  "avif": {
+    "enabled": true,
+    "quality": 30
+  }
 }

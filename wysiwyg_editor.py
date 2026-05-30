@@ -74,13 +74,49 @@ class WysiwygEditor(QtWidgets.QDialog):
         self.view.page().runJavaScript("getEditorContent()", self._on_content_received)
 
     def _on_content_received(self, html):
-        self._result_html = html.strip()
-        if self._result_html:
-            self.accept()
-        else:
+        html = html.strip()
+        if not html:
             self.status_label.setText("Content is empty — write something first")
             self.save_btn.setEnabled(True)
             self.save_btn.setText("Save & Close")
+            return
+        html = self._extract_base64(html)
+        self._result_html = html
+        self.accept()
+
+    def _extract_base64(self, html):
+        import re, base64 as b64, hashlib, os
+        SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+        img_dir = os.path.join(SITE_DIR, "images")
+        os.makedirs(img_dir, exist_ok=True)
+        pattern = r'src="data:(image/[^";]+|video/[^";]+);base64,([^"]+)"'
+        count = 0
+
+        def _replace(m):
+            nonlocal count
+            mime = m.group(1)
+            data_b64 = m.group(2)
+            raw = b64.b64decode(data_b64)
+            h = hashlib.md5(raw).hexdigest()[:12]
+            if mime.startswith("video/"):
+                ext = "webm"
+            else:
+                ext = "webp"
+            fname = f"embed_{h}.{ext}"
+            fpath = os.path.join(img_dir, fname)
+            if not os.path.exists(fpath):
+                try:
+                    with open(fpath, "wb") as f:
+                        f.write(raw)
+                except Exception:
+                    return m.group(0)
+            count += 1
+            return f'src="images/{fname}"'
+
+        result = re.sub(pattern, _replace, html)
+        if count:
+            self.status_label.setText(f"Extracted {count} embedded file(s) to images/")
+        return result
 
     def result_html(self):
         return self._result_html

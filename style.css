@@ -132,6 +132,7 @@ main {
   color: #a8a892;
 }
 .sidebar.open { transform: translateX(0); }
+.sidebar { content-visibility: auto; contain: layout style paint; }
 
 .sidebar-top {
   display: flex;
@@ -365,7 +366,7 @@ footer {
 
 @media (max-aspect-ratio: 1/1) {
   .layout { flex-direction: column; }
-  #comments-section {
+#comments-section { content-visibility: auto; contain: layout style paint;
     width: 100%;
     margin-left: auto;
     margin-right: auto;

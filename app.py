@@ -37,8 +37,11 @@ class App(QtWidgets.QMainWindow):
         setup_git.SITE_DIR = SITE_DIR
         tabs.addTab(setup_git.SetupGitWidget(), "Settings")
 
-        import admin
-        tabs.addTab(admin.CommentAdminWidget(), "Comments")
+        # Comments tab loaded lazily — admin module is heavy (imports Supabase client)
+        self._comments_tab_index = tabs.count()
+        placeholder = QtWidgets.QWidget()
+        tabs.addTab(placeholder, "Comments")
+        tabs.currentChanged.connect(lambda i: self._load_comments_tab(tabs, i))
 
         import docs
         tabs.addTab(docs.DocsWidget(), "Help")
@@ -46,6 +49,17 @@ class App(QtWidgets.QMainWindow):
         self.statusBar().showMessage(
             "Ready. Customize your site in Design, add content in Content, configure in Settings.")
         tabs.setCurrentIndex(0)
+
+    def _load_comments_tab(self, tabs, index):
+        if index != self._comments_tab_index:
+            return
+        if not hasattr(self, '_comments_loaded'):
+            self._comments_loaded = True
+            import admin
+            admin.SITE_DIR = SITE_DIR
+            tabs.removeTab(index)
+            tabs.insertTab(index, admin.CommentAdminWidget(), "Comments")
+            tabs.setCurrentIndex(index)
 
     def _check_first_run(self):
         local_path = os.path.join(SITE_DIR, "config.local.json")

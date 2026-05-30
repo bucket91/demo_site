@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-import re, os, glob, json, sys
+import re, os, glob, json, sys, hashlib
+import advanced_theme
 from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -40,6 +41,41 @@ def save_config(cfg):
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(cfg, f, indent=2)
 
+SITE_JS_PATH = os.path.join(SITE_DIR, "site.js")
+SITE_JS_CONTENT = """function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function toggleCategory(header) {
+  header.classList.toggle('active');
+  header.querySelector('.arrow').classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  var b = document.body.classList.contains('dark-mode');
+  localStorage.setItem('theme', b ? 'dark' : 'light');
+  document.querySelector('.theme-toggle').textContent = b ? '\\u{1F319}' : '\\u2600\\uFE0F';
+}
+(function() {
+  var btn = document.querySelector('.theme-toggle');
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (btn) btn.textContent = '\\u{1F319}';
+  }
+})();
+"""
+
+def _file_hash(path):
+    if os.path.exists(path):
+        with open(path, "rb") as f:
+            return hashlib.md5(f.read()).hexdigest()[:8]
+    return ""
+
+def _ensure_site_js():
+    if not os.path.exists(SITE_JS_PATH):
+        with open(SITE_JS_PATH, "w", encoding="utf-8") as f:
+            f.write(SITE_JS_CONTENT)
+
 def scan_categories():
     sidebar_data = sidebar_util.load_sidebar()
     categories = []
@@ -68,7 +104,7 @@ def generate_sidebar(categories, current_file):
         html += '      <div class="sidebar-owner">\n'
         if owner_avatar:
             src = rel_path(current_file, '/' + owner_avatar)
-            html += f'        <img src="{src}" alt="{owner_name}" class="owner-avatar">\n'
+            html += f'        <img src="{src}" alt="{owner_name}" class="owner-avatar" fetchpriority="high">\n'
         html += f'        <div class="owner-name">{owner_name}</div>\n'
         if owner_title:
             html += f'        <div class="owner-title">{owner_title}</div>\n'
@@ -241,7 +277,7 @@ def make_homepage_content(categories, current_file):
         html += '  <div class="home-card owner-card">\n'
         if owner_avatar:
             src = rel_path(current_file, '/' + owner_avatar)
-            html += f'    <img src="{src}" alt="{owner_name}" class="owner-card-avatar">\n'
+            html += f'    <img src="{src}" alt="{owner_name}" class="owner-card-avatar" fetchpriority="high">\n'
         html += f'    <div class="owner-card-name">{owner_name}</div>\n'
         if owner_title:
             html += f'    <div class="owner-card-title">{owner_title}</div>\n'
@@ -268,6 +304,71 @@ def make_homepage_content(categories, current_file):
     html += '</div>'
     return html
 
+def extract_base64_from_html(html, avif_enabled=False, avif_quality=30):
+    img_dir = os.path.join(SITE_DIR, "images")
+    os.makedirs(img_dir, exist_ok=True)
+    pattern = r'src="data:(image/[^";]+|video/[^";]+);base64,([^"]+)"'
+    def _replace(m):
+        mime = m.group(1)
+        data_b64 = m.group(2)
+        try:
+            raw = base64.b64decode(data_b64)
+        except Exception:
+            return m.group(0)
+        h = hashlib.md5(raw).hexdigest()[:12]
+        ext = "webm" if mime.startswith("video/") else "webp"
+        fname = f"embed_{h}.{ext}"
+        fpath = os.path.join(img_dir, fname)
+        if not os.path.exists(fpath):
+            try:
+                with open(fpath, "wb") as f:
+                    f.write(raw)
+            except Exception:
+                return m.group(0)
+        if avif_enabled and ext == "webp":
+            avif_name = f"embed_{h}.avif"
+            avif_path = os.path.join(img_dir, avif_name)
+            if not os.path.exists(avif_path):
+                advanced_theme.convert_to_avif(fpath, avif_quality)
+            if os.path.exists(avif_path):
+                return f'<picture><source srcset="images/{avif_name}" type="image/avif"><source srcset="images/{fname}" type="image/webp"><img src="images/{fname}"></picture>'
+        return f'src="images/{fname}"'
+    return re.sub(pattern, _replace, html)
+
+def _add_lazy_loading(html, avif_enabled=False):
+    html = re.sub(r'\s*<source[^>]*>\s*', '', html)
+    html = re.sub(r'\s*</?picture>\s*', '', html)
+    def _replace(m):
+        tag = m.group(0)
+        if re.search(r'\bfetchpriority="high"', tag):
+            return tag
+        tag = re.sub(r'\s*loading="[^"]*"', '', tag)
+        tag = re.sub(r'\s*fetchpriority="[^"]*"', '', tag)
+        tag = tag.replace('<img', '<img loading="lazy" fetchpriority="low"', 1)
+        if avif_enabled:
+            src_match = re.search(r'src="([^"]+\.webp)"', tag)
+            if src_match:
+                webp_src = src_match.group(1)
+                avif_path = os.path.join(SITE_DIR, src_match.group(1))
+                avif_path = avif_path.replace('.webp', '.avif')
+                if os.path.exists(avif_path):
+                    avif_src = webp_src.replace('.webp', '.avif')
+                    tag = f'<picture><source srcset="{avif_src}" type="image/avif"><source srcset="{webp_src}" type="image/webp">{tag}</picture>'
+        return tag
+    return re.sub(r'<img[^>]*>', _replace, html)
+
+def _minify_html(html):
+    html = re.sub(r'<!--.*?-->', '', html, flags=re.DOTALL)
+    lines = html.split('\n')
+    out = []
+    for l in lines:
+        s = l.strip()
+        if s:
+            out.append(l)
+        elif out and out[-1].strip():
+            out.append("")
+    return '\n'.join(out)
+
 def build_page(filepath, categories):
     with open(filepath, encoding="utf-8") as f:
         src = f.read()
@@ -291,9 +392,21 @@ def build_page(filepath, categories):
         adv_rel = ''
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
-    # Video background
+    style_hash = _file_hash(os.path.join(SITE_DIR, 'style.css'))
+    adv_hash = _file_hash(adv_css) if os.path.exists(adv_css) else ""
+    js_rel = os.path.relpath(SITE_JS_PATH, os.path.dirname(os.path.abspath(filepath)))
+    js_rel = js_rel.replace("\\", "/")
+    js_hash = _file_hash(SITE_JS_PATH)
+    js_path = f"{js_rel}?v={js_hash}" if js_hash else js_rel
+
+    supabase_url = CONFIG.get("supabase_url", "")
+    preconnect_html = f'  <link rel="preconnect" href="{supabase_url}">\n' if supabase_url else ""
+
+    # Video background & AVIF settings
     adv_json_path = os.path.join(SITE_DIR, "advanced_theme.json")
     video_html = ""
+    avif_enabled = False
+    avif_quality = 30
     if os.path.exists(adv_json_path):
         try:
             with open(adv_json_path, encoding="utf-8") as _f:
@@ -308,13 +421,16 @@ def build_page(filepath, categories):
                         vid_rel = vid_rel.replace("\\", "/")
                         video_html = (
                             '<div id="bg-video-container">'
-                            '<video autoplay muted loop playsinline id="bg-video">'
+                            '<video autoplay muted loop playsinline preload="metadata" id="bg-video">'
                             f'<source src="{vid_rel}" type="video/webm">'
                             '</video>'
                             '</div>'
                         )
+            avif_cfg = adv_data.get("avif", {})
+            avif_enabled = avif_cfg.get("enabled", False)
+            avif_quality = avif_cfg.get("quality", 30)
         except Exception:
-            video_html = ""
+            pass
 
     with open(TEMPLATE_FILE, encoding="utf-8") as f:
         tmpl = f.read()
@@ -325,15 +441,21 @@ def build_page(filepath, categories):
     result = tmpl.replace('{{HOME_PATH}}', home_path)
     result = result.replace('{{SITE_TITLE}}', site_title)
     result = result.replace('{{TITLE}}', title)
+    result = result.replace('{{PRECONNECT}}', preconnect_html)
     result = result.replace('{{STYLE_PATH}}', style_rel)
+    result = result.replace('{{STYLE_HASH}}', style_hash)
     result = result.replace('{{ADVANCED_STYLE_PATH}}', adv_rel)
+    result = result.replace('{{ADV_STYLE_HASH}}', adv_hash)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
     result = result.replace('{{VIDEO_BG}}', video_html)
     result = result.replace('{{SIDEBAR}}', sidebar)
-    result = result.replace('{{CONTENT}}', content)
+    result = result.replace('{{CONTENT}}', _add_lazy_loading(content, avif_enabled))
     result = result.replace('{{COMMENTS}}', comments_block)
+    result = result.replace('{{JS_PATH}}', js_path)
 
+    result = extract_base64_from_html(result, avif_enabled, avif_quality)
+    result = _minify_html(result)
     with open(filepath, 'w', encoding="utf-8") as f:
         f.write(result)
     return True
@@ -365,8 +487,34 @@ def generate_404(categories, log_func=print):
     return True
 
 
+def _convert_existing_webp_to_avif(avif_quality=30, log_func=print):
+    img_dir = os.path.join(SITE_DIR, "images")
+    if not os.path.exists(img_dir):
+        return
+    webp_files = glob.glob(os.path.join(img_dir, "*.webp"))
+    converted = 0
+    for wp in webp_files:
+        avif_path = wp.replace('.webp', '.avif')
+        if not os.path.exists(avif_path):
+            ok, _ = advanced_theme.convert_to_avif(wp, avif_quality)
+            if ok:
+                converted += 1
+    if converted:
+        log_func(f"  Converted {converted} existing WebP files to AVIF")
+
 def generate_all(log_func=print):
     CONFIG.update(load_config())
+
+    _ensure_site_js()
+
+    # Batch convert existing WebP to AVIF if enabled
+    try:
+        adv_data = advanced_theme.load()
+        avif_cfg = adv_data.get("avif", {})
+        if avif_cfg.get("enabled", False):
+            _convert_existing_webp_to_avif(avif_cfg.get("quality", 30), log_func)
+    except Exception:
+        pass
 
     categories = scan_categories()
     log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")

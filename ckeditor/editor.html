@@ -3,9 +3,13 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>Page</title>
-  <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="../advanced.css">
+  <link rel="preconnect" href="https://oorgvolgpoapoediiuxy.supabase.co">
+
+  <link rel="stylesheet" href="../style.css?v=b4b04019">
+  <link rel="stylesheet" href="../advanced.css?v=3359b53a" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="../advanced.css?v=3359b53a"></noscript>
 </head>
 <body>
 
@@ -17,7 +21,7 @@
   <div class="layout">
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-owner">
-        <img src="../avatar.png" alt="Jon Doe" class="owner-avatar">
+        <img src="../avatar.png" alt="Jon Doe" class="owner-avatar" fetchpriority="high">
         <div class="owner-name">Jon Doe</div>
         <div class="owner-title">Maniac</div>
         <div class="owner-bio">fugaisv uahfi8asfuxb ausgiavsc   asugcuavsc</div>
@@ -52,219 +56,185 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="ckeditor5.css">
 <style>
-  body { margin: 0; }
-  body.ck-fullscreen { background: var(--ck-color-base-background); }
-  body.ck-fullscreen .ck-editor__editable { max-height: none; min-height: calc(100vh - 56px); }
-  body.ck-fullscreen .ck.ck-editor { height: 100vh; display: flex; flex-direction: column; }
-  body.ck-fullscreen .ck.ck-editor .ck.ck-editor__main { flex: 1; }
-
-  .ck-responsive-preview { background: #010409; }
-  .ck-responsive-preview .ck-editor__editable {
-    margin: 24px auto;
-    box-shadow: 0 0 24px rgba(0,0,0,0.6);
-    border-radius: 4px;
-    transition: max-width 0.2s ease;
-  }
-  [data-theme="light"] .ck-responsive-preview { background: #d0d7de; }
-  [data-theme="light"] .ck-responsive-preview .ck-editor__editable {
-    box-shadow: 0 0 24px rgba(0,0,0,0.12);
-  }
-
-  :root, [data-theme="dark"] {
-    --ck-color-base-background: #0d1117;
-    --ck-color-base-foreground: #c9d1d9;
-    --ck-color-base-text: #c9d1d9;
-    --ck-color-base-border: #30363d;
-    --ck-color-base-active: #58a6ff;
-    --ck-color-base-active-focus: #58a6ff;
-
-    --ck-color-button-default-background: transparent;
-    --ck-color-button-default-hover-background: #21262d;
-    --ck-color-button-default-active-background: #30363d;
-    --ck-color-button-default-text: #c9d1d9;
-    --ck-color-button-default-hover-text: #e6edf3;
-    --ck-color-button-on-background: #21262d;
-    --ck-color-button-on-hover-background: #30363d;
-    --ck-color-button-on-text: #58a6ff;
-    --ck-color-button-save-text: #3fb950;
-    --ck-color-button-cancel-text: #f85149;
-
-    --ck-color-panel-background: #161b22;
-    --ck-color-panel-border: #30363b;
-    --ck-color-panel-background-hover: #21262d;
-
-    --ck-color-toolbar-background: #161b22;
-    --ck-color-toolbar-border: #30363d;
-
-    --ck-color-input-background: #0d1117;
-    --ck-color-input-border: #30363d;
-    --ck-color-input-color: #c9d1d9;
-    --ck-color-input-disabled-background: #161b22;
-    --ck-color-input-disabled-border: #21262d;
-    --ck-color-input-disabled-text: #6e7681;
-
-    --ck-color-dropdown-panel-background: #161b22;
-    --ck-color-dropdown-panel-border: #30363d;
-
-    --ck-color-list-background: #161b22;
-    --ck-color-list-button-hover-background: #21262d;
-    --ck-color-list-button-on-background: #21262d;
-    --ck-color-list-button-on-background-focus: #21262d;
-    --ck-color-list-button-on-text: #58a6ff;
-    --ck-color-list-item-text: #c9d1d9;
-    --ck-color-list-item-text-hover: #e6edf3;
-
-    --ck-color-split-button-hover-background: #21262d;
-    --ck-color-split-button-hover-border: #30363d;
-
-    --ck-color-label-text: #8b949e;
-    --ck-color-link-default: #58a6ff;
-    --ck-color-link-selected-background: rgba(88, 166, 255, 0.1);
-    --ck-color-engine-placeholder-text: #484f58;
-    --ck-color-widget-type-around-text: #8b949e;
-    --ck-color-widget-type-around-hover: #58a6ff;
-
-    --ck-color-media-embed-background: #161b22;
-    --ck-color-media-embed-text: #c9d1d9;
-
-    --ck-color-table-border: #30363d;
-    --ck-color-table-caption-text: #8b949e;
-    --ck-color-table-caption-highlighted: #21262d;
-    --ck-color-table-form-background: #161b22;
-
-    --ck-color-image-caption-text: #8b949e;
-    --ck-color-image-caption-highlighted: #21262d;
-
-    --ck-color-selector-panel-background: #161b22;
-    --ck-color-selector-panel-border: #30363d;
-
-    --ck-color-focus-border: #58a6ff;
-    --ck-color-focus-outer-shadow: rgba(88, 166, 255, 0.3);
-    --ck-color-focus-disabled-shadow: rgba(88, 166, 255, 0.1);
-    --ck-color-toolbar-button-hover-background: #21262d;
-
-    --ck-balloon-panel-arrow-color: #161b22;
-    --ck-balloon-panel-arrow-border-color: #30363d;
-  }
-
-  [data-theme="light"] {
-    --ck-color-base-background: #ffffff;
-    --ck-color-base-foreground: #1f2328;
-    --ck-color-base-text: #1f2328;
-    --ck-color-base-border: #d0d7de;
-    --ck-color-base-active: #0969da;
-    --ck-color-base-active-focus: #0969da;
-
-    --ck-color-button-default-background: transparent;
-    --ck-color-button-default-hover-background: #f3f4f6;
-    --ck-color-button-default-active-background: #d0d7de;
-    --ck-color-button-default-text: #1f2328;
-    --ck-color-button-default-hover-text: #000000;
-    --ck-color-button-on-background: #ddf4ff;
-    --ck-color-button-on-hover-background: #b6e3ff;
-    --ck-color-button-on-text: #0969da;
-    --ck-color-button-save-text: #1a7f37;
-    --ck-color-button-cancel-text: #cf222e;
-
-    --ck-color-panel-background: #ffffff;
-    --ck-color-panel-border: #d0d7de;
-    --ck-color-panel-background-hover: #f3f4f6;
-
-    --ck-color-toolbar-background: #f6f8fa;
-    --ck-color-toolbar-border: #d0d7de;
-
-    --ck-color-input-background: #ffffff;
-    --ck-color-input-border: #d0d7de;
-    --ck-color-input-color: #1f2328;
-    --ck-color-input-disabled-background: #f6f8fa;
-    --ck-color-input-disabled-border: #d0d7de;
-    --ck-color-input-disabled-text: #6e7781;
-
-    --ck-color-dropdown-panel-background: #ffffff;
-    --ck-color-dropdown-panel-border: #d0d7de;
-
-    --ck-color-list-background: #ffffff;
-    --ck-color-list-button-hover-background: #f3f4f6;
-    --ck-color-list-button-on-background: #ddf4ff;
-    --ck-color-list-button-on-background-focus: #ddf4ff;
-    --ck-color-list-button-on-text: #0969da;
-    --ck-color-list-item-text: #1f2328;
-    --ck-color-list-item-text-hover: #000000;
-
-    --ck-color-split-button-hover-background: #f3f4f6;
-    --ck-color-split-button-hover-border: #d0d7de;
-
-    --ck-color-label-text: #656d76;
-    --ck-color-link-default: #0969da;
-    --ck-color-link-selected-background: rgba(9, 105, 218, 0.1);
-    --ck-color-engine-placeholder-text: #6e7781;
-    --ck-color-widget-type-around-text: #656d76;
-    --ck-color-widget-type-around-hover: #0969da;
-
-    --ck-color-media-embed-background: #f6f8fa;
-    --ck-color-media-embed-text: #1f2328;
-
-    --ck-color-table-border: #d0d7de;
-    --ck-color-table-caption-text: #656d76;
-    --ck-color-table-caption-highlighted: #f3f4f6;
-    --ck-color-table-form-background: #ffffff;
-
-    --ck-color-image-caption-text: #656d76;
-    --ck-color-image-caption-highlighted: #f3f4f6;
-
-    --ck-color-selector-panel-background: #ffffff;
-    --ck-color-selector-panel-border: #d0d7de;
-
-    --ck-color-focus-border: #0969da;
-    --ck-color-focus-outer-shadow: rgba(9, 105, 218, 0.3);
-    --ck-color-focus-disabled-shadow: rgba(9, 105, 218, 0.1);
-    --ck-color-toolbar-button-hover-background: #f3f4f6;
-
-    --ck-balloon-panel-arrow-color: #ffffff;
-    --ck-balloon-panel-arrow-border-color: #d0d7de;
-  }
-
-  .ck.ck-editor { color: var(--ck-color-base-text); }
-  .ck.ck-button { color: var(--ck-color-button-default-text); }
-  .ck.ck-button:hover { color: var(--ck-color-button-default-hover-text); }
-  .ck.ck-button.ck-on { color: var(--ck-color-button-on-text); }
-  .ck.ck-input { color: var(--ck-color-input-color); }
-  .ck.ck-label { color: var(--ck-color-label-text); }
-  .ck.ck-dropdown__panel .ck-button { color: var(--ck-color-list-item-text); }
-  .ck.ck-source-editing-area textarea {
-    background: var(--ck-color-base-background);
-    color: var(--ck-color-base-text);
-    border-color: var(--ck-color-base-border);
-  }
-  .ck.ck-find-and-replace-form input,
-  .ck.ck-find-and-replace-form label,
-  .ck.ck-table-form input,
-  .ck.ck-table-cell-properties-form input { color: var(--ck-color-base-text); }
-  .ck.ck-content { color: var(--ck-color-base-text); font-size: 14px; line-height: 1.7; }
-  .ck-content h1, .ck-content h2, .ck-content h3,
-  .ck-content h4, .ck-content h5, .ck-content h6 { color: var(--ck-color-base-text); }
-  .ck-content a { color: var(--ck-color-link-default); }
-  .ck-content blockquote {
-    border-left: 3px solid var(--ck-color-base-border);
-    padding-left: 12px;
-    color: var(--ck-color-label-text);
-  }
-  .ck-content pre { background: var(--ck-color-panel-background); padding: 10px; border-radius: 6px; }
-  .ck-content table { border-collapse: collapse; }
-  .ck-content td, .ck-content th {
-    border: 1px solid var(--ck-color-base-border);
-    padding: 6px 10px;
-  }
+body { margin: 0; }
+body.ck-fullscreen { background: var(--ck-color-base-background); }
+body.ck-fullscreen .ck-editor__editable { max-height: none; min-height: calc(100vh - 56px); }
+body.ck-fullscreen .ck.ck-editor { height: 100vh; display: flex; flex-direction: column; }
+body.ck-fullscreen .ck.ck-editor .ck.ck-editor__main { flex: 1; }
+.ck-responsive-preview { background: #010409; }
+.ck-responsive-preview .ck-editor__editable {
+margin: 24px auto;
+box-shadow: 0 0 24px rgba(0,0,0,0.6);
+border-radius: 4px;
+transition: max-width 0.2s ease;
+}
+[data-theme="light"] .ck-responsive-preview { background: #d0d7de; }
+[data-theme="light"] .ck-responsive-preview .ck-editor__editable {
+box-shadow: 0 0 24px rgba(0,0,0,0.12);
+}
+:root, [data-theme="dark"] {
+--ck-color-base-background: #0d1117;
+--ck-color-base-foreground: #c9d1d9;
+--ck-color-base-text: #c9d1d9;
+--ck-color-base-border: #30363d;
+--ck-color-base-active: #58a6ff;
+--ck-color-base-active-focus: #58a6ff;
+--ck-color-button-default-background: transparent;
+--ck-color-button-default-hover-background: #21262d;
+--ck-color-button-default-active-background: #30363d;
+--ck-color-button-default-text: #c9d1d9;
+--ck-color-button-default-hover-text: #e6edf3;
+--ck-color-button-on-background: #21262d;
+--ck-color-button-on-hover-background: #30363d;
+--ck-color-button-on-text: #58a6ff;
+--ck-color-button-save-text: #3fb950;
+--ck-color-button-cancel-text: #f85149;
+--ck-color-panel-background: #161b22;
+--ck-color-panel-border: #30363b;
+--ck-color-panel-background-hover: #21262d;
+--ck-color-toolbar-background: #161b22;
+--ck-color-toolbar-border: #30363d;
+--ck-color-input-background: #0d1117;
+--ck-color-input-border: #30363d;
+--ck-color-input-color: #c9d1d9;
+--ck-color-input-disabled-background: #161b22;
+--ck-color-input-disabled-border: #21262d;
+--ck-color-input-disabled-text: #6e7681;
+--ck-color-dropdown-panel-background: #161b22;
+--ck-color-dropdown-panel-border: #30363d;
+--ck-color-list-background: #161b22;
+--ck-color-list-button-hover-background: #21262d;
+--ck-color-list-button-on-background: #21262d;
+--ck-color-list-button-on-background-focus: #21262d;
+--ck-color-list-button-on-text: #58a6ff;
+--ck-color-list-item-text: #c9d1d9;
+--ck-color-list-item-text-hover: #e6edf3;
+--ck-color-split-button-hover-background: #21262d;
+--ck-color-split-button-hover-border: #30363d;
+--ck-color-label-text: #8b949e;
+--ck-color-link-default: #58a6ff;
+--ck-color-link-selected-background: rgba(88, 166, 255, 0.1);
+--ck-color-engine-placeholder-text: #484f58;
+--ck-color-widget-type-around-text: #8b949e;
+--ck-color-widget-type-around-hover: #58a6ff;
+--ck-color-media-embed-background: #161b22;
+--ck-color-media-embed-text: #c9d1d9;
+--ck-color-table-border: #30363d;
+--ck-color-table-caption-text: #8b949e;
+--ck-color-table-caption-highlighted: #21262d;
+--ck-color-table-form-background: #161b22;
+--ck-color-image-caption-text: #8b949e;
+--ck-color-image-caption-highlighted: #21262d;
+--ck-color-selector-panel-background: #161b22;
+--ck-color-selector-panel-border: #30363d;
+--ck-color-focus-border: #58a6ff;
+--ck-color-focus-outer-shadow: rgba(88, 166, 255, 0.3);
+--ck-color-focus-disabled-shadow: rgba(88, 166, 255, 0.1);
+--ck-color-toolbar-button-hover-background: #21262d;
+--ck-balloon-panel-arrow-color: #161b22;
+--ck-balloon-panel-arrow-border-color: #30363d;
+}
+[data-theme="light"] {
+--ck-color-base-background: #ffffff;
+--ck-color-base-foreground: #1f2328;
+--ck-color-base-text: #1f2328;
+--ck-color-base-border: #d0d7de;
+--ck-color-base-active: #0969da;
+--ck-color-base-active-focus: #0969da;
+--ck-color-button-default-background: transparent;
+--ck-color-button-default-hover-background: #f3f4f6;
+--ck-color-button-default-active-background: #d0d7de;
+--ck-color-button-default-text: #1f2328;
+--ck-color-button-default-hover-text: #000000;
+--ck-color-button-on-background: #ddf4ff;
+--ck-color-button-on-hover-background: #b6e3ff;
+--ck-color-button-on-text: #0969da;
+--ck-color-button-save-text: #1a7f37;
+--ck-color-button-cancel-text: #cf222e;
+--ck-color-panel-background: #ffffff;
+--ck-color-panel-border: #d0d7de;
+--ck-color-panel-background-hover: #f3f4f6;
+--ck-color-toolbar-background: #f6f8fa;
+--ck-color-toolbar-border: #d0d7de;
+--ck-color-input-background: #ffffff;
+--ck-color-input-border: #d0d7de;
+--ck-color-input-color: #1f2328;
+--ck-color-input-disabled-background: #f6f8fa;
+--ck-color-input-disabled-border: #d0d7de;
+--ck-color-input-disabled-text: #6e7781;
+--ck-color-dropdown-panel-background: #ffffff;
+--ck-color-dropdown-panel-border: #d0d7de;
+--ck-color-list-background: #ffffff;
+--ck-color-list-button-hover-background: #f3f4f6;
+--ck-color-list-button-on-background: #ddf4ff;
+--ck-color-list-button-on-background-focus: #ddf4ff;
+--ck-color-list-button-on-text: #0969da;
+--ck-color-list-item-text: #1f2328;
+--ck-color-list-item-text-hover: #000000;
+--ck-color-split-button-hover-background: #f3f4f6;
+--ck-color-split-button-hover-border: #d0d7de;
+--ck-color-label-text: #656d76;
+--ck-color-link-default: #0969da;
+--ck-color-link-selected-background: rgba(9, 105, 218, 0.1);
+--ck-color-engine-placeholder-text: #6e7781;
+--ck-color-widget-type-around-text: #656d76;
+--ck-color-widget-type-around-hover: #0969da;
+--ck-color-media-embed-background: #f6f8fa;
+--ck-color-media-embed-text: #1f2328;
+--ck-color-table-border: #d0d7de;
+--ck-color-table-caption-text: #656d76;
+--ck-color-table-caption-highlighted: #f3f4f6;
+--ck-color-table-form-background: #ffffff;
+--ck-color-image-caption-text: #656d76;
+--ck-color-image-caption-highlighted: #f3f4f6;
+--ck-color-selector-panel-background: #ffffff;
+--ck-color-selector-panel-border: #d0d7de;
+--ck-color-focus-border: #0969da;
+--ck-color-focus-outer-shadow: rgba(9, 105, 218, 0.3);
+--ck-color-focus-disabled-shadow: rgba(9, 105, 218, 0.1);
+--ck-color-toolbar-button-hover-background: #f3f4f6;
+--ck-balloon-panel-arrow-color: #ffffff;
+--ck-balloon-panel-arrow-border-color: #d0d7de;
+}
+.ck.ck-editor { color: var(--ck-color-base-text); }
+.ck.ck-button { color: var(--ck-color-button-default-text); }
+.ck.ck-button:hover { color: var(--ck-color-button-default-hover-text); }
+.ck.ck-button.ck-on { color: var(--ck-color-button-on-text); }
+.ck.ck-input { color: var(--ck-color-input-color); }
+.ck.ck-label { color: var(--ck-color-label-text); }
+.ck.ck-dropdown__panel .ck-button { color: var(--ck-color-list-item-text); }
+.ck.ck-source-editing-area textarea {
+background: var(--ck-color-base-background);
+color: var(--ck-color-base-text);
+border-color: var(--ck-color-base-border);
+}
+.ck.ck-find-and-replace-form input,
+.ck.ck-find-and-replace-form label,
+.ck.ck-table-form input,
+.ck.ck-table-cell-properties-form input { color: var(--ck-color-base-text); }
+.ck.ck-content { color: var(--ck-color-base-text); font-size: 14px; line-height: 1.7; }
+.ck-content h1, .ck-content h2, .ck-content h3,
+.ck-content h4, .ck-content h5, .ck-content h6 { color: var(--ck-color-base-text); }
+.ck-content a { color: var(--ck-color-link-default); }
+.ck-content blockquote {
+border-left: 3px solid var(--ck-color-base-border);
+padding-left: 12px;
+color: var(--ck-color-label-text);
+}
+.ck-content pre { background: var(--ck-color-panel-background); padding: 10px; border-radius: 6px; }
+.ck-content table { border-collapse: collapse; }
+.ck-content td, .ck-content th {
+border: 1px solid var(--ck-color-base-border);
+padding: 6px 10px;
+}
 </style>
 </head>
 <body>
 <div id="editor"></div>
 <script src="ckeditor5.umd.js"></script>
-
 <script>
 var CK = ckeditor5;
 var editorInstance = null;
-
 var SUN_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="4" fill="currentColor"/><path d="M10 2v2M10 16v2M2 10h2M16 10h2M4.93 4.93l1.41 1.41M13.66 13.66l1.41 1.41M4.93 15.07l1.41-1.41M13.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="2" fill="none"/></svg>';
 var MOON_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z" fill="currentColor"/></svg>';
 var FULLSCREEN_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 3h5v2H5v3H3V3zm9 0h5v5h-2V5h-3V3zm5 9h-2v3h-3v2h5v-5zM5 12H3v5h5v-2H5v-3z" fill="currentColor"/></svg>';
@@ -273,346 +243,334 @@ var DESKTOP_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
 var TABLET_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M3 2h14v16H3V2zm2 2v12h10V4H5z" fill="currentColor"/></svg>';
 var PHONE_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M5 2h10v16H5V2zm2 2v12h6V4H7z" fill="currentColor"/></svg>';
 var FORMAT_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 5l6 5-6 5 1 1 7-6-7-6-1 1zm8 10h8v2H10v-2z" fill="currentColor"/></svg>';
-
 (function() {
-  var saved = localStorage.getItem('ckeditor-theme');
-  if (saved) document.documentElement.dataset.theme = saved;
+var saved = localStorage.getItem('ckeditor-theme');
+if (saved) document.documentElement.dataset.theme = saved;
 })();
-
 class WebPUploadAdapter {
-  constructor(loader) { this.loader = loader; }
-  upload() {
-    return this.loader.file.then(function(file) {
-      return new Promise(function(resolve, reject) {
-        var img = new Image();
-        img.onload = function() {
-          var canvas = document.createElement('canvas');
-          canvas.width = img.width;
-          canvas.height = img.height;
-          canvas.getContext('2d').drawImage(img, 0, 0);
-          canvas.toBlob(function(blob) {
-            if (blob) {
-              var reader = new FileReader();
-              reader.onload = function() { resolve({ default: reader.result }); };
-              reader.readAsDataURL(blob);
-            } else {
-              canvas.toBlob(function(pngBlob) {
-                var reader = new FileReader();
-                reader.onload = function() { resolve({ default: reader.result }); };
-                reader.readAsDataURL(pngBlob);
-              }, 'image/png');
-            }
-          }, 'image/webp', 0.85);
-        };
-        img.onerror = function() { reject('Image load failed'); };
-        img.src = URL.createObjectURL(file);
-      });
-    });
-  }
-  abort() {}
+constructor(loader) { this.loader = loader; }
+upload() {
+return this.loader.file.then(function(file) {
+return new Promise(function(resolve, reject) {
+var img = new Image();
+img.onload = function() {
+var canvas = document.createElement('canvas');
+canvas.width = img.width;
+canvas.height = img.height;
+canvas.getContext('2d').drawImage(img, 0, 0);
+canvas.toBlob(function(blob) {
+if (blob) {
+var reader = new FileReader();
+reader.onload = function() { resolve({ default: reader.result }); };
+reader.readAsDataURL(blob);
+} else {
+canvas.toBlob(function(pngBlob) {
+var reader = new FileReader();
+reader.onload = function() { resolve({ default: reader.result }); };
+reader.readAsDataURL(pngBlob);
+}, 'image/png');
 }
-
-function WebPUploadAdapterPlugin(editor) {
-  editor.plugins.get('FileRepository').createUploadAdapter = function(loader) {
-    return new WebPUploadAdapter(loader);
-  };
-}
-
-function ThemeTogglePlugin(editor) {
-  editor.ui.componentFactory.add('themeToggle', function(locale) {
-    var view = new CK.ButtonView(locale);
-    var isDark = document.documentElement.dataset.theme !== 'light';
-    view.set({
-      label: isDark ? 'Light theme' : 'Dark theme',
-      tooltip: true,
-      icon: isDark ? SUN_ICON : MOON_ICON,
-      withText: false
-    });
-    view.on('execute', function() {
-      var root = document.documentElement;
-      isDark = root.dataset.theme === 'light';
-      root.dataset.theme = isDark ? 'dark' : 'light';
-      localStorage.setItem('ckeditor-theme', isDark ? 'dark' : 'light');
-      view.set({ icon: isDark ? SUN_ICON : MOON_ICON, label: isDark ? 'Light theme' : 'Dark theme' });
-    });
-    return view;
-  });
-}
-
-function FullscreenPlugin(editor) {
-  editor.ui.componentFactory.add('fullscreen', function(locale) {
-    var view = new CK.ButtonView(locale);
-    var isFull = false;
-    view.set({
-      label: 'Fullscreen',
-      tooltip: true,
-      icon: FULLSCREEN_ICON,
-      withText: false
-    });
-    view.on('execute', function() {
-      isFull = !isFull;
-      if (isFull) {
-        document.documentElement.requestFullscreen();
-        document.body.classList.add('ck-fullscreen');
-        view.set({ icon: COMPRESS_ICON, label: 'Exit fullscreen' });
-      } else {
-        document.exitFullscreen();
-        document.body.classList.remove('ck-fullscreen');
-        view.set({ icon: FULLSCREEN_ICON, label: 'Fullscreen' });
-      }
-    });
-    document.addEventListener('fullscreenchange', function() {
-      if (!document.fullscreenElement) {
-        isFull = false;
-        document.body.classList.remove('ck-fullscreen');
-        view.set({ icon: FULLSCREEN_ICON, label: 'Fullscreen' });
-      }
-    });
-    return view;
-  });
-}
-
-function ResponsivePreviewPlugin(editor) {
-  var modes = [
-    { label: 'Desktop', icon: DESKTOP_ICON, width: null },
-    { label: 'Tablet (768px)', icon: TABLET_ICON, width: 768 },
-    { label: 'Mobile (375px)', icon: PHONE_ICON, width: 375 }
-  ];
-  var current = 0;
-
-  editor.ui.componentFactory.add('responsivePreview', function(locale) {
-    var view = new CK.ButtonView(locale);
-    view.set({
-      label: modes[0].label,
-      tooltip: true,
-      icon: modes[0].icon,
-      withText: false
-    });
-    view.on('execute', function() {
-      current = (current + 1) % modes.length;
-      var mode = modes[current];
-      view.set({ label: mode.label, icon: mode.icon });
-      if (mode.width) {
-        document.body.classList.add('ck-responsive-preview');
-      } else {
-        document.body.classList.remove('ck-responsive-preview');
-      }
-      var editable = document.querySelector('.ck-editor__editable');
-      if (editable) {
-        editable.style.maxWidth = mode.width ? mode.width + 'px' : '';
-        editable.style.margin = mode.width ? '24px auto' : '';
-      }
-    });
-    return view;
-  });
-}
-
-function prettyPrintHTML(html) {
-  var blocks = ['address','article','aside','blockquote','body','canvas','caption','dd','div','dl','dt','fieldset','figcaption','figure','footer','form','h1','h2','h3','h4','h5','h6','header','hr','html','li','main','nav','noscript','ol','p','pre','section','table','tfoot','ul','video','tr','td','th','thead','tbody','tfoot'];
-  html = html.replace(/\r\n?/g, '\n').replace(/\n/g, ' ').replace(/>\s+</g, '><').trim();
-  var parts = html.split(/(<[^>]+>)/);
-  var out = '', indent = 0, sp = '  ';
-  for (var i = 0; i < parts.length; i++) {
-    var p = parts[i];
-    if (!p) continue;
-    if (p[0] === '<' && p[p.length - 1] === '>') {
-      var isClose = p[1] === '/';
-      var tag = p.replace(/^<\/?([^\s>/]+).*$/, '$1').toLowerCase();
-      var isSelfClose = p.indexOf('/>') === p.length - 2 || ['br','hr','img','input','meta','link','area','base','col','embed','param','source','track','wbr'].indexOf(tag) !== -1;
-      if (isClose) indent = Math.max(0, indent - 1);
-      if (blocks.indexOf(tag) !== -1) out += '\n' + sp.repeat(indent);
-      out += p;
-      if (!isClose && !isSelfClose && blocks.indexOf(tag) !== -1) indent++;
-    } else {
-      var t = p.trim();
-      if (t) out += '\n' + sp.repeat(indent) + t;
-    }
-  }
-  return out.trim();
-}
-
-function FormatSourcePlugin(editor) {
-  editor.ui.componentFactory.add('formatSource', function(locale) {
-    var view = new CK.ButtonView(locale);
-    view.set({
-      label: 'Format source',
-      tooltip: true,
-      icon: FORMAT_ICON,
-      withText: false
-    });
-    view.on('execute', function() {
-      var ta = document.querySelector('.ck-source-editing-area textarea');
-      if (ta) {
-        var start = ta.selectionStart;
-        var end = ta.selectionEnd;
-        ta.value = prettyPrintHTML(ta.value);
-        ta.selectionStart = start;
-        ta.selectionEnd = end;
-      }
-    });
-    return view;
-  });
-}
-
-CK.ClassicEditor.create(document.querySelector('#editor'), {
-  plugins: [
-    CK.Essentials, CK.Paragraph, CK.Undo, CK.SelectAll, CK.AccessibilityHelp,
-    CK.Bold, CK.Italic, CK.Underline, CK.Strikethrough, CK.Code, CK.Subscript, CK.Superscript,
-    CK.Font,
-    CK.Heading, CK.Style, CK.ShowBlocks, CK.TextPartLanguage, CK.GeneralHtmlSupport,
-    CK.List, CK.TodoList, CK.ListProperties,
-    CK.Indent, CK.IndentBlock,
-    CK.Alignment,
-    CK.Link, CK.LinkImage,
-    CK.BlockQuote, CK.CodeBlock, CK.HorizontalLine,
-    CK.MediaEmbed,
-    CK.Table, CK.TableToolbar, CK.TableProperties, CK.TableCellProperties, CK.TableCaption,
-    CK.Image, CK.ImageToolbar, CK.ImageCaption, CK.ImageStyle, CK.ImageResize,
-    CK.ImageInsert, CK.ImageInsertViaUrl, CK.AutoImage,
-    WebPUploadAdapterPlugin,
-    CK.SpecialCharacters, CK.SpecialCharactersEssentials,
-    CK.SpecialCharactersArrows, CK.SpecialCharactersCurrency,
-    CK.SpecialCharactersLatin, CK.SpecialCharactersMathematical, CK.SpecialCharactersText,
-    CK.Highlight, CK.RemoveFormat,
-    CK.PasteFromOffice, CK.PastePlainText,
-    CK.Autoformat,
-    CK.FindAndReplace,
-    CK.SourceEditing,
-    CK.AutoLink,
-    ThemeTogglePlugin,
-    FullscreenPlugin,
-    ResponsivePreviewPlugin,
-    FormatSourcePlugin
-  ],
-  toolbar: {
-    items: [
-      'heading', '|',
-      'style', '|',
-      'bold', 'italic', 'underline', 'strikethrough', 'code', 'subscript', 'superscript', '|',
-      'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-      'bulletedList', 'numberedList', 'todoList', '|',
-      'outdent', 'indent', '|',
-      'alignment', '|',
-      'link', 'blockQuote', 'insertTable', 'codeBlock', 'horizontalLine', 'mediaEmbed', '|',
-      'imageInsert', '|',
-      'highlight', 'removeFormat', 'specialCharacters', '|',
-      'showBlocks', 'textPartLanguage', '|',
-      'sourceEditing', 'formatSource', 'findAndReplace', '|',
-      'responsivePreview', 'themeToggle', 'fullscreen', '|',
-      'undo', 'redo', '|',
-      'accessibilityHelp'
-    ],
-    shouldNotGroupWhenFull: true
-  },
-  image: {
-    toolbar: [
-      'toggleImageCaption', 'imageTextAlternative',
-      '|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side',
-      '|', 'resizeImage'
-    ],
-    insert: { type: 'auto' }
-  },
-  table: {
-    contentToolbar: [
-      'tableColumn', 'tableRow', 'mergeTableCells',
-      '|', 'tableProperties', 'tableCellProperties', 'toggleTableCaption'
-    ]
-  },
-  heading: {
-    options: [
-      { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-      { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_h1' },
-      { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_h2' },
-      { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_h3' },
-      { model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_h4' },
-      { model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_h5' },
-      { model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_h6' }
-    ]
-  },
-  link: {
-    addTargetToExternalLinks: true,
-    decorators: {
-      openInNewTab: {
-        mode: 'manual',
-        label: 'Open in new tab',
-        attributes: { target: '_blank', rel: 'noopener noreferrer' }
-      }
-    }
-  },
-  fontFamily: {
-    options: [
-      'default',
-      'Arial, Helvetica, sans-serif',
-      'Courier New, Courier, monospace',
-      'Georgia, serif',
-      'Tahoma, Geneva, sans-serif',
-      'Times New Roman, Times, serif',
-      'Verdana, Geneva, sans-serif',
-      'Kalpurush, Arial, sans-serif',
-      'Noto Sans Bengali, Arial, sans-serif',
-      'Siyam Rupali, Arial, sans-serif'
-    ]
-  },
-  fontSize: { options: [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72] },
-  alignment: { options: ['left', 'center', 'right', 'justify'] },
-  indentBlock: { offset: 40, unit: 'px' },
-  highlight: {
-    options: [
-      { model: 'yellowMarker', class: 'ck-highlight-marker-yellow', title: 'Yellow marker' },
-      { model: 'greenMarker', class: 'ck-highlight-marker-green', title: 'Green marker' },
-      { model: 'pinkMarker', class: 'ck-highlight-marker-pink', title: 'Pink marker' },
-      { model: 'blueMarker', class: 'ck-highlight-marker-blue', title: 'Blue marker' },
-      { model: 'redPen', class: 'ck-highlight-pen-red', title: 'Red pen' },
-      { model: 'greenPen', class: 'ck-highlight-pen-green', title: 'Green pen' }
-    ]
-  },
-  list: { properties: { styles: true, startIndex: true, reversed: true } },
-  codeBlock: {
-    languages: [
-      { language: 'plaintext', label: 'Plain text' },
-      { language: 'html', label: 'HTML' },
-      { language: 'css', label: 'CSS' },
-      { language: 'javascript', label: 'JavaScript' },
-      { language: 'python', label: 'Python' },
-      { language: 'bash', label: 'Bash' },
-      { language: 'json', label: 'JSON' },
-      { language: 'sql', label: 'SQL' },
-      { language: 'xml', label: 'XML' }
-    ]
-  },
-  language: {
-    ui: 'en',
-    content: 'en'
-  },
-  textPartLanguage: [
-    { language: 'en', title: 'English' },
-    { language: 'bn', title: 'বাংলা' }
-  ]
-}).then(function(editor) {
-  editorInstance = editor;
-  if (window.__pendingContent) {
-    editor.setData(window.__pendingContent);
-    window.__pendingContent = null;
-  }
-}).catch(function(err) {
-  document.getElementById('editor').innerHTML =
-    '<p style="color:#f85149;padding:20px;">Error: ' + err.message + '</p>';
-  console.error(err);
+}, 'image/webp', 0.85);
+};
+img.onerror = function() { reject('Image load failed'); };
+img.src = URL.createObjectURL(file);
 });
-
-function setEditorContent(html) {
-  if (editorInstance) {
-    editorInstance.setData(html);
-  } else {
-    window.__pendingContent = html;
-  }
+});
 }
-
+abort() {}
+}
+function WebPUploadAdapterPlugin(editor) {
+editor.plugins.get('FileRepository').createUploadAdapter = function(loader) {
+return new WebPUploadAdapter(loader);
+};
+}
+function ThemeTogglePlugin(editor) {
+editor.ui.componentFactory.add('themeToggle', function(locale) {
+var view = new CK.ButtonView(locale);
+var isDark = document.documentElement.dataset.theme !== 'light';
+view.set({
+label: isDark ? 'Light theme' : 'Dark theme',
+tooltip: true,
+icon: isDark ? SUN_ICON : MOON_ICON,
+withText: false
+});
+view.on('execute', function() {
+var root = document.documentElement;
+isDark = root.dataset.theme === 'light';
+root.dataset.theme = isDark ? 'dark' : 'light';
+localStorage.setItem('ckeditor-theme', isDark ? 'dark' : 'light');
+view.set({ icon: isDark ? SUN_ICON : MOON_ICON, label: isDark ? 'Light theme' : 'Dark theme' });
+});
+return view;
+});
+}
+function FullscreenPlugin(editor) {
+editor.ui.componentFactory.add('fullscreen', function(locale) {
+var view = new CK.ButtonView(locale);
+var isFull = false;
+view.set({
+label: 'Fullscreen',
+tooltip: true,
+icon: FULLSCREEN_ICON,
+withText: false
+});
+view.on('execute', function() {
+isFull = !isFull;
+if (isFull) {
+document.documentElement.requestFullscreen();
+document.body.classList.add('ck-fullscreen');
+view.set({ icon: COMPRESS_ICON, label: 'Exit fullscreen' });
+} else {
+document.exitFullscreen();
+document.body.classList.remove('ck-fullscreen');
+view.set({ icon: FULLSCREEN_ICON, label: 'Fullscreen' });
+}
+});
+document.addEventListener('fullscreenchange', function() {
+if (!document.fullscreenElement) {
+isFull = false;
+document.body.classList.remove('ck-fullscreen');
+view.set({ icon: FULLSCREEN_ICON, label: 'Fullscreen' });
+}
+});
+return view;
+});
+}
+function ResponsivePreviewPlugin(editor) {
+var modes = [
+{ label: 'Desktop', icon: DESKTOP_ICON, width: null },
+{ label: 'Tablet (768px)', icon: TABLET_ICON, width: 768 },
+{ label: 'Mobile (375px)', icon: PHONE_ICON, width: 375 }
+];
+var current = 0;
+editor.ui.componentFactory.add('responsivePreview', function(locale) {
+var view = new CK.ButtonView(locale);
+view.set({
+label: modes[0].label,
+tooltip: true,
+icon: modes[0].icon,
+withText: false
+});
+view.on('execute', function() {
+current = (current + 1) % modes.length;
+var mode = modes[current];
+view.set({ label: mode.label, icon: mode.icon });
+if (mode.width) {
+document.body.classList.add('ck-responsive-preview');
+} else {
+document.body.classList.remove('ck-responsive-preview');
+}
+var editable = document.querySelector('.ck-editor__editable');
+if (editable) {
+editable.style.maxWidth = mode.width ? mode.width + 'px' : '';
+editable.style.margin = mode.width ? '24px auto' : '';
+}
+});
+return view;
+});
+}
+function prettyPrintHTML(html) {
+var blocks = ['address','article','aside','blockquote','body','canvas','caption','dd','div','dl','dt','fieldset','figcaption','figure','footer','form','h1','h2','h3','h4','h5','h6','header','hr','html','li','main','nav','noscript','ol','p','pre','section','table','tfoot','ul','video','tr','td','th','thead','tbody','tfoot'];
+html = html.replace(/\r\n?/g, '\n').replace(/\n/g, ' ').replace(/>\s+</g, '><').trim();
+var parts = html.split(/(<[^>]+>)/);
+var out = '', indent = 0, sp = '  ';
+for (var i = 0; i < parts.length; i++) {
+var p = parts[i];
+if (!p) continue;
+if (p[0] === '<' && p[p.length - 1] === '>') {
+var isClose = p[1] === '/';
+var tag = p.replace(/^<\/?([^\s>/]+).*$/, '$1').toLowerCase();
+var isSelfClose = p.indexOf('/>') === p.length - 2 || ['br','hr','img','input','meta','link','area','base','col','embed','param','source','track','wbr'].indexOf(tag) !== -1;
+if (isClose) indent = Math.max(0, indent - 1);
+if (blocks.indexOf(tag) !== -1) out += '\n' + sp.repeat(indent);
+out += p;
+if (!isClose && !isSelfClose && blocks.indexOf(tag) !== -1) indent++;
+} else {
+var t = p.trim();
+if (t) out += '\n' + sp.repeat(indent) + t;
+}
+}
+return out.trim();
+}
+function FormatSourcePlugin(editor) {
+editor.ui.componentFactory.add('formatSource', function(locale) {
+var view = new CK.ButtonView(locale);
+view.set({
+label: 'Format source',
+tooltip: true,
+icon: FORMAT_ICON,
+withText: false
+});
+view.on('execute', function() {
+var ta = document.querySelector('.ck-source-editing-area textarea');
+if (ta) {
+var start = ta.selectionStart;
+var end = ta.selectionEnd;
+ta.value = prettyPrintHTML(ta.value);
+ta.selectionStart = start;
+ta.selectionEnd = end;
+}
+});
+return view;
+});
+}
+CK.ClassicEditor.create(document.querySelector('#editor'), {
+plugins: [
+CK.Essentials, CK.Paragraph, CK.Undo, CK.SelectAll, CK.AccessibilityHelp,
+CK.Bold, CK.Italic, CK.Underline, CK.Strikethrough, CK.Code, CK.Subscript, CK.Superscript,
+CK.Font,
+CK.Heading, CK.Style, CK.ShowBlocks, CK.TextPartLanguage, CK.GeneralHtmlSupport,
+CK.List, CK.TodoList, CK.ListProperties,
+CK.Indent, CK.IndentBlock,
+CK.Alignment,
+CK.Link, CK.LinkImage,
+CK.BlockQuote, CK.CodeBlock, CK.HorizontalLine,
+CK.MediaEmbed,
+CK.Table, CK.TableToolbar, CK.TableProperties, CK.TableCellProperties, CK.TableCaption,
+CK.Image, CK.ImageToolbar, CK.ImageCaption, CK.ImageStyle, CK.ImageResize,
+CK.ImageInsert, CK.ImageInsertViaUrl, CK.AutoImage,
+WebPUploadAdapterPlugin,
+CK.SpecialCharacters, CK.SpecialCharactersEssentials,
+CK.SpecialCharactersArrows, CK.SpecialCharactersCurrency,
+CK.SpecialCharactersLatin, CK.SpecialCharactersMathematical, CK.SpecialCharactersText,
+CK.Highlight, CK.RemoveFormat,
+CK.PasteFromOffice, CK.PastePlainText,
+CK.Autoformat,
+CK.FindAndReplace,
+CK.SourceEditing,
+CK.AutoLink,
+ThemeTogglePlugin,
+FullscreenPlugin,
+ResponsivePreviewPlugin,
+FormatSourcePlugin
+],
+toolbar: {
+items: [
+'heading', '|',
+'style', '|',
+'bold', 'italic', 'underline', 'strikethrough', 'code', 'subscript', 'superscript', '|',
+'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
+'bulletedList', 'numberedList', 'todoList', '|',
+'outdent', 'indent', '|',
+'alignment', '|',
+'link', 'blockQuote', 'insertTable', 'codeBlock', 'horizontalLine', 'mediaEmbed', '|',
+'imageInsert', '|',
+'highlight', 'removeFormat', 'specialCharacters', '|',
+'showBlocks', 'textPartLanguage', '|',
+'sourceEditing', 'formatSource', 'findAndReplace', '|',
+'responsivePreview', 'themeToggle', 'fullscreen', '|',
+'undo', 'redo', '|',
+'accessibilityHelp'
+],
+shouldNotGroupWhenFull: true
+},
+image: {
+toolbar: [
+'toggleImageCaption', 'imageTextAlternative',
+'|', 'imageStyle:inline', 'imageStyle:block', 'imageStyle:side',
+'|', 'resizeImage'
+],
+insert: { type: 'auto' }
+},
+table: {
+contentToolbar: [
+'tableColumn', 'tableRow', 'mergeTableCells',
+'|', 'tableProperties', 'tableCellProperties', 'toggleTableCaption'
+]
+},
+heading: {
+options: [
+{ model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
+{ model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_h1' },
+{ model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_h2' },
+{ model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_h3' },
+{ model: 'heading4', view: 'h4', title: 'Heading 4', class: 'ck-heading_h4' },
+{ model: 'heading5', view: 'h5', title: 'Heading 5', class: 'ck-heading_h5' },
+{ model: 'heading6', view: 'h6', title: 'Heading 6', class: 'ck-heading_h6' }
+]
+},
+link: {
+addTargetToExternalLinks: true,
+decorators: {
+openInNewTab: {
+mode: 'manual',
+label: 'Open in new tab',
+attributes: { target: '_blank', rel: 'noopener noreferrer' }
+}
+}
+},
+fontFamily: {
+options: [
+'default',
+'Arial, Helvetica, sans-serif',
+'Courier New, Courier, monospace',
+'Georgia, serif',
+'Tahoma, Geneva, sans-serif',
+'Times New Roman, Times, serif',
+'Verdana, Geneva, sans-serif',
+'Kalpurush, Arial, sans-serif',
+'Noto Sans Bengali, Arial, sans-serif',
+'Siyam Rupali, Arial, sans-serif'
+]
+},
+fontSize: { options: [8, 9, 10, 11, 12, 14, 16, 18, 20, 22, 24, 26, 28, 36, 48, 72] },
+alignment: { options: ['left', 'center', 'right', 'justify'] },
+indentBlock: { offset: 40, unit: 'px' },
+highlight: {
+options: [
+{ model: 'yellowMarker', class: 'ck-highlight-marker-yellow', title: 'Yellow marker' },
+{ model: 'greenMarker', class: 'ck-highlight-marker-green', title: 'Green marker' },
+{ model: 'pinkMarker', class: 'ck-highlight-marker-pink', title: 'Pink marker' },
+{ model: 'blueMarker', class: 'ck-highlight-marker-blue', title: 'Blue marker' },
+{ model: 'redPen', class: 'ck-highlight-pen-red', title: 'Red pen' },
+{ model: 'greenPen', class: 'ck-highlight-pen-green', title: 'Green pen' }
+]
+},
+list: { properties: { styles: true, startIndex: true, reversed: true } },
+codeBlock: {
+languages: [
+{ language: 'plaintext', label: 'Plain text' },
+{ language: 'html', label: 'HTML' },
+{ language: 'css', label: 'CSS' },
+{ language: 'javascript', label: 'JavaScript' },
+{ language: 'python', label: 'Python' },
+{ language: 'bash', label: 'Bash' },
+{ language: 'json', label: 'JSON' },
+{ language: 'sql', label: 'SQL' },
+{ language: 'xml', label: 'XML' }
+]
+},
+language: {
+ui: 'en',
+content: 'en'
+},
+textPartLanguage: [
+{ language: 'en', title: 'English' },
+{ language: 'bn', title: 'বাংলা' }
+]
+}).then(function(editor) {
+editorInstance = editor;
+if (window.__pendingContent) {
+editor.setData(window.__pendingContent);
+window.__pendingContent = null;
+}
+}).catch(function(err) {
+document.getElementById('editor').innerHTML =
+'<p style="color:#f85149;padding:20px;">Error: ' + err.message + '</p>';
+console.error(err);
+});
+function setEditorContent(html) {
+if (editorInstance) {
+editorInstance.setData(html);
+} else {
+window.__pendingContent = html;
+}
+}
 function getEditorContent() {
-  if (editorInstance) {
-    return editorInstance.getData();
-  }
-  return '';
+if (editorInstance) {
+return editorInstance.getData();
+}
+return '';
 }
 </script>
 </body>
@@ -694,30 +652,6 @@ const SUPABASE_ANON_KEY = 'sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5';
 })();
   </script>
   </div>
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
-  </script>
-  <script>
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      var b = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', b ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = b ? '\u{1F319}' : '\u2600\uFE0F';
-    }
-    (function() {
-      var btn = document.querySelector('.theme-toggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '\u{1F319}';
-      }
-    })();
-  </script>
+  <script defer src="../site.js?v=40d7164c"></script>
 </body>
 </html>

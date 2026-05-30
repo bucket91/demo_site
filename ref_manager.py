@@ -121,6 +121,12 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         btn_row.addStretch()
 
+        self.cleanup_btn = QtWidgets.QPushButton("Cleanup")
+        self.cleanup_btn.setMinimumHeight(40)
+        self.cleanup_btn.setToolTip("Find unused images, orphaned files, and empty directories")
+        self.cleanup_btn.clicked.connect(self._cleanup)
+        btn_row.addWidget(self.cleanup_btn)
+
         self.gen_btn = QtWidgets.QPushButton("Generate")
         self.gen_btn.setProperty("class", "primary")
         self.gen_btn.setMinimumHeight(40)
@@ -254,10 +260,13 @@ class RefManagerWidget(QtWidgets.QWidget):
             elif action == comments_action:
                 self._toggle_comments(data)
         elif data.get("type") == "category":
-            delete_action = menu.addAction("Delete Category")
+            remove_action = menu.addAction("Remove category from sidebar")
+            delete_action = menu.addAction("Delete category and all files")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
-            if action == delete_action:
-                self._delete_category(data["name"])
+            if action == remove_action:
+                self._remove_category(item.text(0))
+            elif action == delete_action:
+                self._delete_category_with_files(item.text(0))
 
     def _remove_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
@@ -299,9 +308,10 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.refresh_all()
         self.status.setText(f"Deleted '{data['name']}'{' and file' if removed else ''}")
 
-    def _delete_category(self, category):
+    def _remove_category(self, category):
         reply = QtWidgets.QMessageBox.question(
-            self, "Delete Category", f"Remove entire '{category}' category?",
+            self, "Remove Category",
+            f"Remove '{category}' from sidebar?\nFiles and folder will be kept on disk.",
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
         )
         if reply != QtWidgets.QMessageBox.Yes:
@@ -309,7 +319,33 @@ class RefManagerWidget(QtWidgets.QWidget):
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
-        self.status.setText(f"Removed category '{category}'")
+        self.status.setText(f"Removed category '{category}' from sidebar")
+
+    def _delete_category_with_files(self, category):
+        cat_dir = os.path.join(SITE_DIR, category)
+        file_count = 0
+        if os.path.isdir(cat_dir):
+            file_count = sum(1 for f in os.listdir(cat_dir) if os.path.isfile(os.path.join(cat_dir, f)))
+        reply = QtWidgets.QMessageBox.question(
+            self, "Delete Category",
+            f"Delete '{category}' and all {file_count} file(s) inside?\n"
+            "This cannot be undone.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
+        sidebar_util.save_sidebar(self._sidebar_data)
+        if os.path.isdir(cat_dir):
+            import shutil
+            try:
+                shutil.rmtree(cat_dir)
+            except Exception as e:
+                self.status.setText(f"Error deleting directory: {e}")
+                self.refresh_all()
+                return
+        self.refresh_all()
+        self.status.setText(f"Deleted category '{category}' and {file_count} file(s)")
 
     def _add_discovered(self, category, file_path, name):
         for cat in self._sidebar_data:
@@ -456,7 +492,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             self._remove_entry(data)
         elif data.get("type") == "category":
-            self._delete_category(data["name"])
+            self._remove_category(item.text(0))
 
     def delete_selected(self):
         item = self.tree.currentItem()
@@ -469,7 +505,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             self._delete_entry(data)
         elif data.get("type") == "category":
-            self._delete_category(data["name"])
+            self._delete_category_with_files(item.text(0))
 
     def set_file_path(self, path, category=None):
         self.refresh_all()
@@ -564,6 +600,120 @@ class RefManagerWidget(QtWidgets.QWidget):
             self.status.setText(f"Added '{name}' to '{cat}'")
 
         ok_btn.clicked.connect(do_add)
+        dlg.exec_()
+
+    def _cleanup(self):
+        import glob
+        all_html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
+        skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+        all_html_files = [f for f in all_html_files if not any(p in f.replace(SITE_DIR, '').split(os.sep) for p in skip_dirs)]
+        sidebar_files = {entry["file"] for cat in self._sidebar_data for entry in cat["entries"]}
+        orphaned_htmls = [f for f in all_html_files if '/' + os.path.relpath(f, SITE_DIR).replace('\\', '/') not in sidebar_files]
+
+        all_content = ""
+        for f in all_html_files:
+            try:
+                with open(f, encoding="utf-8") as fh:
+                    all_content += fh.read()
+            except Exception:
+                pass
+
+        img_dir = os.path.join(SITE_DIR, "images")
+        unused_images = []
+        if os.path.exists(img_dir):
+            for fname in os.listdir(img_dir):
+                fpath = os.path.join(img_dir, fname)
+                if os.path.isfile(fpath):
+                    if fname not in all_content:
+                        unused_images.append(fpath)
+
+        empty_dirs = []
+        for item in os.listdir(SITE_DIR):
+            d = os.path.join(SITE_DIR, item)
+            if os.path.isdir(d) and item not in skip_dirs and item not in ('images', 'videos', 'ckeditor'):
+                has_files = any(os.path.isfile(os.path.join(dp, f)) for dp, _, fs in os.walk(d) for f in fs)
+                if not has_files:
+                    empty_dirs.append(d)
+
+        total = len(unused_images) + len(orphaned_htmls) + len(empty_dirs)
+        if total == 0:
+            QtWidgets.QMessageBox.information(self, "Cleanup", "Nothing to clean up — everything is in order.")
+            return
+
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle(f"Cleanup — {total} item(s) found")
+        dlg.resize(520, 400)
+        dl = QtWidgets.QVBoxLayout(dlg)
+
+        scroll = QtWidgets.QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        body = QtWidgets.QWidget()
+        bl = QtWidgets.QVBoxLayout(body)
+        bl.setContentsMargins(0, 0, 0, 0)
+        checkboxes = []
+
+        def add_section(title, items, icon=""):
+            if not items:
+                return
+            label = QtWidgets.QLabel(f"{icon} {title} ({len(items)})")
+            label.setStyleSheet("font-weight: bold; color: #f0c040; margin-top: 8px;")
+            bl.addWidget(label)
+            for item in sorted(items):
+                cb = QtWidgets.QCheckBox(os.path.relpath(item, SITE_DIR) if os.path.isabs(item) else item)
+                cb.setChecked(True)
+                cb.setStyleSheet("color: #c9d1d9;")
+                bl.addWidget(cb)
+                checkboxes.append((cb, item))
+
+        add_section("Unused images", unused_images, "\U0001F5BC")
+        add_section("Orphaned HTML files", orphaned_htmls, "\U0001F4C4")
+        add_section("Empty directories", empty_dirs, "\U0001F4C1")
+
+        bl.addStretch()
+        scroll.setWidget(body)
+        dl.addWidget(scroll, 1)
+
+        btn_row = QtWidgets.QHBoxLayout()
+        deleted_label = QtWidgets.QLabel("")
+        deleted_label.setStyleSheet("color: #8b949e;")
+        btn_row.addWidget(deleted_label, 1)
+
+        cancel_btn = QtWidgets.QPushButton("Cancel")
+        cancel_btn.clicked.connect(dlg.reject)
+        btn_row.addWidget(cancel_btn)
+
+        delete_btn = QtWidgets.QPushButton(f"Delete Selected ({total})")
+        delete_btn.setProperty("class", "primary")
+        delete_btn.setStyleSheet("background: #b71c1c; color: #fff; font-weight: bold; border: none; border-radius: 6px; padding: 8px 16px;")
+        btn_row.addWidget(delete_btn)
+        dl.addLayout(btn_row)
+
+        def do_delete():
+            deleted = 0
+            for cb, item in checkboxes:
+                if not cb.isChecked():
+                    continue
+                if os.path.isfile(item):
+                    try:
+                        os.remove(item)
+                        deleted += 1
+                    except Exception as e:
+                        deleted_label.setText(f"Error: {e}")
+                        return
+                elif os.path.isdir(item):
+                    try:
+                        import shutil
+                        shutil.rmtree(item)
+                        deleted += 1
+                    except Exception as e:
+                        deleted_label.setText(f"Error: {e}")
+                        return
+            dlg.accept()
+            self.refresh_all()
+            self.status.setText(f"Cleanup: deleted {deleted} item(s)")
+
+        delete_btn.clicked.connect(do_delete)
         dlg.exec_()
 
     def generate(self):

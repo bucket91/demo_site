@@ -8,14 +8,41 @@ def _path(*parts):
     return os.path.join(SITE_DIR, *parts)
 
 
+SITE_JS_CONTENT = """function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function toggleCategory(header) {
+  header.classList.toggle('active');
+  header.querySelector('.arrow').classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+function toggleTheme() {
+  document.body.classList.toggle('dark-mode');
+  var b = document.body.classList.contains('dark-mode');
+  localStorage.setItem('theme', b ? 'dark' : 'light');
+  document.querySelector('.theme-toggle').textContent = b ? '\\u{1F319}' : '\\u2600\\uFE0F';
+}
+(function() {
+  var btn = document.querySelector('.theme-toggle');
+  if (localStorage.getItem('theme') === 'dark') {
+    document.body.classList.add('dark-mode');
+    if (btn) btn.textContent = '\\u{1F319}';
+  }
+})();
+"""
+
 TEMPLATE_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>{{TITLE}}</title>
 {{FONT_LINK}}
-  <link rel="stylesheet" href="{{STYLE_PATH}}">
+{{PRECONNECT}}
+  <link rel="stylesheet" href="{{STYLE_PATH}}?v={{STYLE_HASH}}">
+  <link rel="stylesheet" href="{{ADVANCED_STYLE_PATH}}?v={{ADV_STYLE_HASH}}" media="print" onload="this.media='all'">
+  <noscript><link rel="stylesheet" href="{{ADVANCED_STYLE_PATH}}?v={{ADV_STYLE_HASH}}"></noscript>
 </head>
 <body>
 {{VIDEO_BG}}
@@ -33,31 +60,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     </main>
 {{COMMENTS}}
   </div>
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
-  </script>
-  <script>
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      var b = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', b ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = b ? '\\u{1F319}' : '\\u2600\\uFE0F';
-    }
-    (function() {
-      var btn = document.querySelector('.theme-toggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '\\u{1F319}';
-      }
-    })();
-  </script>
+  <script defer src="{{JS_PATH}}"></script>
 </body>
 </html>"""
 
@@ -172,6 +175,7 @@ def ensure_site_files(site_dir):
 
     check(_path("template.html"), TEMPLATE_HTML)
     check(_path("style.css"), DEFAULT_CSS)
+    check(_path("site.js"), SITE_JS_CONTENT)
 
     if not os.path.exists(_path("config.json")):
         with open(_path("config.json"), "w", encoding="utf-8") as f:

@@ -108,7 +108,11 @@ DEFAULT = {
         "content_padding": 20,
         "header_position": "static"
     },
-    "custom_css": ""
+    "custom_css": "",
+    "avif": {
+        "enabled": False,
+        "quality": 30
+    }
 }
 
 SHADOW_PRESETS = {
@@ -316,6 +320,38 @@ def convert_to_webm(input_path, output_dir):
     except Exception as e:
         return False, str(e)
 
+
+def convert_to_avif(webp_path, quality=30):
+    """Convert existing WebP to AVIF. Tries libsvtav1 (fast) then libaom-av1 (fallback).
+    Returns (success, output_path or error string)."""
+    import subprocess, shutil
+    avif_path = webp_path.replace('.webp', '.avif')
+    if os.path.exists(avif_path) and os.path.getsize(avif_path) > 0:
+        return True, avif_path
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return False, "ffmpeg not found"
+    # Clean stale 0-byte file
+    if os.path.exists(avif_path):
+        os.remove(avif_path)
+
+    encoders = [
+        ("libsvtav1", ["-c:v", "libsvtav1", "-crf", str(quality), "-still-picture", "1"], 120),
+        ("libaom-av1", ["-c:v", "libaom-av1", "-crf", str(quality), "-still-picture", "1", "-cpu-used", "4"], 300),
+    ]
+    for enc_name, enc_opts, timeout in encoders:
+        cmd = [ffmpeg, "-y", "-i", webp_path] + enc_opts + [avif_path]
+        try:
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+            if result.returncode == 0 and os.path.exists(avif_path) and os.path.getsize(avif_path) > 0:
+                return True, avif_path
+            if os.path.exists(avif_path):
+                os.remove(avif_path)
+        except Exception:
+            if os.path.exists(avif_path):
+                os.remove(avif_path)
+            continue
+    return False, "AVIF conversion failed with all available encoders"
 
 def load():
     if not os.path.exists(ADVANCED_JSON):
@@ -973,7 +1009,13 @@ body { padding-top: 60px; }
         lines.append(custom_css.strip())
 
     output = "\n".join(lines)
-    return output
+    # Minify
+    out_lines = []
+    for l in output.split("\n"):
+        s = l.strip()
+        if s and not s.startswith("/*"):
+            out_lines.append(s)
+    return "\n".join(out_lines)
 
 
 def regenerate(data=None):
