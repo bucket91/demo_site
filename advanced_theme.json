@@ -24,7 +24,7 @@
     "sidebar": 0
   },
   "backgrounds": {
-    "enabled": true,
+    "enabled": false,
     "type": "image",
     "light_colors": [
       "#f5f5e8",
@@ -58,8 +58,8 @@
     "bg_repeat": "no-repeat",
     "bg_attachment": "scroll",
     "image_filter": "none",
-    "image_filter_value": 48,
-    "image_overlay": "none",
+    "image_filter_value": 46,
+    "image_overlay": "gradient",
     "image_overlay_color": "#000000",
     "image_overlay_opacity": 30,
     "blend_mode": "lighten",
@@ -79,7 +79,7 @@
     "link_hover": "animated",
     "image_hover": "grayscale",
     "smooth_scroll": true,
-    "scroll_reveal": false
+    "scroll_reveal": true
   },
   "borders": {
     "enabled": false,

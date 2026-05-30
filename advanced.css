@@ -11,9 +11,6 @@
   --adv-radius-avatar: 50px;
   --adv-radius-header: 0px;
   --adv-radius-sidebar: 0px;
-  --adv-animation-speed: 1s;
-  --adv-animation-easing: linear;
-  --adv-bg: transparent;
 }
 
 body.dark-mode {
@@ -59,25 +56,6 @@ header {
 }
 
 body {
-  background-image: url('images/DSC04587.jpg') !important;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  animation: advImgPulse var(--adv-animation-speed) var(--adv-animation-easing) infinite;
-  background-blend-mode: lighten;
-  transition: background 0.3s;
-}
-
-@keyframes advImgPulse {
-
-  0%, 100% { opacity: 1; }
-
-  50% { opacity: 0.85; }
-
-}
-
-body {
   animation: advSlideUp 0.6s ease;
 }
 
@@ -92,3 +70,16 @@ body {
 .doc-content img:not([style*="float"]) { filter: grayscale(0); transition: filter 0.3s; } .doc-content img:not([style*="float"]):hover { filter: grayscale(0); }
 
 html { scroll-behavior: smooth; }
+
+.home-card, .comment, .doc-content img, .doc-content blockquote {
+  opacity: 0;
+  transform: translateY(20px);
+  animation: advReveal 0.6s ease forwards;
+}
+.home-card:nth-child(2) { animation-delay: 0.1s; }
+.home-card:nth-child(3) { animation-delay: 0.2s; }
+.home-card:nth-child(4) { animation-delay: 0.3s; }
+@keyframes advReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
