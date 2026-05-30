@@ -1,7 +1,7 @@
 {
   "shadows": {
     "enabled": true,
-    "preset": "medium",
+    "preset": "deep",
     "color": "#000000",
     "opacity_light": 10,
     "opacity_dark": 45,
@@ -25,7 +25,7 @@
   },
   "backgrounds": {
     "enabled": true,
-    "type": "gradient",
+    "type": "image",
     "light_colors": [
       "#e8ecf0",
       "#dce0e8"
@@ -54,7 +54,7 @@
     "bg_repeat": "no-repeat",
     "bg_attachment": "scroll",
     "image_filter": "none",
-    "image_filter_value": 50,
+    "image_filter_value": 48,
     "image_overlay": "none",
     "image_overlay_color": "#000000",
     "image_overlay_opacity": 30,
@@ -63,11 +63,11 @@
   },
   "hover_effects": {
     "enabled": true,
-    "page_load": "none",
-    "card_hover": "lift",
-    "button_hover": "darken",
-    "link_hover": "underline",
-    "image_hover": "zoom",
+    "page_load": "scale",
+    "card_hover": "glow",
+    "button_hover": "lift",
+    "link_hover": "color",
+    "image_hover": "grayscale",
     "smooth_scroll": true,
     "scroll_reveal": false
   },

@@ -1,7 +1,7 @@
 /* Advanced Theme — auto-generated. Do not edit directly. */
 
 :root {
-  --adv-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --adv-shadow: 0 8px 24px rgba(0,0,0,0.1);
   --adv-transition: 0.3s;
   --adv-hover-lift: 6px;
   --adv-radius-card: 10px;
@@ -13,12 +13,11 @@
   --adv-radius-sidebar: 0px;
   --adv-animation-speed: 6s;
   --adv-animation-easing: ease;
-  --adv-bg: linear-gradient(to bottom, #e8ecf0, #dce0e8);
+  --adv-bg: transparent;
 }
 
 body.dark-mode {
-  --adv-shadow: 0 4px 12px rgba(0,0,0,0.45);
-  --adv-bg: linear-gradient(to bottom, #161b22, #0d1117);
+  --adv-shadow: 0 8px 24px rgba(0,0,0,0.45);
 }
 
 .home-card, .comment, .sidebar-owner, header, .doc-content img:not([style*="float"]) {
@@ -60,17 +59,22 @@ header {
 }
 
 body {
-  background: var(--adv-bg) !important;
   background-blend-mode: lighten;
   transition: background 0.3s;
 }
 
-.home-card:hover, .comment:hover { transform: translateY(var(--adv-hover-lift, -6px)); box-shadow: var(--adv-shadow); }
+body {
+  animation: advScaleIn 0.5s ease;
+}
 
-#comment-form button:hover { filter: brightness(1.1); }
+@keyframes advScaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-.sub-links li a:hover, .home-card a:hover { text-decoration: underline; }
+.home-card:hover, .comment:hover { box-shadow: 0 0 20px var(--accent); border-color: var(--accent); }
 
-.doc-content img:not([style*="float"]) { transition: transform 0.3s; } .doc-content img:not([style*="float"]):hover { transform: scale(1.03); }
+#comment-form button:hover { transform: translateY(-2px); box-shadow: var(--adv-shadow); }
+
+.sub-links li a:hover, .home-card a:hover { color: var(--accent-hover) !important; }
+
+.doc-content img:not([style*="float"]) { filter: grayscale(0); transition: filter 0.3s; } .doc-content img:not([style*="float"]):hover { filter: grayscale(0); }
 
 html { scroll-behavior: smooth; }
