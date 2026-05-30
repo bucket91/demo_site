@@ -1,38 +1,84 @@
-/* Advanced Theme — auto-generated. Do not edit directly. */
-
 :root {
-  --adv-animation-speed: 4s;
-  --adv-animation-easing: ease;
-  --adv-bg: transparent;
-  --adv-video-opacity: 0.9;
+--adv-shadow: 0 8px 24px rgba(0,0,0,0.1);
+--adv-transition: 0.3s;
+--adv-hover-lift: 6px;
+--adv-radius-card: 10px;
+--adv-radius-button: 6px;
+--adv-radius-input: 6px;
+--adv-radius-image: 0px;
+--adv-radius-avatar: 50px;
+--adv-radius-header: 0px;
+--adv-radius-sidebar: 0px;
+--adv-animation-speed: 6s;
+--adv-animation-easing: ease;
+--adv-bg: transparent;
+--adv-video-opacity: 1.0;
 }
-
+body.dark-mode {
+--adv-shadow: 0 8px 24px rgba(0,0,0,0.45);
+}
+.home-card, .comment, .sidebar-owner, header, .doc-content img:not([style*="float"]) {
+box-shadow: var(--adv-shadow);
+transition: box-shadow 0.3s, transform 0.3s;
+}
+.home-card:hover, .comment:hover {
+transform: translateY(-6px);
+box-shadow: var(--adv-shadow);
+}
+.home-card, .comment, .sidebar-owner {
+border-radius: var(--adv-radius-card);
+}
+.theme-toggle, button:not(.sidebar-toggle):not(.close-btn) {
+border-radius: var(--adv-radius-button);
+}
+#comment-form input, #comment-form textarea {
+border-radius: var(--adv-radius-input);
+}
+.doc-content img {
+border-radius: var(--adv-radius-image);
+}
+.owner-avatar, .owner-card-avatar {
+border-radius: var(--adv-radius-avatar);
+}
+header {
+border-radius: var(--adv-radius-header);
+}
+.sidebar {
+border-radius: var(--adv-radius-sidebar);
+}
 body {
-  background: transparent !important;
-  background-image: none !important;
-  transition: background 0.3s;
+background: transparent !important;
+background-image: none !important;
+background-blend-mode: lighten;
+transition: background 0.3s;
 }
-
 #bg-video-container {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -1;
-  overflow: hidden;
+position: fixed;
+top: 0; left: 0;
+width: 100%; height: 100%;
+z-index: -1;
+overflow: hidden;
 }
-
 #bg-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: var(--adv-video-opacity, 1);
+width: 100%;
+height: 100%;
+object-fit: cover;
+opacity: var(--adv-video-opacity, 1);
 }
-
 #bg-video-container::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 1;
-  background: rgba(0,0,0,0.4);
+content: '';
+position: absolute;
+top: 0; left: 0;
+width: 100%; height: 100%;
+z-index: 1;
+background: rgba(0,0,0,0.3);
 }
+body {
+animation: advScaleIn 0.5s ease;
+}
+@keyframes advScaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+.home-card:hover, .comment:hover { border-color: var(--accent); }
+#comment-form button:hover { transform: translateY(-2px); box-shadow: var(--adv-shadow); }
+.sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }
+.doc-content img:not([style*="float"]) { transition: transform 0.3s; } .doc-content img:not([style*="float"]):hover { transform: scale(1.03); }
+html { scroll-behavior: smooth; }
