@@ -6,7 +6,6 @@ from PyQt5 import QtWidgets, QtCore
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
 import sidebar_util
-sidebar_util.SITE_DIR = SITE_DIR
 
 
 class _HtmlCleaner(HTMLParser):
@@ -327,6 +326,7 @@ class ImportWidget(QtWidgets.QWidget):
         dlg.exec_()
 
     def save_to_site(self):
+        sidebar_util.SITE_DIR = SITE_DIR
         dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Save to Site")
         dlg.setMinimumWidth(400)

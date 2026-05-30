@@ -82,6 +82,11 @@ class RefManagerWidget(QtWidgets.QWidget):
         new_page_btn.clicked.connect(self._new_page)
         top_row.addWidget(new_page_btn)
 
+        import_btn = QtWidgets.QPushButton("Import")
+        import_btn.setMinimumHeight(36)
+        import_btn.clicked.connect(self._import_file)
+        top_row.addWidget(import_btn)
+
         layout.addLayout(top_row)
 
         self.tree = _DropTree()
@@ -365,8 +370,11 @@ class RefManagerWidget(QtWidgets.QWidget):
                         self.status.setText(f"{'Enabled' if not current else 'Disabled'} comments for '{data['name']}'")
                         return
 
-    def _wrap_content(self, body_html, title):
-        rel = os.path.relpath(SITE_DIR, os.path.join(SITE_DIR, "pages")).replace('\\', '/')
+    def _wrap_content(self, body_html, title, file_path=None):
+        if file_path:
+            rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(file_path))).replace('\\', '/')
+        else:
+            rel = os.path.relpath(SITE_DIR, os.path.join(SITE_DIR, "pages")).replace('\\', '/')
         return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -405,7 +413,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if dlg.exec_() == QtWidgets.QDialog.Accepted:
             html = dlg.result_html()
             if html:
-                wrapped = self._wrap_content(html, data["name"])
+                wrapped = self._wrap_content(html, data["name"], fpath)
                 with open(fpath, "w", encoding="utf-8") as f:
                     f.write(wrapped)
                 self.status.setText(f"Saved '{data['name']}'")
@@ -457,7 +465,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             if ed.exec_() == QtWidgets.QDialog.Accepted:
                 html = ed.result_html()
                 if html:
-                    wrapped = self._wrap_content(html, title)
+                    wrapped = self._wrap_content(html, title, fpath)
                     with open(fpath, "w", encoding="utf-8") as f:
                         f.write(wrapped)
                     rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
@@ -472,6 +480,88 @@ class RefManagerWidget(QtWidgets.QWidget):
                     self.status.setText(f"Created '{title}'")
 
         ok_btn.clicked.connect(do_create)
+        dlg.exec_()
+
+    def _import_file(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Import File", "",
+            "Supported files (*.zip *.mht *.mhtml);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
+        if not path:
+            return
+        from docx2html import convert_file
+        result, err = convert_file(path)
+        if err:
+            QtWidgets.QMessageBox.warning(self, "Import Error", err)
+            return
+        if not result.get('ok'):
+            QtWidgets.QMessageBox.warning(self, "Import Error", result.get('error', 'Unknown error'))
+            return
+
+        imported_html = result['html']
+        imported_title = result['title']
+
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle("Import Page")
+        dlg.setMinimumWidth(380)
+        dl = QtWidgets.QVBoxLayout(dlg)
+        dl.setSpacing(8)
+
+        cat_label = QtWidgets.QLabel("Category (folder):")
+        cat_label.setStyleSheet("color: #c9d1d9;")
+        dl.addWidget(cat_label)
+        cat_input = QtWidgets.QLineEdit("blog")
+        dl.addWidget(cat_input)
+
+        title_label = QtWidgets.QLabel("Page title:")
+        title_label.setStyleSheet("color: #c9d1d9;")
+        dl.addWidget(title_label)
+        title_input = QtWidgets.QLineEdit(imported_title)
+        dl.addWidget(title_input)
+
+        btns = QtWidgets.QHBoxLayout()
+        ok_btn = QtWidgets.QPushButton("Import & Edit")
+        cancel_btn = QtWidgets.QPushButton("Cancel")
+        cancel_btn.clicked.connect(dlg.reject)
+        btns.addWidget(cancel_btn)
+        btns.addWidget(ok_btn)
+        dl.addLayout(btns)
+
+        def do_import():
+            cat = cat_input.text().strip()
+            title = title_input.text().strip()
+            if not cat or not title:
+                QtWidgets.QMessageBox.warning(dlg, "Missing", "Enter both category and title")
+                return
+            target_dir = os.path.join(SITE_DIR, cat)
+            os.makedirs(target_dir, exist_ok=True)
+            slug = title.lower().replace(' ', '-').replace('--', '-')
+            slug = re.sub(r'[^a-z0-9-]', '', slug)
+            fname = slug + '.html'
+            fpath = os.path.join(target_dir, fname)
+            if os.path.exists(fpath):
+                QtWidgets.QMessageBox.warning(dlg, "Exists", f"'{fname}' already exists")
+                return
+            from wysiwyg_editor import WysiwygEditor
+            dlg.accept()
+            ed = WysiwygEditor(imported_html, self)
+            if ed.exec_() == QtWidgets.QDialog.Accepted:
+                html = ed.result_html()
+                if html:
+                    wrapped = self._wrap_content(html, title, fpath)
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(wrapped)
+                    rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
+                    for c in self._sidebar_data:
+                        if c["category"] == cat:
+                            c["entries"].append({"name": title, "file": rel})
+                            break
+                    else:
+                        self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
+                    sidebar_util.save_sidebar(self._sidebar_data)
+                    self.refresh_all()
+                    self.status.setText(f"Imported '{title}'")
+
+        ok_btn.clicked.connect(do_import)
         dlg.exec_()
 
     def remove_selected(self):

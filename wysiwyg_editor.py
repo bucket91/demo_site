@@ -2,7 +2,7 @@
 import os, sys, json
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
 
 class WysiwygEditor(QtWidgets.QDialog):
