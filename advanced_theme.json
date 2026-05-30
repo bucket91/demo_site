@@ -24,7 +24,7 @@
     "sidebar": 0
   },
   "backgrounds": {
-    "enabled": true,
+    "enabled": false,
     "type": "video",
     "light_colors": [
       "#f5f5e8",
