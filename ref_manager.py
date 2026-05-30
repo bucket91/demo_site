@@ -254,9 +254,12 @@ class RefManagerWidget(QtWidgets.QWidget):
             elif action == comments_action:
                 self._toggle_comments(data)
         elif data.get("type") == "category":
-            delete_action = menu.addAction("Delete Category")
+            remove_action = menu.addAction("Remove category from sidebar")
+            delete_action = menu.addAction("Delete category and all files")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
-            if action == delete_action:
+            if action == remove_action:
+                self._remove_category(item.text(0))
+            elif action == delete_action:
                 self._delete_category(item.text(0))
 
     def _remove_entry(self, data):
@@ -299,9 +302,10 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.refresh_all()
         self.status.setText(f"Deleted '{data['name']}'{' and file' if removed else ''}")
 
-    def _delete_category(self, category):
+    def _remove_category(self, category):
         reply = QtWidgets.QMessageBox.question(
-            self, "Delete Category", f"Remove entire '{category}' category?",
+            self, "Remove Category",
+            f"Remove '{category}' from sidebar?\nFiles and folder will be kept on disk.",
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
         )
         if reply != QtWidgets.QMessageBox.Yes:
@@ -309,7 +313,32 @@ class RefManagerWidget(QtWidgets.QWidget):
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
-        self.status.setText(f"Removed category '{category}'")
+        self.status.setText(f"Removed category '{category}' from sidebar")
+
+    def _delete_category(self, category):
+        cat_dir = os.path.join(SITE_DIR, category)
+        file_count = 0
+        if os.path.isdir(cat_dir):
+            file_count = sum(1 for f in os.listdir(cat_dir) if os.path.isfile(os.path.join(cat_dir, f)))
+        reply = QtWidgets.QMessageBox.question(
+            self, "Delete Category",
+            f"Delete '{category}' and all {file_count} file(s) inside?\nThis cannot be undone.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
+        sidebar_util.save_sidebar(self._sidebar_data)
+        if os.path.isdir(cat_dir):
+            import shutil
+            try:
+                shutil.rmtree(cat_dir)
+            except Exception as e:
+                self.status.setText(f"Error deleting directory: {e}")
+                self.refresh_all()
+                return
+        self.refresh_all()
+        self.status.setText(f"Deleted category '{category}' and {file_count} file(s)")
 
     def _add_discovered(self, category, file_path, name):
         for cat in self._sidebar_data:
@@ -456,7 +485,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             self._remove_entry(data)
         elif data.get("type") == "category":
-            self._delete_category(item.text(0))
+            self._remove_category(item.text(0))
 
     def delete_selected(self):
         item = self.tree.currentItem()

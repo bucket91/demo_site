@@ -10,11 +10,15 @@ def load_sidebar():
     path = _sidebar_path()
     if not os.path.exists(path):
         return []
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
     with open(path, encoding="utf-8") as f:
-        return json.load(f)
+        data = json.load(f)
+    return [c for c in data if c.get("category") not in skip]
 
 def save_sidebar(data):
     path = _sidebar_path()
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+    data = [c for c in data if c.get("category") not in skip]
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2)
 
