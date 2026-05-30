@@ -321,8 +321,11 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         row.addStretch()
         cb = QtWidgets.QComboBox()
         cb.setView(QtWidgets.QListView())
+        saved = self._data.get(key, {}).get(subkey)
         for val, text in items:
             cb.addItem(text, val)
+            if saved is not None and str(val) == str(saved):
+                cb.setCurrentIndex(cb.count() - 1)
         cb.currentIndexChanged.connect(
             lambda i, sk=subkey, k=key: self._set(sk, k, cb.itemData(i))
         )
