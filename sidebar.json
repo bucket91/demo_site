@@ -7,5 +7,14 @@
         "file": "/blog/test1.html"
       }
     ]
+  },
+  {
+    "category": "ckeditor",
+    "entries": [
+      {
+        "name": "Editor",
+        "file": "/ckeditor/editor.html"
+      }
+    ]
   }
 ]

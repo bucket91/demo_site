@@ -51,7 +51,7 @@ def setup_venv():
         return
     print("Creating build venv and installing PyInstaller + PyQt5...")
     subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
-    subprocess.run([PIP, "install", "pyinstaller", "PyQt5"], check=True)
+    subprocess.run([PIP, "install", "pyinstaller", "PyQt5", "PyQtWebEngine"], check=True)
 
 
 def download_mingit():
@@ -85,6 +85,22 @@ def download_linux_git():
     os.remove(LINUX_GIT_TGZ)
     print(f"Static git extracted to {LINUX_GIT_DIR}")
 
+def download_ckeditor():
+    ckeditor_dir = os.path.join(SITE_DIR, "ckeditor")
+    os.makedirs(ckeditor_dir, exist_ok=True)
+    umd_path = os.path.join(ckeditor_dir, "ckeditor5.umd.js")
+    css_path = os.path.join(ckeditor_dir, "ckeditor5.css")
+    if os.path.exists(umd_path) and os.path.exists(css_path):
+        return
+    print("Downloading CKEditor...")
+    if not os.path.exists(umd_path):
+        urllib.request.urlretrieve(
+            "https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.umd.js", umd_path)
+    if not os.path.exists(css_path):
+        urllib.request.urlretrieve(
+            "https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.css", css_path)
+    print(f"CKEditor files saved to {ckeditor_dir}")
+
 
 def build():
     os.chdir(SITE_DIR)
@@ -99,18 +115,22 @@ def build():
         "--workpath", os.path.join(SITE_DIR, "build"),
         "--specpath", SITE_DIR,
         "--hidden-import", "PyQt5.sip",
+        "--hidden-import", "PyQt5.QtWebEngineWidgets",
         "app.py",
     ]
 
     if IS_WINDOWS:
         download_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
+        cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
         cmd.extend(["--icon", "logo.ico"])
         cmd.extend(["--version-file", "version_info.txt"])
     else:
         download_linux_git()
         cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])
+        cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
         cmd.extend(["--icon", "logo.png"])
+    download_ckeditor()
 
     print("Running PyInstaller...")
     subprocess.run(cmd, check=True)

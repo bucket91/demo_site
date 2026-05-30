@@ -24,7 +24,7 @@ def auto_discover():
         for entry in cat["entries"]:
             existing.add(entry["file"])
 
-    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
     discovered = []
     for item in sorted(os.listdir(SITE_DIR)):
         d = os.path.join(SITE_DIR, item)
@@ -40,7 +40,7 @@ def auto_discover():
     return discovered
 
 def init_from_filesystem():
-    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
+    skip = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
     data = []
     for item in sorted(os.listdir(SITE_DIR)):
         d = os.path.join(SITE_DIR, item)

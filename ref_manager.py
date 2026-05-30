@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, shutil
+import re, html as html_mod
 from PyQt5 import QtWidgets, QtCore, QtGui
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -75,6 +76,12 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.discover_btn.setMinimumHeight(36)
         self.discover_btn.clicked.connect(self.refresh_all)
         top_row.addWidget(self.discover_btn)
+
+        new_page_btn = QtWidgets.QPushButton("New Page")
+        new_page_btn.setMinimumHeight(36)
+        new_page_btn.clicked.connect(self._new_page)
+        top_row.addWidget(new_page_btn)
+
         layout.addLayout(top_row)
 
         self.tree = _DropTree()
@@ -222,13 +229,16 @@ class RefManagerWidget(QtWidgets.QWidget):
             return
         menu = QtWidgets.QMenu(self)
         if data.get("type") == "entry":
+            edit_action = menu.addAction("Edit in WYSIWYG")
             rename_action = menu.addAction("Rename")
             delete_action = menu.addAction("Delete")
             menu.addSeparator()
             comments_on = data.get("comments", True)
             comments_action = menu.addAction("Comments: On" if comments_on else "Comments: Off")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
-            if action == rename_action:
+            if action == edit_action:
+                self._edit_page(data)
+            elif action == rename_action:
                 self.tree.editItem(item, 0)
             elif action == delete_action:
                 self._delete_entry(data)
@@ -291,6 +301,115 @@ class RefManagerWidget(QtWidgets.QWidget):
                         self.refresh_all()
                         self.status.setText(f"{'Enabled' if not current else 'Disabled'} comments for '{data['name']}'")
                         return
+
+    def _wrap_content(self, body_html, title):
+        rel = os.path.relpath(SITE_DIR, os.path.join(SITE_DIR, "pages")).replace('\\', '/')
+        return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{html_mod.escape(title)}</title>
+  <link rel="stylesheet" href="{rel}/style.css">
+</head>
+<body>
+  <header>
+    <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
+    <h1><a href="{rel}/index.html">{html_mod.escape(title)}</a></h1>
+    <button class="theme-toggle" onclick="toggleTheme()">&#x2600;&#xFE0F;</button>
+  </header>
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+    </aside>
+    <main>
+{body_html}
+    </main>
+  </div>
+</body>
+</html>"""
+
+    def _edit_page(self, data):
+        fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
+        if not os.path.exists(fpath):
+            self.status.setText(f"File not found: {data['file']}")
+            return
+        with open(fpath, encoding="utf-8") as f:
+            src = f.read()
+        m = re.search(r'<main>(.*?)</main>', src, re.DOTALL)
+        body = m.group(1).strip() if m else src
+        from wysiwyg_editor import WysiwygEditor
+        dlg = WysiwygEditor(body, self)
+        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+            html = dlg.result_html()
+            if html:
+                wrapped = self._wrap_content(html, data["name"])
+                with open(fpath, "w", encoding="utf-8") as f:
+                    f.write(wrapped)
+                self.status.setText(f"Saved '{data['name']}'")
+
+    def _new_page(self):
+        dlg = QtWidgets.QDialog(self)
+        dlg.setWindowTitle("New Page")
+        dlg.setMinimumWidth(380)
+        dl = QtWidgets.QVBoxLayout(dlg)
+        dl.setSpacing(8)
+        cat_label = QtWidgets.QLabel("Category (folder):")
+        cat_label.setStyleSheet("color: #c9d1d9;")
+        dl.addWidget(cat_label)
+        cat_input = QtWidgets.QLineEdit("blog")
+        dl.addWidget(cat_input)
+        title_label = QtWidgets.QLabel("Page title:")
+        title_label.setStyleSheet("color: #c9d1d9;")
+        dl.addWidget(title_label)
+        title_input = QtWidgets.QLineEdit()
+        title_input.setPlaceholderText("My New Page")
+        dl.addWidget(title_input)
+        btns = QtWidgets.QHBoxLayout()
+        ok_btn = QtWidgets.QPushButton("Create & Edit")
+        ok_btn.setProperty("class", "primary")
+        cancel_btn = QtWidgets.QPushButton("Cancel")
+        cancel_btn.clicked.connect(dlg.reject)
+        btns.addWidget(cancel_btn)
+        btns.addWidget(ok_btn)
+        dl.addLayout(btns)
+
+        def do_create():
+            cat = cat_input.text().strip()
+            title = title_input.text().strip()
+            if not cat or not title:
+                QtWidgets.QMessageBox.warning(dlg, "Missing", "Enter both category and title")
+                return
+            target_dir = os.path.join(SITE_DIR, cat)
+            os.makedirs(target_dir, exist_ok=True)
+            slug = title.lower().replace(' ', '-').replace('--', '-')
+            slug = re.sub(r'[^a-z0-9-]', '', slug)
+            fname = slug + '.html'
+            fpath = os.path.join(target_dir, fname)
+            if os.path.exists(fpath):
+                QtWidgets.QMessageBox.warning(dlg, "Exists", f"'{fname}' already exists")
+                return
+            from wysiwyg_editor import WysiwygEditor
+            dlg.accept()
+            ed = WysiwygEditor("", self)
+            if ed.exec_() == QtWidgets.QDialog.Accepted:
+                html = ed.result_html()
+                if html:
+                    wrapped = self._wrap_content(html, title)
+                    with open(fpath, "w", encoding="utf-8") as f:
+                        f.write(wrapped)
+                    rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
+                    for c in self._sidebar_data:
+                        if c["category"] == cat:
+                            c["entries"].append({"name": title, "file": rel})
+                            break
+                    else:
+                        self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
+                    sidebar_util.save_sidebar(self._sidebar_data)
+                    self.refresh_all()
+                    self.status.setText(f"Created '{title}'")
+
+        ok_btn.clicked.connect(do_create)
+        dlg.exec_()
 
     def delete_selected(self):
         item = self.tree.currentItem()

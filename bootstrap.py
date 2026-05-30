@@ -184,6 +184,12 @@ def ensure_site_files(site_dir):
 
     check(_path(".nojekyll"), "")
 
+    adv_json = _path("advanced_theme.json")
+    if not os.path.exists(adv_json):
+        from advanced_theme import DEFAULT, save
+        save(DEFAULT)
+        created.append("advanced_theme.json")
+
     old_ref = _path("template reference.txt")
     if os.path.exists(old_ref):
         os.remove(old_ref)

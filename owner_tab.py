@@ -78,7 +78,6 @@ class OwnerWidget(QtWidgets.QWidget):
         self.avatar_preview = QtWidgets.QLabel()
         self.avatar_preview.setFixedSize(64, 64)
         self.avatar_preview.setStyleSheet("""
-            border-radius: 32px;
             border: 3px solid #58a6ff;
             background: #0d1117;
         """)

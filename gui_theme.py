@@ -28,10 +28,10 @@ def make_gui_stylesheet(base_size=14):
     c = MIDNIGHT
     qss = f"""
 QMainWindow {{ background: {c["dark_body_bg"]}; }}
-QTabWidget::pane {{ background: {c["dark_body_bg"]}; border: none; }}
+QTabWidget::pane {{ background: {c["dark_body_bg"]}; border: none; padding: 0; }}
 QTabBar::tab {{
     background: {c["dark_card_bg"]}; color: {c["dark_muted"]};
-    padding: 10px 10px; border: none; font-size: {base_size}px;
+    padding: 8px 28px; margin: 0 1px; border: none; font-size: {base_size}px;
 }}
 QTabBar::tab:selected {{ background: {c["dark_body_bg"]}; color: {c["dark_text"]}; }}
 QTabBar::tab:hover {{ color: {c["dark_text"]}; }}

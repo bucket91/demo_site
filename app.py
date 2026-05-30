@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys, os, json
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
 
 SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
@@ -18,16 +18,6 @@ class App(QtWidgets.QMainWindow):
         self.setMinimumSize(900, 700)
 
         tabs = QtWidgets.QTabWidget()
-        tabs.setStyleSheet("""
-            QTabWidget::pane {
-                border: none;
-                padding: 0;
-            }
-            QTabBar::tab {
-                padding: 8px 28px;
-                margin: 0 1px;
-            }
-        """)
         self.setCentralWidget(tabs)
 
         import design_tab
@@ -38,6 +28,10 @@ class App(QtWidgets.QMainWindow):
         content_tab.SITE_DIR = SITE_DIR
         self.content_widget = content_tab.ContentWidget()
         tabs.addTab(self.content_widget, "Content")
+
+        import advanced_theme_tab
+        advanced_theme_tab.SITE_DIR = SITE_DIR
+        tabs.addTab(advanced_theme_tab.AdvancedThemeTab(), "Advanced")
 
         import setup_git
         setup_git.SITE_DIR = SITE_DIR
@@ -111,6 +105,7 @@ class App(QtWidgets.QMainWindow):
 
 
 def main():
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts, True)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
 

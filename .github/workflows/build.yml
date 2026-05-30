@@ -23,7 +23,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install PyQt5 pyinstaller
+          pip install PyQt5 PyQtWebEngine pyinstaller
 
       - name: Download git (Linux)
         if: runner.os == 'Linux'
@@ -45,18 +45,27 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
 
+      - name: Download CKEditor
+        run: |
+          mkdir -p ckeditor
+          curl -sL -o ckeditor/ckeditor5.umd.js https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.umd.js
+          curl -sL -o ckeditor/ckeditor5.css https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.css
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
       - name: Build executable
         run: |
           DATA_ARGS=""
           if [ "${{ runner.os }}" = "Windows" ]; then
-            DATA_ARGS="--add-data mingit;mingit"
+            DATA_ARGS="--add-data mingit;mingit --add-data ckeditor;ckeditor"
             ICON_ARGS="--icon logo.ico --version-file version_info.txt"
           else
-            DATA_ARGS="--add-data bundled-git:bundled-git"
+            DATA_ARGS="--add-data bundled-git:bundled-git --add-data ckeditor:ckeditor"
             ICON_ARGS="--icon logo.png"
           fi
           pyinstaller --onefile --name SiteTools \
             --hidden-import PyQt5.sip \
+            --hidden-import PyQt5.QtWebEngineWidgets \
             $DATA_ARGS $ICON_ARGS app.py
         shell: bash
         working-directory: ${{ github.workspace }}

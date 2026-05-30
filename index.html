@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Home</title>
-
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="advanced.css">
 </head>
 <body>
   <header>
@@ -33,6 +33,14 @@
           <li><a href="blog/test1.html">Test1</a></li>
         </ul>
       </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          ckeditor <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="ckeditor/editor.html">Editor</a></li>
+        </ul>
+      </div>
 
     </aside>
     <main>
@@ -54,6 +62,12 @@
     <h2>blog</h2>
     <ul>
       <li><a href="blog/test1.html">Test1</a></li>
+    </ul>
+  </div>
+  <div class="home-card">
+    <h2>ckeditor</h2>
+    <ul>
+      <li><a href="ckeditor/editor.html">Editor</a></li>
     </ul>
   </div>
 </div>

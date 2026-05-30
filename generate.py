@@ -283,6 +283,12 @@ def build_page(filepath, categories):
     comments_block, _ = make_comments_block(filepath)
     style_rel = os.path.relpath(os.path.join(SITE_DIR, 'style.css'), os.path.dirname(os.path.abspath(filepath)))
     style_rel = style_rel.replace('\\', '/')
+    adv_css = os.path.join(SITE_DIR, 'advanced.css')
+    if os.path.exists(adv_css):
+        adv_rel = os.path.relpath(adv_css, os.path.dirname(os.path.abspath(filepath)))
+        adv_rel = adv_rel.replace('\\', '/')
+    else:
+        adv_rel = ''
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
     with open(TEMPLATE_FILE, encoding="utf-8") as f:
@@ -295,6 +301,7 @@ def build_page(filepath, categories):
     result = result.replace('{{SITE_TITLE}}', site_title)
     result = result.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
+    result = result.replace('{{ADVANCED_STYLE_PATH}}', adv_rel)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
     result = result.replace('{{SIDEBAR}}', sidebar)

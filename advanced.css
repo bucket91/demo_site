@@ -1,0 +1,75 @@
+/* Advanced Theme — auto-generated. Do not edit directly. */
+
+:root {
+  --adv-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  --adv-transition: 0.3s;
+  --adv-hover-lift: 6px;
+  --adv-radius-card: 10px;
+  --adv-radius-button: 6px;
+  --adv-radius-input: 6px;
+  --adv-radius-image: 0px;
+  --adv-radius-avatar: 50px;
+  --adv-radius-header: 0px;
+  --adv-radius-sidebar: 0px;
+  --adv-pattern-color: #000000;
+  --adv-pattern-opacity: 0.15;
+  --adv-bg: linear-gradient(to bottom, #e8ecf0, #dce0e8);
+}
+
+body.dark-mode {
+  --adv-shadow: 0 4px 12px rgba(0,0,0,0.45);
+  --adv-bg: linear-gradient(to bottom, #161b22, #0d1117);
+}
+
+.home-card, .comment, .sidebar-owner, header, .doc-content img:not([style*="float"]) {
+  box-shadow: var(--adv-shadow);
+  transition: box-shadow 0.3s, transform 0.3s;
+}
+
+.home-card:hover, .comment:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--adv-shadow);
+}
+
+.home-card, .comment, .sidebar-owner {
+  border-radius: var(--adv-radius-card);
+}
+
+.theme-toggle, button:not(.sidebar-toggle):not(.close-btn) {
+  border-radius: var(--adv-radius-button);
+}
+
+#comment-form input, #comment-form textarea {
+  border-radius: var(--adv-radius-input);
+}
+
+.doc-content img {
+  border-radius: var(--adv-radius-image);
+}
+
+.owner-avatar, .owner-card-avatar {
+  border-radius: var(--adv-radius-avatar);
+}
+
+header {
+  border-radius: var(--adv-radius-header);
+}
+
+.sidebar {
+  border-radius: var(--adv-radius-sidebar);
+}
+
+body {
+  background: var(--adv-bg) !important;
+  transition: background 0.3s;
+}
+
+.home-card:hover, .comment:hover { transform: translateY(var(--adv-hover-lift, -6px)); box-shadow: var(--adv-shadow); }
+
+#comment-form button:hover { filter: brightness(1.1); }
+
+.sub-links li a:hover, .home-card a:hover { text-decoration: underline; }
+
+.doc-content img:not([style*="float"]) { transition: transform 0.3s; } .doc-content img:not([style*="float"]):hover { transform: scale(1.03); }
+
+html { scroll-behavior: smooth; }
