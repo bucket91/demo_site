@@ -5,6 +5,10 @@
       {
         "name": "Test1",
         "file": "/blog/test1.html"
+      },
+      {
+        "name": "page",
+        "file": "/blog/page.html"
       }
     ]
   }
