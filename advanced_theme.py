@@ -1,8 +1,12 @@
 import os, json
 
-SITE_DIR = os.path.dirname(os.path.abspath(__file__))
-ADVANCED_JSON = os.path.join(SITE_DIR, "advanced_theme.json")
-ADVANCED_CSS = os.path.join(SITE_DIR, "advanced.css")
+SITE_DIR = None
+
+def _adv_json():
+    return os.path.join(SITE_DIR, "advanced_theme.json") if SITE_DIR else None
+
+def _adv_css():
+    return os.path.join(SITE_DIR, "advanced.css") if SITE_DIR else None
 
 DEFAULT = {
     "shadows": {
@@ -318,11 +322,12 @@ def convert_to_webm(input_path, output_dir):
 
 
 def load():
-    if not os.path.exists(ADVANCED_JSON):
+    path = _adv_json()
+    if not path or not os.path.exists(path):
         save(DEFAULT)
         return dict(DEFAULT)
     try:
-        with open(ADVANCED_JSON, encoding="utf-8") as f:
+        with open(path, encoding="utf-8") as f:
             data = json.load(f)
         merged = dict(DEFAULT)
         _deep_merge(merged, data)
@@ -332,8 +337,11 @@ def load():
 
 
 def save(data):
+    path = _adv_json()
+    if not path:
+        return
     try:
-        with open(ADVANCED_JSON, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
     except Exception as e:
         print(f"Error saving advanced theme: {e}")
@@ -1005,8 +1013,11 @@ def regenerate(data=None):
     if data is None:
         data = load()
     css = generate_css(data)
+    path = _adv_css()
+    if not path:
+        return False
     try:
-        with open(ADVANCED_CSS, "w", encoding="utf-8") as f:
+        with open(path, "w", encoding="utf-8") as f:
             f.write(css)
         return True
     except Exception as e:

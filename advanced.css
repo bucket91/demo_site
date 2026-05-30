@@ -11,6 +11,9 @@
   --adv-radius-avatar: 50px;
   --adv-radius-header: 0px;
   --adv-radius-sidebar: 0px;
+  --adv-animation-speed: 1s;
+  --adv-animation-easing: linear;
+  --adv-bg: transparent;
 }
 
 body.dark-mode {
@@ -56,17 +59,36 @@ header {
 }
 
 body {
-  animation: advScaleIn 0.5s ease;
+  background-image: url('images/DSC04587.jpg') !important;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: scroll;
+  animation: advImgPulse var(--adv-animation-speed) var(--adv-animation-easing) infinite;
+  background-blend-mode: lighten;
+  transition: background 0.3s;
 }
 
-@keyframes advScaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+@keyframes advImgPulse {
 
-.home-card:hover, .comment:hover { border-color: var(--accent); }
+  0%, 100% { opacity: 1; }
 
-#comment-form button:hover { transform: translateY(-2px); box-shadow: var(--adv-shadow); }
+  50% { opacity: 0.85; }
+
+}
+
+body {
+  animation: advSlideUp 0.6s ease;
+}
+
+@keyframes advSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.home-card:hover, .comment:hover { box-shadow: 0 0 20px var(--accent); border-color: var(--accent); }
+
+#comment-form button:hover { box-shadow: 0 0 12px var(--accent); }
 
 .sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }
 
-.doc-content img:not([style*="float"]) { transition: transform 0.3s; } .doc-content img:not([style*="float"]):hover { transform: scale(1.03); }
+.doc-content img:not([style*="float"]) { filter: grayscale(0); transition: filter 0.3s; } .doc-content img:not([style*="float"]):hover { filter: grayscale(0); }
 
 html { scroll-behavior: smooth; }

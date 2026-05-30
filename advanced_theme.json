@@ -24,8 +24,8 @@
     "sidebar": 0
   },
   "backgrounds": {
-    "enabled": false,
-    "type": "video",
+    "enabled": true,
+    "type": "image",
     "light_colors": [
       "#f5f5e8",
       "#ffffff",
@@ -39,20 +39,20 @@
       "#f8f8f2"
     ],
     "gradient_subtype": "linear",
-    "direction": "to bottom",
-    "gradient_angle": 174,
+    "direction": "to bottom right",
+    "gradient_angle": 177,
     "radial_shape": "ellipse",
     "radial_position": "center",
-    "conic_position": "center",
+    "conic_position": "top right",
     "gradient_repeat": false,
-    "animation": "none",
-    "animation_speed": 6,
-    "animation_easing": "ease",
+    "animation": "pulse",
+    "animation_speed": 1,
+    "animation_easing": "linear",
     "pattern": "grid",
     "pattern_opacity": 100,
-    "pattern_color": "#000000",
+    "pattern_color": "#5277ff",
     "pattern_size": 20,
-    "bg_image": "",
+    "bg_image": "images/DSC04587.jpg",
     "bg_size": "cover",
     "bg_position": "center",
     "bg_repeat": "no-repeat",
@@ -73,11 +73,11 @@
   },
   "hover_effects": {
     "enabled": true,
-    "page_load": "scale",
-    "card_hover": "border",
-    "button_hover": "lift",
+    "page_load": "slide",
+    "card_hover": "glow",
+    "button_hover": "glow",
     "link_hover": "animated",
-    "image_hover": "zoom",
+    "image_hover": "grayscale",
     "smooth_scroll": true,
     "scroll_reveal": false
   },
@@ -114,7 +114,7 @@
   },
   "custom_css": "",
   "avif": {
-    "enabled": true,
+    "enabled": false,
     "quality": 30
   }
 }

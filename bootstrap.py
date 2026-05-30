@@ -187,8 +187,9 @@ def ensure_site_files(site_dir):
 
     adv_json = _path("advanced_theme.json")
     if not os.path.exists(adv_json):
-        from advanced_theme import DEFAULT, save
-        save(DEFAULT)
+        import advanced_theme
+        advanced_theme.SITE_DIR = site_dir
+        advanced_theme.save(advanced_theme.DEFAULT)
         created.append("advanced_theme.json")
 
     old_ref = _path("template reference.txt")

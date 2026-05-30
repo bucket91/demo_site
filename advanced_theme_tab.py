@@ -6,6 +6,7 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 sys.path.insert(0, SITE_DIR)
 
 import advanced_theme
+advanced_theme.SITE_DIR = SITE_DIR
 from advanced_theme import DEFAULT
 
 NAME_MAP = {
