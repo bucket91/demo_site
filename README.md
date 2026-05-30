@@ -1,5 +1,10 @@
 # Site Tools
 
+> **🔧 Latest Python source — clone the development branch:**
+> ```bash
+> git clone -b feature/python-updates https://github.com/bucket91/demo_site.git
+> ```
+
 A desktop app that creates, manages, and publishes static sites to GitHub Pages with a built-in WYSIWYG editor, theme customization, and Supabase-powered comments.
 
 ## Quick Start

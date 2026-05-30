@@ -64,6 +64,8 @@ jobs:
             ICON_ARGS="--icon logo.png"
           fi
           pyinstaller --onefile --name SiteTools \
+            --strip --optimize 2 \
+            --exclude-module PyQt5.QtWaylandClient \
             --hidden-import PyQt5.sip \
             --hidden-import PyQt5.QtWebEngineWidgets \
             $DATA_ARGS $ICON_ARGS app.py
