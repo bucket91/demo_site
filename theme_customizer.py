@@ -299,6 +299,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         # Theme selector
         selector_row = QtWidgets.QHBoxLayout()
         self.theme_combo = QtWidgets.QComboBox()
+        self.theme_combo.setView(QtWidgets.QListView())
         self.theme_combo.addItem("Custom...", "Custom")
         self.theme_combo.insertSeparator(self.theme_combo.count())
         for key in THEMES:
@@ -327,6 +328,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         font_label.setStyleSheet("color: #6e7681;")
         font_row.addWidget(font_label)
         self.font_combo = QtWidgets.QComboBox()
+        self.font_combo.setView(QtWidgets.QListView())
         self.rebuild_font_combo()
         self.font_combo.currentIndexChanged.connect(self.on_theme_changed)
         font_row.addWidget(self.font_combo, 1)
