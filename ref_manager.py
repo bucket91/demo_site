@@ -257,7 +257,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             delete_action = menu.addAction("Delete Category")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
             if action == delete_action:
-                self._delete_category(data["name"])
+                self._delete_category(item.text(0))
 
     def _remove_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
@@ -456,7 +456,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             self._remove_entry(data)
         elif data.get("type") == "category":
-            self._delete_category(data["name"])
+            self._delete_category(item.text(0))
 
     def delete_selected(self):
         item = self.tree.currentItem()
@@ -469,7 +469,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             self._delete_entry(data)
         elif data.get("type") == "category":
-            self._delete_category(data["name"])
+            self._delete_category(item.text(0))
 
     def set_file_path(self, path, category=None):
         self.refresh_all()
