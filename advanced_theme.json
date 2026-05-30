@@ -27,12 +27,16 @@
     "enabled": true,
     "type": "video",
     "light_colors": [
-      "#e8ecf0",
-      "#dce0e8"
+      "#f5f5e8",
+      "#ffffff",
+      "#a6a61a",
+      "#272822"
     ],
     "dark_colors": [
-      "#161b22",
-      "#0d1117"
+      "#1e1f1c",
+      "#3e3f3a",
+      "#a6e22e",
+      "#f8f8f2"
     ],
     "gradient_subtype": "linear",
     "direction": "to bottom",

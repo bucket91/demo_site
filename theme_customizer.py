@@ -398,10 +398,74 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.status.setProperty("class", "dim")
         layout.addWidget(self.status)
 
-        # Pick first preset theme
+        # Restore saved theme selection from config
         self._ready = True
-        self.theme_combo.setCurrentIndex(2)
+        self._restore_selection()
+
+    def _load_cfg(self):
+        cfg = {}
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, encoding="utf-8") as f:
+                    cfg = json.load(f)
+            except Exception:
+                pass
+        return cfg
+
+    def _save_cfg(self, update):
+        cfg = self._load_cfg()
+        cfg.update(update)
+        try:
+            with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+                json.dump(cfg, f, indent=2)
+        except Exception:
+            pass
+
+    def _restore_selection(self):
+        cfg = self._load_cfg()
+        saved_theme = cfg.get("selected_theme", "")
+        saved_font = cfg.get("selected_font", "")
+        if saved_theme:
+            idx = self.theme_combo.findData(saved_theme)
+            if idx >= 0:
+                self.theme_combo.setCurrentIndex(idx)
+            else:
+                self.theme_combo.setCurrentIndex(2)
+        else:
+            self.theme_combo.setCurrentIndex(2)
+        if saved_font:
+            idx = self.font_combo.findText(saved_font)
+            if idx >= 0:
+                self.font_combo.setCurrentIndex(idx)
         self.on_theme_changed(self.theme_combo.currentIndex())
+
+    def _update_advanced_base_colors(self, theme_colors):
+        adv_json = os.path.join(SITE_DIR, "advanced_theme.json")
+        if not os.path.exists(adv_json):
+            return
+        try:
+            with open(adv_json, encoding="utf-8") as f:
+                adv = json.load(f)
+        except Exception:
+            return
+        bg = adv.setdefault("backgrounds", {})
+        bg["light_colors"] = [
+            theme_colors.get("body_bg", "#f0f0f5"),
+            theme_colors.get("card_bg", "#ffffff"),
+            theme_colors.get("accent", "#333333"),
+            theme_colors.get("label", "#222222"),
+        ]
+        bg["dark_colors"] = [
+            theme_colors.get("dark_body_bg", "#121212"),
+            theme_colors.get("dark_card_bg", "#1e1e1e"),
+            theme_colors.get("dark_accent", "#333333"),
+            theme_colors.get("dark_label", "#e0e0e0"),
+        ]
+        try:
+            with open(adv_json, "w", encoding="utf-8") as f:
+                json.dump(adv, f, indent=2)
+        except Exception:
+            pass
 
     # --- Font combo ---
 
@@ -607,11 +671,18 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             self._log(f"Error writing CSS: {e}")
             return
 
+        # Update advanced theme base colors to match this theme
+        self._update_advanced_base_colors(t)
+
         self._log(f"Applied {name}. Running generate...")
 
         import generate
         output = generate.run_generate_captured()
         self._log(f"Done: {output}")
+        self._save_cfg({
+            "selected_theme": self.theme_key(),
+            "selected_font": self.font_combo.currentText(),
+        })
 
 
 

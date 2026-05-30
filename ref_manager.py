@@ -109,7 +109,12 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         btn_row = QtWidgets.QHBoxLayout()
 
-        self.delete_btn = QtWidgets.QPushButton("Delete Selected")
+        self.remove_btn = QtWidgets.QPushButton("Remove")
+        self.remove_btn.setMinimumHeight(40)
+        self.remove_btn.clicked.connect(self.remove_selected)
+        btn_row.addWidget(self.remove_btn)
+
+        self.delete_btn = QtWidgets.QPushButton("Delete File")
         self.delete_btn.setMinimumHeight(40)
         self.delete_btn.clicked.connect(self.delete_selected)
         btn_row.addWidget(self.delete_btn)
@@ -231,7 +236,9 @@ class RefManagerWidget(QtWidgets.QWidget):
         if data.get("type") == "entry":
             edit_action = menu.addAction("Edit in WYSIWYG")
             rename_action = menu.addAction("Rename")
-            delete_action = menu.addAction("Delete")
+            menu.addSeparator()
+            remove_action = menu.addAction("Remove from sidebar")
+            delete_action = menu.addAction("Delete file")
             menu.addSeparator()
             comments_on = data.get("comments", True)
             comments_action = menu.addAction("Comments: On" if comments_on else "Comments: Off")
@@ -240,6 +247,8 @@ class RefManagerWidget(QtWidgets.QWidget):
                 self._edit_page(data)
             elif action == rename_action:
                 self.tree.editItem(item, 0)
+            elif action == remove_action:
+                self._remove_entry(data)
             elif action == delete_action:
                 self._delete_entry(data)
             elif action == comments_action:
@@ -250,9 +259,9 @@ class RefManagerWidget(QtWidgets.QWidget):
             if action == delete_action:
                 self._delete_category(data["name"])
 
-    def _delete_entry(self, data):
+    def _remove_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
-            self, "Delete", f"Remove '{data['name']}' from sidebar?",
+            self, "Remove", f"Remove '{data['name']}' from sidebar?\nThe file will be kept on disk.",
             QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
         )
         if reply != QtWidgets.QMessageBox.Yes:
@@ -263,7 +272,32 @@ class RefManagerWidget(QtWidgets.QWidget):
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
-        self.status.setText(f"Removed '{data['name']}'")
+        self.status.setText(f"Removed '{data['name']}' from sidebar")
+
+    def _delete_entry(self, data):
+        reply = QtWidgets.QMessageBox.question(
+            self, "Delete File",
+            f"Delete '{data['name']}'?\nThe file '{data['file']}' will be permanently deleted.",
+            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+        )
+        if reply != QtWidgets.QMessageBox.Yes:
+            return
+        fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
+        removed = False
+        if os.path.exists(fpath):
+            try:
+                os.remove(fpath)
+                removed = True
+            except Exception as e:
+                self.status.setText(f"Error deleting file: {e}")
+                return
+        for cat in self._sidebar_data:
+            if cat["category"] == data["category"]:
+                cat["entries"] = [e for e in cat["entries"] if e["file"] != data["file"]]
+                break
+        sidebar_util.save_sidebar(self._sidebar_data)
+        self.refresh_all()
+        self.status.setText(f"Deleted '{data['name']}'{' and file' if removed else ''}")
 
     def _delete_category(self, category):
         reply = QtWidgets.QMessageBox.question(
@@ -410,6 +444,19 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         ok_btn.clicked.connect(do_create)
         dlg.exec_()
+
+    def remove_selected(self):
+        item = self.tree.currentItem()
+        if not item:
+            self.status.setText("Select an entry to remove")
+            return
+        data = item.data(0, QtCore.Qt.UserRole)
+        if not data:
+            return
+        if data.get("type") == "entry":
+            self._remove_entry(data)
+        elif data.get("type") == "category":
+            self._delete_category(data["name"])
 
     def delete_selected(self):
         item = self.tree.currentItem()
