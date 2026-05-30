@@ -313,7 +313,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         layout.addLayout(row)
         return sl, val
 
-    def _add_combo(self, layout, label, key, subkey, items):
+    def _add_combo(self, layout, label, key, subkey, items, default=None):
         row = QtWidgets.QHBoxLayout()
         lb = QtWidgets.QLabel(label)
         lb.setStyleSheet("color: #6e7681;")
@@ -321,11 +321,12 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         row.addStretch()
         cb = QtWidgets.QComboBox()
         cb.setView(QtWidgets.QListView())
-        saved = self._data.get(key, {}).get(subkey)
         for val, text in items:
             cb.addItem(text, val)
-            if saved is not None and str(val) == str(saved):
-                cb.setCurrentIndex(cb.count() - 1)
+        if default is not None:
+            idx = cb.findData(default)
+            if idx >= 0:
+                cb.setCurrentIndex(idx)
         cb.currentIndexChanged.connect(
             lambda i, sk=subkey, k=key: self._set(sk, k, cb.itemData(i))
         )
@@ -363,7 +364,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         d = self._data.get("shadows", {})
         self._add_checkbox(sec.content_layout, "Enable shadows", "shadows", "enabled", d.get("enabled", False))
         self._add_combo(sec.content_layout, "Shadow preset", "shadows", "preset",
-                        [("none", "None"), ("subtle", "Subtle"), ("medium", "Medium"), ("deep", "Deep")])
+                        [("none", "None"), ("subtle", "Subtle"), ("medium", "Medium"), ("deep", "Deep")],
+                        default=d.get("preset", "none"))
         self._add_color(sec.content_layout, "Shadow color", "shadows", "color", d.get("color", "#000000"))
         self._add_slider(sec.content_layout, "Light opacity %", "shadows", "opacity_light", 0, 100, d.get("opacity_light", 10), "%")
         self._add_slider(sec.content_layout, "Dark opacity %", "shadows", "opacity_dark", 0, 100, d.get("opacity_dark", 45), "%")
@@ -399,7 +401,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
 
         # === Background type ===
         self.bg_type_combo = self._add_combo(cl, "Background type", "backgrounds", "type",
-            [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern"), ("image", "Image"), ("video", "Video")])
+            [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern"), ("image", "Image"), ("video", "Video")],
+            default=d.get("type", "solid"))
 
         # === Base Colors (all except Image) ===
         self.colors_group = QtWidgets.QGroupBox("Base Colors")
@@ -434,24 +437,26 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self.gradient_group = QtWidgets.QGroupBox("Gradient Settings")
         gg = QtWidgets.QVBoxLayout(self.gradient_group)
         self._add_combo(gg, "Gradient type", "backgrounds", "gradient_subtype",
-                        [("linear", "Linear"), ("radial", "Radial"), ("conic", "Conic")])
+                        [("linear", "Linear"), ("radial", "Radial"), ("conic", "Conic")],
+                        default=d.get("gradient_subtype", "linear"))
         self.grad_dir = self._add_combo(gg, "Direction", "backgrounds", "direction", [
             ("to bottom", "Top to Bottom"), ("to top", "Bottom to Top"),
             ("to right", "Left to Right"), ("to left", "Right to Left"),
             ("to bottom right", "Diagonal \u2198"), ("to bottom left", "Diagonal \u2199"),
             ("to top right", "Diagonal \u2197"), ("to top left", "Diagonal \u2196"),
-        ])
+        ], default=d.get("direction", "to bottom"))
         self._add_slider(gg, "Angle (deg)", "backgrounds", "gradient_angle", 0, 360, d.get("gradient_angle", 180), "\u00b0")
         self._add_combo(gg, "Radial shape", "backgrounds", "radial_shape",
-                        [("ellipse", "Ellipse"), ("circle", "Circle")])
+                        [("ellipse", "Ellipse"), ("circle", "Circle")],
+                        default=d.get("radial_shape", "ellipse"))
         self._add_combo(gg, "Radial position", "backgrounds", "radial_position", [
             ("center", "Center"), ("top left", "Top Left"), ("top right", "Top Right"),
             ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
-        ])
+        ], default=d.get("radial_position", "center"))
         self._add_combo(gg, "Conic position", "backgrounds", "conic_position", [
             ("center", "Center"), ("top left", "Top Left"), ("top right", "Top Right"),
             ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
-        ])
+        ], default=d.get("conic_position", "center"))
         self._add_checkbox(gg, "Repeat gradient", "backgrounds", "gradient_repeat", d.get("gradient_repeat", False))
         cl.addWidget(self.gradient_group)
 
@@ -465,7 +470,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
             ("diagonal", "Diagonal Lines"), ("crosshatch", "Crosshatch"),
             ("zigzag", "Zigzag"), ("waves", "Waves"),
             ("chevron", "Chevron"), ("honeycomb", "Honeycomb"), ("polka", "Polka Dots"),
-        ])
+        ], default=d.get("pattern", "none"))
         self._add_color(pg, "Pattern color", "backgrounds", "pattern_color", d.get("pattern_color", "#000000"))
         self._add_slider(pg, "Opacity %", "backgrounds", "pattern_opacity", 0, 100, d.get("pattern_opacity", 15), "%")
         self._add_slider(pg, "Size (px)", "backgrounds", "pattern_size", 5, 60, d.get("pattern_size", 20), "px")
@@ -481,6 +486,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         img_row.addWidget(img_label)
         self.bg_image_path = QtWidgets.QLineEdit()
         self.bg_image_path.setPlaceholderText("Select background image...")
+        self.bg_image_path.setText(d.get("bg_image", ""))
         self.bg_image_path.textChanged.connect(lambda t: self._set("bg_image", "backgrounds", t))
         img_row.addWidget(self.bg_image_path, 1)
         browse_btn = QtWidgets.QPushButton("Browse")
@@ -489,19 +495,22 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         ig.addLayout(img_row)
 
         self._add_combo(ig, "Size", "backgrounds", "bg_size",
-                        [("cover", "Cover"), ("contain", "Contain"), ("auto", "Auto"), ("100%", "100%")])
+                        [("cover", "Cover"), ("contain", "Contain"), ("auto", "Auto"), ("100%", "100%")],
+                        default=d.get("bg_size", "cover"))
         self._add_combo(ig, "Position", "backgrounds", "bg_position", [
             ("center", "Center"), ("top", "Top"), ("bottom", "Bottom"),
             ("left", "Left"), ("right", "Right"),
             ("top left", "Top Left"), ("top right", "Top Right"),
             ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
-        ])
+        ], default=d.get("bg_position", "center"))
         self._add_combo(ig, "Repeat", "backgrounds", "bg_repeat",
                         [("no-repeat", "No Repeat"), ("repeat", "Repeat"),
                          ("repeat-x", "Repeat X"), ("repeat-y", "Repeat Y"),
-                         ("space", "Space"), ("round", "Round")])
+                         ("space", "Space"), ("round", "Round")],
+                        default=d.get("bg_repeat", "no-repeat"))
         self._add_combo(ig, "Attachment", "backgrounds", "bg_attachment",
-                        [("scroll", "Scroll"), ("fixed", "Fixed"), ("local", "Local")])
+                        [("scroll", "Scroll"), ("fixed", "Fixed"), ("local", "Local")],
+                        default=d.get("bg_attachment", "scroll"))
 
         sep1 = QtWidgets.QLabel()
         sep1.setFixedHeight(6)
@@ -512,7 +521,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_combo(ig, "Type", "backgrounds", "image_filter",
                         [("none", "None"), ("grayscale", "Grayscale"), ("sepia", "Sepia"),
                          ("blur", "Blur"), ("brightness", "Brightness"),
-                         ("contrast", "Contrast"), ("hue_rotate", "Hue Rotate")])
+                         ("contrast", "Contrast"), ("hue_rotate", "Hue Rotate")],
+                        default=d.get("image_filter", "none"))
         self._add_slider(ig, "Amount", "backgrounds", "image_filter_value", 0, 100, d.get("image_filter_value", 50), "")
 
         sep2 = QtWidgets.QLabel()
@@ -522,7 +532,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         ov_lb.setStyleSheet("color: #8b949e; font-size: 12px;")
         ig.addWidget(ov_lb)
         self._add_combo(ig, "Type", "backgrounds", "image_overlay",
-                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")])
+                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")],
+                        default=d.get("image_overlay", "none"))
         self._add_color(ig, "Overlay color", "backgrounds", "image_overlay_color", d.get("image_overlay_color", "#000000"))
         self._add_slider(ig, "Overlay opacity %", "backgrounds", "image_overlay_opacity", 0, 100, d.get("image_overlay_opacity", 30), "%")
         cl.addWidget(self.image_group)
@@ -579,7 +590,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         ov_lb_v.setStyleSheet("color: #8b949e; font-size: 12px;")
         vg.addWidget(ov_lb_v)
         self._add_combo(vg, "Type", "backgrounds", "video_overlay",
-                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")])
+                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")],
+                        default=d.get("video_overlay", "none"))
         self._add_color(vg, "Overlay color", "backgrounds", "video_overlay_color", d.get("video_overlay_color", "#000000"))
         self._add_slider(vg, "Overlay opacity %", "backgrounds", "video_overlay_opacity", 0, 100, d.get("video_overlay_opacity", 30), "%")
         cl.addWidget(self.video_group)
@@ -600,7 +612,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_slider(ag, "Speed (seconds)", "backgrounds", "animation_speed", 1, 20, d.get("animation_speed", 4), "s")
         self._add_combo(ag, "Easing", "backgrounds", "animation_easing",
                         [("ease", "Ease"), ("linear", "Linear"), ("ease-in", "Ease In"),
-                         ("ease-out", "Ease Out"), ("ease-in-out", "Ease In Out")])
+                         ("ease-out", "Ease Out"), ("ease-in-out", "Ease In Out")],
+                        default=d.get("animation_easing", "ease"))
         cl.addWidget(self.anim_group)
 
         # === Advanced ===
@@ -610,7 +623,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
                         [("normal", "Normal"), ("multiply", "Multiply"), ("screen", "Screen"),
                          ("overlay", "Overlay"), ("darken", "Darken"), ("lighten", "Lighten"),
                          ("color-dodge", "Color Dodge"), ("saturation", "Saturation"),
-                         ("color", "Color"), ("luminosity", "Luminosity")])
+                         ("color", "Color"), ("luminosity", "Luminosity")],
+                        default=d.get("blend_mode", "normal"))
         self._add_slider(advl, "Overall opacity %", "backgrounds", "bg_opacity", 10, 100, d.get("bg_opacity", 100), "%")
         cl.addWidget(self.adv_bg_group)
 
@@ -660,15 +674,20 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         d = self._data.get("hover_effects", {})
         self._add_checkbox(sec.content_layout, "Enable hover effects", "hover_effects", "enabled", d.get("enabled", False))
         self._add_combo(sec.content_layout, "Page load animation", "hover_effects", "page_load",
-                        [("none", "None"), ("fade", "Fade In"), ("slide", "Slide Up"), ("scale", "Scale In")])
+                        [("none", "None"), ("fade", "Fade In"), ("slide", "Slide Up"), ("scale", "Scale In")],
+                        default=d.get("page_load", "none"))
         self._add_combo(sec.content_layout, "Card hover effect", "hover_effects", "card_hover",
-                        [("none", "None"), ("lift", "Lift"), ("glow", "Glow"), ("border", "Border"), ("scale", "Scale")])
+                        [("none", "None"), ("lift", "Lift"), ("glow", "Glow"), ("border", "Border"), ("scale", "Scale")],
+                        default=d.get("card_hover", "lift"))
         self._add_combo(sec.content_layout, "Button hover effect", "hover_effects", "button_hover",
-                        [("none", "None"), ("darken", "Darken"), ("lift", "Lift"), ("fill", "Fill"), ("glow", "Glow")])
+                        [("none", "None"), ("darken", "Darken"), ("lift", "Lift"), ("fill", "Fill"), ("glow", "Glow")],
+                        default=d.get("button_hover", "darken"))
         self._add_combo(sec.content_layout, "Link hover effect", "hover_effects", "link_hover",
-                        [("none", "None"), ("underline", "Underline"), ("color", "Color shift"), ("animated", "Animated underline")])
+                        [("none", "None"), ("underline", "Underline"), ("color", "Color shift"), ("animated", "Animated underline")],
+                        default=d.get("link_hover", "underline"))
         self._add_combo(sec.content_layout, "Image hover effect", "hover_effects", "image_hover",
-                        [("none", "None"), ("zoom", "Zoom"), ("overlay", "Brighten"), ("grayscale", "Grayscale")])
+                        [("none", "None"), ("zoom", "Zoom"), ("overlay", "Brighten"), ("grayscale", "Grayscale")],
+                        default=d.get("image_hover", "zoom"))
 
         extra_row = QtWidgets.QHBoxLayout()
         sc = QtWidgets.QCheckBox("Smooth scrolling")
@@ -687,13 +706,16 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_checkbox(sec.content_layout, "Enable custom borders", "borders", "enabled", d.get("enabled", False))
         self._add_slider(sec.content_layout, "Card border width", "borders", "card_width", 0, 5, d.get("card_width", 1), "px")
         self._add_combo(sec.content_layout, "Card border style", "borders", "card_style",
-                        [("solid", "Solid"), ("dashed", "Dashed"), ("dotted", "Dotted")])
+                        [("solid", "Solid"), ("dashed", "Dashed"), ("dotted", "Dotted")],
+                        default=d.get("card_style", "solid"))
         self._add_combo(sec.content_layout, "Card border color", "borders", "card_color_mode",
-                        [("theme", "Use theme color"), ("custom", "Custom color")])
+                        [("theme", "Use theme color"), ("custom", "Custom color")],
+                        default=d.get("card_color_mode", "theme"))
         self._add_color(sec.content_layout, "Custom border color", "borders", "card_custom_color", d.get("card_custom_color", "#cccccc"))
         self._add_slider(sec.content_layout, "Input border width", "borders", "input_width", 0, 5, d.get("input_width", 1), "px")
         self._add_combo(sec.content_layout, "Separator style", "borders", "separator_style",
-                        [("none", "None"), ("solid", "Solid"), ("dashed", "Dashed"), ("gradient", "Gradient")])
+                        [("none", "None"), ("solid", "Solid"), ("dashed", "Dashed"), ("gradient", "Gradient")],
+                        default=d.get("separator_style", "none"))
         self._add_slider(sec.content_layout, "Separator thickness", "borders", "separator_width", 1, 5, d.get("separator_width", 1), "px")
 
     def _build_typography(self, sec):
@@ -701,17 +723,19 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_checkbox(sec.content_layout, "Enable typography tweaks", "typography", "enabled", d.get("enabled", False))
         self._add_slider(sec.content_layout, "Heading letter-spacing", "typography", "heading_letter_spacing", -2, 10, d.get("heading_letter_spacing", 0), "px")
         self._add_slider(sec.content_layout, "Body letter-spacing", "typography", "body_letter_spacing", -1, 5, d.get("body_letter_spacing", 0), "px")
-        self._add_slider(sec.content_layout, "Body line-height", "typography", "body_line_height", 100, 250, int(d.get("body_line_height", 1.7) * 100), scale=100)
-        s = self._add_slider(sec.content_layout, "Heading line-height", "typography", "heading_line_height", 80, 200, int(d.get("heading_line_height", 1.3) * 100), scale=100)
+        self._add_slider(sec.content_layout, "Body line-height", "typography", "body_line_height", 100, 250, d.get("body_line_height", 1.7), scale=100)
+        s = self._add_slider(sec.content_layout, "Heading line-height", "typography", "heading_line_height", 80, 200, d.get("heading_line_height", 1.3), scale=100)
         self._add_combo(sec.content_layout, "Link style", "typography", "link_style",
-                        [("colored", "Colored"), ("underline", "Underline"), ("animated", "Animated underline")])
+                        [("colored", "Colored"), ("underline", "Underline"), ("animated", "Animated underline")],
+                        default=d.get("link_style", "colored"))
         self._add_combo(sec.content_layout, "Blockquote style", "typography", "blockquote_style",
-                        [("border", "Border"), ("icon", "Large quote icon"), ("background", "Background card"), ("stylized", "Stylized")])
+                        [("border", "Border"), ("icon", "Large quote icon"), ("background", "Background card"), ("stylized", "Stylized")],
+                        default=d.get("blockquote_style", "border"))
         self._add_color(sec.content_layout, "Selection color", "typography", "selection_color", d.get("selection_color", "#3399ff"))
         self._add_slider(sec.content_layout, "Base font size", "typography", "base_font_size", 10, 24, d.get("base_font_size", 16), "px")
-        self._add_slider(sec.content_layout, "h1 size multiplier", "typography", "h1_size", 100, 400, int(d.get("h1_size", 2.0) * 100), scale=100)
-        self._add_slider(sec.content_layout, "h2 size multiplier", "typography", "h2_size", 100, 300, int(d.get("h2_size", 1.5) * 100), scale=100)
-        self._add_slider(sec.content_layout, "h3 size multiplier", "typography", "h3_size", 100, 250, int(d.get("h3_size", 1.25) * 100), scale=100)
+        self._add_slider(sec.content_layout, "h1 size multiplier", "typography", "h1_size", 100, 400, d.get("h1_size", 2.0), scale=100)
+        self._add_slider(sec.content_layout, "h2 size multiplier", "typography", "h2_size", 100, 300, d.get("h2_size", 1.5), scale=100)
+        self._add_slider(sec.content_layout, "h3 size multiplier", "typography", "h3_size", 100, 250, d.get("h3_size", 1.25), scale=100)
 
     def _build_layout(self, sec):
         d = self._data.get("layout", {})
@@ -720,7 +744,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_slider(sec.content_layout, "Sidebar width", "layout", "sidebar_width", 180, 350, d.get("sidebar_width", 250), "px")
         self._add_slider(sec.content_layout, "Content padding", "layout", "content_padding", 0, 60, d.get("content_padding", 20), "px")
         self._add_combo(sec.content_layout, "Header position", "layout", "header_position",
-                        [("static", "Static"), ("sticky", "Sticky"), ("fixed", "Fixed")])
+                        [("static", "Static"), ("sticky", "Sticky"), ("fixed", "Fixed")],
+                        default=d.get("header_position", "static"))
 
     def _build_custom_css(self, sec):
         self.custom_css_edit = QtWidgets.QPlainTextEdit()
