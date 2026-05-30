@@ -358,68 +358,207 @@ class AdvancedThemeTab(QtWidgets.QWidget):
 
     def _build_backgrounds(self, sec):
         d = self._data.get("backgrounds", {})
-        self._add_checkbox(sec.content_layout, "Enable background effects", "backgrounds", "enabled", d.get("enabled", False))
-        self._add_combo(sec.content_layout, "Background type", "backgrounds", "type",
-                        [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern")])
+        cl = sec.content_layout
+        self._add_checkbox(cl, "Enable background effects", "backgrounds", "enabled", d.get("enabled", False))
 
-        # Light gradient colors
-        light_label = QtWidgets.QLabel("Light mode colors:")
-        light_label.setStyleSheet("color: #8b949e; font-size: 12px; margin-top: 4px;")
-        sec.content_layout.addWidget(light_label)
-        lr = QtWidgets.QHBoxLayout()
-        light_btns = []
+        # === Background type ===
+        self.bg_type_combo = self._add_combo(cl, "Background type", "backgrounds", "type",
+            [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern"), ("image", "Image")])
+
+        # === Base Colors (all except Image) ===
+        self.colors_group = QtWidgets.QGroupBox("Base Colors")
+        cg = QtWidgets.QVBoxLayout(self.colors_group)
         lc = d.get("light_colors", ["#e8ecf0", "#dce0e8"])
-        for i in range(4):
-            col = lc[i] if i < len(lc) else "#ffffff"
-            btn = ColorButton(col, f"Color {i+1}")
-            btn.idx = i
-            btn.changed.connect(lambda c, idx=i: self._update_gradient_color("light_colors", idx, c))
-            lr.addWidget(btn)
-            light_btns.append(btn)
-        lr.addStretch()
-        sec.content_layout.addLayout(lr)
-
-        # Dark gradient colors
-        dark_label = QtWidgets.QLabel("Dark mode colors:")
-        dark_label.setStyleSheet("color: #8b949e; font-size: 12px; margin-top: 4px;")
-        sec.content_layout.addWidget(dark_label)
-        dr = QtWidgets.QHBoxLayout()
         dc = d.get("dark_colors", ["#161b22", "#0d1117"])
-        for i in range(4):
-            col = dc[i] if i < len(dc) else "#000000"
-            btn = ColorButton(col, f"Color {i+1}")
-            btn.idx = i
-            btn.changed.connect(lambda c, idx=i: self._update_gradient_color("dark_colors", idx, c))
-            dr.addWidget(btn)
-        dr.addStretch()
-        sec.content_layout.addLayout(dr)
+        for label, key, defs in [("Light mode colors:", "light_colors", lc),
+                                   ("Dark mode colors:", "dark_colors", dc)]:
+            lb = QtWidgets.QLabel(label)
+            lb.setStyleSheet("color: #8b949e; font-size: 12px;")
+            cg.addWidget(lb)
+            row = QtWidgets.QHBoxLayout()
+            for i in range(4):
+                col = defs[i] if i < len(defs) else ("#ffffff" if "Light" in label else "#000000")
+                btn = ColorButton(col, f"Color {i+1}")
+                btn.changed.connect(lambda c, idx=i, k=key: self._update_gradient_color(k, idx, c))
+                row.addWidget(btn)
+            row.addStretch()
+            cg.addLayout(row)
+        cl.addWidget(self.colors_group)
 
-        self._add_combo(sec.content_layout, "Direction", "backgrounds", "direction",
-                        [("to bottom", "Top to Bottom"), ("to right", "Left to Right"),
-                         ("to bottom right", "Diagonal"), ("135deg", "Angle")])
-        self._add_combo(sec.content_layout, "Animation speed", "backgrounds", "animation",
-                        [("none", "Off"), ("slow", "Slow"), ("normal", "Normal"), ("fast", "Fast")])
-        self._add_combo(sec.content_layout, "Pattern overlay", "backgrounds", "pattern",
-                        [("none", "None"), ("dots", "Dots"), ("grid", "Grid"),
-                         ("stripes", "Stripes"), ("diagonal", "Diagonal lines")])
-        self._add_slider(sec.content_layout, "Pattern opacity %", "backgrounds", "pattern_opacity", 0, 100, d.get("pattern_opacity", 15), "%")
-        self._add_color(sec.content_layout, "Pattern color", "backgrounds", "pattern_color", d.get("pattern_color", "#000000"))
+        # === Solid ===
+        self.solid_group = QtWidgets.QGroupBox("Solid Settings")
+        sg = QtWidgets.QVBoxLayout(self.solid_group)
+        note = QtWidgets.QLabel("Uses first Base Color for each mode. Try the Animation section for Pulse / Breathe / Shimmer effects.")
+        note.setStyleSheet("color: #8b949e; font-size: 12px;")
+        note.setWordWrap(True)
+        sg.addWidget(note)
+        cl.addWidget(self.solid_group)
 
-        # Background image upload
+        # === Gradient ===
+        self.gradient_group = QtWidgets.QGroupBox("Gradient Settings")
+        gg = QtWidgets.QVBoxLayout(self.gradient_group)
+        self._add_combo(gg, "Gradient type", "backgrounds", "gradient_subtype",
+                        [("linear", "Linear"), ("radial", "Radial"), ("conic", "Conic")])
+        self.grad_dir = self._add_combo(gg, "Direction", "backgrounds", "direction", [
+            ("to bottom", "Top to Bottom"), ("to top", "Bottom to Top"),
+            ("to right", "Left to Right"), ("to left", "Right to Left"),
+            ("to bottom right", "Diagonal \u2198"), ("to bottom left", "Diagonal \u2199"),
+            ("to top right", "Diagonal \u2197"), ("to top left", "Diagonal \u2196"),
+        ])
+        self._add_slider(gg, "Angle (deg)", "backgrounds", "gradient_angle", 0, 360, d.get("gradient_angle", 180), "\u00b0")
+        self._add_combo(gg, "Radial shape", "backgrounds", "radial_shape",
+                        [("ellipse", "Ellipse"), ("circle", "Circle")])
+        self._add_combo(gg, "Radial position", "backgrounds", "radial_position", [
+            ("center", "Center"), ("top left", "Top Left"), ("top right", "Top Right"),
+            ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
+        ])
+        self._add_combo(gg, "Conic position", "backgrounds", "conic_position", [
+            ("center", "Center"), ("top left", "Top Left"), ("top right", "Top Right"),
+            ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
+        ])
+        self._add_checkbox(gg, "Repeat gradient", "backgrounds", "gradient_repeat", d.get("gradient_repeat", False))
+        cl.addWidget(self.gradient_group)
+
+        # === Pattern ===
+        self.pattern_group = QtWidgets.QGroupBox("Pattern Settings")
+        pg = QtWidgets.QVBoxLayout(self.pattern_group)
+        self._add_combo(pg, "Pattern style", "backgrounds", "pattern", [
+            ("none", "None"), ("dots", "Dots"), ("dots_large", "Large Dots"),
+            ("grid", "Grid"), ("stripes", "Stripes 45\u00b0"),
+            ("stripes_h", "Horizontal Stripes"), ("stripes_v", "Vertical Stripes"),
+            ("diagonal", "Diagonal Lines"), ("crosshatch", "Crosshatch"),
+            ("zigzag", "Zigzag"), ("waves", "Waves"),
+            ("chevron", "Chevron"), ("honeycomb", "Honeycomb"), ("polka", "Polka Dots"),
+        ])
+        self._add_color(pg, "Pattern color", "backgrounds", "pattern_color", d.get("pattern_color", "#000000"))
+        self._add_slider(pg, "Opacity %", "backgrounds", "pattern_opacity", 0, 100, d.get("pattern_opacity", 15), "%")
+        self._add_slider(pg, "Size (px)", "backgrounds", "pattern_size", 5, 60, d.get("pattern_size", 20), "px")
+        cl.addWidget(self.pattern_group)
+
+        # === Image ===
+        self.image_group = QtWidgets.QGroupBox("Image Settings")
+        ig = QtWidgets.QVBoxLayout(self.image_group)
+
         img_row = QtWidgets.QHBoxLayout()
-        img_label = QtWidgets.QLabel("Background image:")
+        img_label = QtWidgets.QLabel("Image:")
         img_label.setStyleSheet("color: #6e7681;")
         img_row.addWidget(img_label)
         self.bg_image_path = QtWidgets.QLineEdit()
-        self.bg_image_path.setPlaceholderText("Optional image file...")
+        self.bg_image_path.setPlaceholderText("Select background image...")
         self.bg_image_path.textChanged.connect(lambda t: self._set("bg_image", "backgrounds", t))
         img_row.addWidget(self.bg_image_path, 1)
         browse_btn = QtWidgets.QPushButton("Browse")
         browse_btn.clicked.connect(self._browse_bg_image)
         img_row.addWidget(browse_btn)
-        sec.content_layout.addLayout(img_row)
-        self._add_combo(sec.content_layout, "Image size", "backgrounds", "bg_size",
-                        [("cover", "Cover"), ("contain", "Contain"), ("auto", "Auto")])
+        ig.addLayout(img_row)
+
+        self._add_combo(ig, "Size", "backgrounds", "bg_size",
+                        [("cover", "Cover"), ("contain", "Contain"), ("auto", "Auto"), ("100%", "100%")])
+        self._add_combo(ig, "Position", "backgrounds", "bg_position", [
+            ("center", "Center"), ("top", "Top"), ("bottom", "Bottom"),
+            ("left", "Left"), ("right", "Right"),
+            ("top left", "Top Left"), ("top right", "Top Right"),
+            ("bottom left", "Bottom Left"), ("bottom right", "Bottom Right"),
+        ])
+        self._add_combo(ig, "Repeat", "backgrounds", "bg_repeat",
+                        [("no-repeat", "No Repeat"), ("repeat", "Repeat"),
+                         ("repeat-x", "Repeat X"), ("repeat-y", "Repeat Y"),
+                         ("space", "Space"), ("round", "Round")])
+        self._add_combo(ig, "Attachment", "backgrounds", "bg_attachment",
+                        [("scroll", "Scroll"), ("fixed", "Fixed"), ("local", "Local")])
+
+        sep1 = QtWidgets.QLabel()
+        sep1.setFixedHeight(6)
+        ig.addWidget(sep1)
+        filter_lb = QtWidgets.QLabel("Filter effect")
+        filter_lb.setStyleSheet("color: #8b949e; font-size: 12px;")
+        ig.addWidget(filter_lb)
+        self._add_combo(ig, "Type", "backgrounds", "image_filter",
+                        [("none", "None"), ("grayscale", "Grayscale"), ("sepia", "Sepia"),
+                         ("blur", "Blur"), ("brightness", "Brightness"),
+                         ("contrast", "Contrast"), ("hue_rotate", "Hue Rotate")])
+        self._add_slider(ig, "Amount", "backgrounds", "image_filter_value", 0, 100, d.get("image_filter_value", 50), "")
+
+        sep2 = QtWidgets.QLabel()
+        sep2.setFixedHeight(6)
+        ig.addWidget(sep2)
+        ov_lb = QtWidgets.QLabel("Overlay")
+        ov_lb.setStyleSheet("color: #8b949e; font-size: 12px;")
+        ig.addWidget(ov_lb)
+        self._add_combo(ig, "Type", "backgrounds", "image_overlay",
+                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")])
+        self._add_color(ig, "Overlay color", "backgrounds", "image_overlay_color", d.get("image_overlay_color", "#000000"))
+        self._add_slider(ig, "Overlay opacity %", "backgrounds", "image_overlay_opacity", 0, 100, d.get("image_overlay_opacity", 30), "%")
+        cl.addWidget(self.image_group)
+
+        # === Animation ===
+        self.anim_group = QtWidgets.QGroupBox("Animation")
+        ag = QtWidgets.QVBoxLayout(self.anim_group)
+        anim_row = QtWidgets.QHBoxLayout()
+        anim_lb = QtWidgets.QLabel("Type")
+        anim_lb.setStyleSheet("color: #6e7681;")
+        anim_row.addWidget(anim_lb)
+        anim_row.addStretch()
+        self.anim_combo = QtWidgets.QComboBox()
+        self.anim_combo.currentIndexChanged.connect(self._on_anim_changed)
+        anim_row.addWidget(self.anim_combo)
+        ag.addLayout(anim_row)
+        self._add_slider(ag, "Speed (seconds)", "backgrounds", "animation_speed", 1, 20, d.get("animation_speed", 4), "s")
+        self._add_combo(ag, "Easing", "backgrounds", "animation_easing",
+                        [("ease", "Ease"), ("linear", "Linear"), ("ease-in", "Ease In"),
+                         ("ease-out", "Ease Out"), ("ease-in-out", "Ease In Out")])
+        cl.addWidget(self.anim_group)
+
+        # === Advanced ===
+        self.adv_bg_group = QtWidgets.QGroupBox("Advanced")
+        advl = QtWidgets.QVBoxLayout(self.adv_bg_group)
+        self._add_combo(advl, "Blend mode", "backgrounds", "blend_mode",
+                        [("normal", "Normal"), ("multiply", "Multiply"), ("screen", "Screen"),
+                         ("overlay", "Overlay"), ("darken", "Darken"), ("lighten", "Lighten"),
+                         ("color-dodge", "Color Dodge"), ("saturation", "Saturation"),
+                         ("color", "Color"), ("luminosity", "Luminosity")])
+        self._add_slider(advl, "Overall opacity %", "backgrounds", "bg_opacity", 10, 100, d.get("bg_opacity", 100), "%")
+        cl.addWidget(self.adv_bg_group)
+
+        # Connect type combo to show/hide sections
+        self.bg_type_combo.currentIndexChanged.connect(self._on_bg_type_changed)
+        self._populate_anim_options()
+        self._on_bg_type_changed()
+
+    def _on_bg_type_changed(self):
+        bg_type = self.bg_type_combo.currentData() if self.bg_type_combo.count() > 0 else "solid"
+        self.colors_group.setVisible(bg_type != "image")
+        self.solid_group.setVisible(bg_type == "solid")
+        self.gradient_group.setVisible(bg_type == "gradient")
+        self.pattern_group.setVisible(bg_type == "pattern")
+        self.image_group.setVisible(bg_type == "image")
+        self._populate_anim_options()
+
+    def _populate_anim_options(self):
+        bg_type = self.bg_type_combo.currentData() if self.bg_type_combo.count() > 0 else "solid"
+        current_anim = self._data.get("backgrounds", {}).get("animation", "none")
+        type_opts = {
+            "solid": [("none", "Off"), ("pulse", "Pulse"), ("breathe", "Breathe"), ("shimmer", "Shimmer")],
+            "gradient": [("none", "Off"), ("flow", "Flowing Movement"), ("pulse", "Pulse"), ("hue_rotate", "Hue Rotation")],
+            "pattern": [("none", "Off"), ("scroll", "Scroll Pattern"), ("pulse", "Pulse"), ("flow", "Flowing Movement")],
+            "image": [("none", "Off"), ("ken_burns", "Ken Burns Zoom"), ("slow_zoom", "Slow Zoom"), ("slow_pan", "Slow Pan"), ("pulse", "Pulse"), ("hue_rotate", "Hue Rotation")],
+        }
+        opts = type_opts.get(bg_type, [("none", "Off")])
+        self.anim_combo.blockSignals(True)
+        self.anim_combo.clear()
+        for val, text in opts:
+            self.anim_combo.addItem(text, val)
+        idx = self.anim_combo.findData(current_anim)
+        if idx >= 0:
+            self.anim_combo.setCurrentIndex(idx)
+        else:
+            self.anim_combo.setCurrentIndex(0)
+            self._data.setdefault("backgrounds", {})["animation"] = self.anim_combo.itemData(0)
+        self.anim_combo.blockSignals(False)
+
+    def _on_anim_changed(self, idx):
+        val = self.anim_combo.itemData(idx)
+        self._data.setdefault("backgrounds", {})["animation"] = val
 
     def _build_hover_effects(self, sec):
         d = self._data.get("hover_effects", {})

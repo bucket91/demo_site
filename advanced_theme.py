@@ -34,13 +34,32 @@ DEFAULT = {
         "type": "gradient",
         "light_colors": ["#e8ecf0", "#dce0e8"],
         "dark_colors": ["#161b22", "#0d1117"],
+        "gradient_subtype": "linear",
         "direction": "to bottom",
+        "gradient_angle": 180,
+        "radial_shape": "ellipse",
+        "radial_position": "center",
+        "conic_position": "center",
+        "gradient_repeat": False,
         "animation": "none",
+        "animation_speed": 4,
+        "animation_easing": "ease",
         "pattern": "none",
         "pattern_opacity": 15,
         "pattern_color": "#000000",
+        "pattern_size": 20,
         "bg_image": "",
-        "bg_size": "cover"
+        "bg_size": "cover",
+        "bg_position": "center",
+        "bg_repeat": "no-repeat",
+        "bg_attachment": "scroll",
+        "image_filter": "none",
+        "image_filter_value": 50,
+        "image_overlay": "none",
+        "image_overlay_color": "#000000",
+        "image_overlay_opacity": 30,
+        "blend_mode": "normal",
+        "bg_opacity": 100
     },
     "hover_effects": {
         "enabled": False,
@@ -96,12 +115,152 @@ SHADOW_PRESETS = {
 PATTERN_CSS = {
     "none": "",
     "dots": "radial-gradient(var(--adv-pattern-color) 1px, transparent 1px)",
+    "dots_large": "radial-gradient(var(--adv-pattern-color) 2px, transparent 2px)",
     "grid": "linear-gradient(var(--adv-pattern-color) 1px, transparent 1px), linear-gradient(90deg, var(--adv-pattern-color) 1px, transparent 1px)",
     "stripes": "repeating-linear-gradient(45deg, transparent, transparent 5px, var(--adv-pattern-color) 5px, var(--adv-pattern-color) 6px)",
-    "diagonal": "repeating-linear-gradient(45deg, var(--adv-pattern-color) 0px, var(--adv-pattern-color) 1px, transparent 1px, transparent 8px)"
+    "stripes_h": "repeating-linear-gradient(0deg, transparent, transparent 5px, var(--adv-pattern-color) 5px, var(--adv-pattern-color) 6px)",
+    "stripes_v": "repeating-linear-gradient(90deg, transparent, transparent 5px, var(--adv-pattern-color) 5px, var(--adv-pattern-color) 6px)",
+    "diagonal": "repeating-linear-gradient(45deg, var(--adv-pattern-color) 0px, var(--adv-pattern-color) 1px, transparent 1px, transparent 8px)",
+    "crosshatch": "repeating-linear-gradient(45deg, transparent, transparent 5px, var(--adv-pattern-color) 5px, var(--adv-pattern-color) 6px), repeating-linear-gradient(-45deg, transparent, transparent 5px, var(--adv-pattern-color) 5px, var(--adv-pattern-color) 6px)",
+    "zigzag": "linear-gradient(135deg, var(--adv-pattern-color) 25%, transparent 25%), linear-gradient(225deg, var(--adv-pattern-color) 25%, transparent 25%), linear-gradient(315deg, var(--adv-pattern-color) 25%, transparent 25%), linear-gradient(45deg, var(--adv-pattern-color) 25%, transparent 25%)",
+    "waves": "radial-gradient(ellipse at 20% 50%, var(--adv-pattern-color) 10%, transparent 30%), radial-gradient(ellipse at 80% 50%, var(--adv-pattern-color) 10%, transparent 30%)",
+    "chevron": "linear-gradient(135deg, var(--adv-pattern-color) 33.33%, transparent 33.33%), linear-gradient(225deg, var(--adv-pattern-color) 33.33%, transparent 33.33%)",
+    "honeycomb": "radial-gradient(circle at 25% 25%, var(--adv-pattern-color) 1px, transparent 1px), radial-gradient(circle at 75% 75%, var(--adv-pattern-color) 1px, transparent 1px)",
+    "polka": "radial-gradient(circle, var(--adv-pattern-color) 2px, transparent 2px)",
 }
 
 HEADING_TAGS = ["h1", "h2", "h3", "h4", "h5", "h6"]
+
+
+def _build_gradient_function(settings, colors_str):
+    gtype = settings.get("gradient_subtype", "linear")
+    direction = settings.get("direction", "to bottom")
+    rshape = settings.get("radial_shape", "ellipse")
+    rpos = settings.get("radial_position", "center")
+    cpos = settings.get("conic_position", "center")
+    repeat = settings.get("gradient_repeat", False)
+    prefix = "repeating-" if repeat else ""
+    if gtype == "linear":
+        return f"{prefix}linear-gradient({direction}, {colors_str})"
+    elif gtype == "radial":
+        return f"{prefix}radial-gradient({rshape} at {rpos}, {colors_str})"
+    elif gtype == "conic":
+        return f"{prefix}conic-gradient(from 0deg at {cpos}, {colors_str})"
+    return f"linear-gradient({direction}, {colors_str})"
+
+
+def _get_animation_name(bg_type, anim_type, has_image):
+    if has_image or bg_type == "image":
+        m = {"ken_burns": "advKenBurns", "slow_zoom": "advSlowZoom",
+             "slow_pan": "advSlowPan", "pulse": "advImgPulse",
+             "hue_rotate": "advImgHue"}
+        return m.get(anim_type, "")
+    if bg_type == "gradient":
+        m = {"flow": "advGradientFlow", "hue_rotate": "advHueRotate", "pulse": "advGradPulse"}
+        return m.get(anim_type, "")
+    if bg_type == "solid":
+        m = {"pulse": "advSolidPulse", "breathe": "advBreathe", "shimmer": "advShimmer"}
+        return m.get(anim_type, "")
+    if bg_type == "pattern":
+        m = {"scroll": "advPatternScroll", "pulse": "advPatternPulse", "flow": "advPatternFlow"}
+        return m.get(anim_type, "")
+    return ""
+
+
+def _get_animation_keyframes(bg_type, anim_type, has_image):
+    if has_image or bg_type == "image":
+        if anim_type == "ken_burns":
+            return [
+                "@keyframes advKenBurns {",
+                "  0% { background-size: 100%; background-position: center; }",
+                "  50% { background-size: 115%; background-position: center; }",
+                "  100% { background-size: 100%; background-position: center; }",
+                "}"]
+        if anim_type == "slow_zoom":
+            return [
+                "@keyframes advSlowZoom {",
+                "  0% { background-size: 100%; }",
+                "  100% { background-size: 110%; }",
+                "}"]
+        if anim_type == "slow_pan":
+            return [
+                "@keyframes advSlowPan {",
+                "  0% { background-position: 0% 50%; }",
+                "  50% { background-position: 100% 50%; }",
+                "  100% { background-position: 0% 50%; }",
+                "}"]
+        if anim_type == "pulse":
+            return [
+                "@keyframes advImgPulse {",
+                "  0%, 100% { opacity: 1; }",
+                "  50% { opacity: 0.85; }",
+                "}"]
+        if anim_type == "hue_rotate":
+            return [
+                "@keyframes advImgHue {",
+                "  0% { filter: hue-rotate(0deg); }",
+                "  100% { filter: hue-rotate(360deg); }",
+                "}"]
+    if bg_type == "gradient":
+        if anim_type == "flow":
+            return [
+                "@keyframes advGradientFlow {",
+                "  0% { background-position: 0% 50%; }",
+                "  50% { background-position: 100% 50%; }",
+                "  100% { background-position: 0% 50%; }",
+                "}"]
+        if anim_type == "hue_rotate":
+            return [
+                "@keyframes advHueRotate {",
+                "  0% { filter: hue-rotate(0deg); }",
+                "  100% { filter: hue-rotate(360deg); }",
+                "}"]
+        if anim_type == "pulse":
+            return [
+                "@keyframes advGradPulse {",
+                "  0%, 100% { opacity: 1; }",
+                "  50% { opacity: 0.85; }",
+                "}"]
+    if bg_type == "solid":
+        if anim_type == "pulse":
+            return [
+                "@keyframes advSolidPulse {",
+                "  0%, 100% { filter: brightness(1); }",
+                "  50% { filter: brightness(1.12); }",
+                "}"]
+        if anim_type == "breathe":
+            return [
+                "@keyframes advBreathe {",
+                "  0%, 100% { opacity: 1; }",
+                "  50% { opacity: 0.8; }",
+                "}"]
+        if anim_type == "shimmer":
+            return [
+                "@keyframes advShimmer {",
+                "  0% { background-position: -200% 0%, 0% 0%; }",
+                "  100% { background-position: 200% 0%, 0% 0%; }",
+                "}"]
+    if bg_type == "pattern":
+        if anim_type == "scroll":
+            return [
+                "@keyframes advPatternScroll {",
+                "  0% { background-position: 0 0; }",
+                "  100% { background-position: 40px 40px; }",
+                "}"]
+        if anim_type == "pulse":
+            return [
+                "@keyframes advPatternPulse {",
+                "  0%, 100% { opacity: 1; }",
+                "  50% { opacity: 0.65; }",
+                "}"]
+        if anim_type == "flow":
+            return [
+                "@keyframes advPatternFlow {",
+                "  0% { background-position: 0% 0%; }",
+                "  50% { background-position: 100% 100%; }",
+                "  100% { background-position: 0% 0%; }",
+                "}"]
+    return []
 
 
 def load():
@@ -184,35 +343,39 @@ def generate_css(data):
         bg_type = backgrounds.get("type", "solid")
         light_cols = backgrounds.get("light_colors", [])
         dark_cols = backgrounds.get("dark_colors", [])
-        direction = backgrounds.get("direction", "to bottom")
-        animation = backgrounds.get("animation", "none")
         pattern = backgrounds.get("pattern", "none")
-        po = backgrounds.get("pattern_opacity", 15)
-        pc = backgrounds.get("pattern_color", "#000000")
+        animation = backgrounds.get("animation", "none")
+        anim_speed = backgrounds.get("animation_speed", 4)
+        anim_easing = backgrounds.get("animation_easing", "ease")
+        has_bg_image = bool(backgrounds.get("bg_image", ""))
 
-        root_vars.append(f"  --adv-pattern-color: {pc};")
-        root_vars.append(f"  --adv-pattern-opacity: {po / 100.0};")
+        root_vars.append(f"  --adv-animation-speed: {anim_speed}s;")
+        root_vars.append(f"  --adv-animation-easing: {anim_easing};")
 
         if bg_type == "gradient" and len(light_cols) >= 2:
             lc = ", ".join(light_cols)
             dc = ", ".join(dark_cols) if len(dark_cols) >= 2 else lc
-            root_vars.append(f"  --adv-bg: linear-gradient({direction}, {lc});")
-            dark_vars.append(f"  --adv-bg: linear-gradient({direction}, {dc});")
-
-            if animation in ("slow", "normal", "fast"):
-                speed = {"slow": "8s", "normal": "4s", "fast": "2s"}[animation]
-                root_vars.append(f"  --adv-bg-animation: {speed};")
+            grad_func = _build_gradient_function(backgrounds, lc)
+            grad_func_dark = _build_gradient_function(backgrounds, dc)
+            root_vars.append(f"  --adv-bg: {grad_func};")
+            dark_vars.append(f"  --adv-bg: {grad_func_dark};")
 
         elif bg_type == "pattern":
             pat = PATTERN_CSS.get(pattern, "")
             if pat:
+                pc = backgrounds.get("pattern_color", "#000000")
+                po = backgrounds.get("pattern_opacity", 15)
+                psize = backgrounds.get("pattern_size", 20)
                 lc = light_cols[0] if light_cols else "var(--body-bg)"
                 dc = dark_cols[0] if dark_cols else "var(--body-bg)"
+                root_vars.append(f"  --adv-pattern-color: {pc};")
+                root_vars.append(f"  --adv-pattern-opacity: {po / 100.0};")
                 root_vars.append(f"  --adv-bg: {lc};")
                 dark_vars.append(f"  --adv-bg: {dc};")
-                size = {"dots": "20px 20px", "grid": "20px 20px", "stripes": "12px 12px", "diagonal": "16px 16px"}.get(pattern, "20px 20px")
                 root_vars.append(f"  --adv-bg-image: {pat};")
-                root_vars.append(f"  --adv-bg-size: {size};")
+                root_vars.append(f"  --adv-bg-size: {psize}px {psize}px;")
+        elif bg_type == "image":
+            root_vars.append("  --adv-bg: transparent;")
         else:
             lc = light_cols[0] if light_cols else "var(--body-bg)"
             dc = dark_cols[0] if dark_cols else "var(--body-bg)"
@@ -348,38 +511,110 @@ def generate_css(data):
         bg_type = backgrounds.get("type", "solid")
         pattern = backgrounds.get("pattern", "none")
         animation = backgrounds.get("animation", "none")
+        has_bg_image = bool(backgrounds.get("bg_image", ""))
+        blend = backgrounds.get("blend_mode", "normal")
+        bg_opacity = backgrounds.get("bg_opacity", 100)
+        image_filter = backgrounds.get("image_filter", "none")
+        filter_val = backgrounds.get("image_filter_value", 50)
+        bg_repeat = backgrounds.get("bg_repeat", "no-repeat")
+        bg_attach = backgrounds.get("bg_attachment", "scroll")
+        bg_pos = backgrounds.get("bg_position", "center")
+        light_cols = backgrounds.get("light_colors", [])
 
         lines.append("body {")
-        if bg_type == "pattern" and pattern != "none":
+
+        # --- Base background ---
+        if has_bg_image or bg_type == "image":
+            img_path = backgrounds.get("bg_image", "")
+            if img_path:
+                overlay_type = backgrounds.get("image_overlay", "none")
+                overlay_color = backgrounds.get("image_overlay_color", "#000000")
+                overlay_opacity_raw = backgrounds.get("image_overlay_opacity", 30)
+                overlay_opacity = max(0, min(100, overlay_opacity_raw)) / 100.0
+                if overlay_type == "color":
+                    r = int(overlay_color[1:3], 16) if len(overlay_color) >= 7 else 0
+                    g = int(overlay_color[3:5], 16) if len(overlay_color) >= 7 else 0
+                    b = int(overlay_color[5:7], 16) if len(overlay_color) >= 7 else 0
+                    ocss = f"rgba({r},{g},{b},{overlay_opacity})"
+                    lines.append(f"  background-image: linear-gradient({ocss}, {ocss}), url('{img_path}') !important;")
+                elif overlay_type == "gradient":
+                    ov_grad = _build_gradient_function(backgrounds, ", ".join(light_cols[:3])) if len(light_cols) >= 2 else f"rgba(0,0,0,{overlay_opacity})"
+                    lines.append(f"  background-image: {ov_grad}, url('{img_path}') !important;")
+                else:
+                    lines.append(f"  background-image: url('{img_path}') !important;")
+                lines.append(f"  background-size: {backgrounds.get('bg_size', 'cover')};")
+                lines.append(f"  background-position: {bg_pos};")
+                lines.append(f"  background-repeat: {bg_repeat};")
+                lines.append(f"  background-attachment: {bg_attach};")
+
+        elif bg_type == "pattern" and pattern != "none":
             lines.append("  background-color: var(--adv-bg) !important;")
             lines.append("  background-image: var(--adv-bg-image);")
             lines.append("  background-size: var(--adv-bg-size);")
+
         elif bg_type == "gradient":
-            lines.append("  background: var(--adv-bg) !important;")
-            if animation != "none":
+            if animation in ("flow", "hue_rotate"):
+                lines.append("  background-image: var(--adv-bg) !important;")
+                lines.append("  background-position: 0% 50%;")
                 lines.append("  background-size: 400% 400%;")
-                lines.append("  animation: advGradient var(--adv-bg-animation) ease infinite;")
+            elif animation == "pulse":
+                lines.append("  background: var(--adv-bg) !important;")
+            else:
+                lines.append("  background: var(--adv-bg) !important;")
+
+        elif bg_type == "solid":
+            if animation == "shimmer":
+                lines.append("  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%), var(--adv-bg);")
+                lines.append("  background-size: 200% 100%, 100%;")
+                lines.append("  background-repeat: no-repeat;")
+            else:
+                lines.append("  background: var(--adv-bg) !important;")
+
         else:
             lines.append("  background: var(--adv-bg) !important;")
 
-        if backgrounds.get("bg_image"):
-            lines.append(f"  background-image: url('{backgrounds['bg_image']}') !important;")
-            lines.append(f"  background-size: {backgrounds.get('bg_size', 'cover')};")
-            lines.append("  background-position: center;")
-            lines.append("  background-repeat: no-repeat;")
-            lines.append("  background-attachment: fixed;")
+        # --- Animation ---
+        if animation != "none" and not (has_bg_image or bg_type == "image"):
+            anim_name = _get_animation_name(bg_type, animation, False)
+            if anim_name:
+                lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
+        elif animation != "none" and (has_bg_image or bg_type == "image"):
+            anim_name = _get_animation_name(bg_type, animation, True)
+            if anim_name:
+                lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
+
+        # --- Blend mode ---
+        if blend != "normal":
+            lines.append(f"  background-blend-mode: {blend};")
+
+        # --- Opacity ---
+        if bg_opacity < 100:
+            lines.append(f"  opacity: {bg_opacity / 100.0};")
+
+        # --- Filter ---
+        if image_filter != "none" and (has_bg_image or bg_type == "image"):
+            filter_map = {
+                "grayscale": f"grayscale({filter_val}%)",
+                "sepia": f"sepia({filter_val}%)",
+                "blur": f"blur({max(filter_val // 10, 1)}px)",
+                "brightness": f"brightness({50 + filter_val // 2}%)",
+                "contrast": f"contrast({50 + filter_val}%)",
+                "hue_rotate": f"hue-rotate({filter_val}deg)",
+            }
+            fv = filter_map.get(image_filter, "")
+            if fv:
+                lines.append(f"  filter: {fv};")
 
         lines.append("  transition: background 0.3s;")
         lines.append("}")
         lines.append("")
 
+        # --- Keyframes ---
         if animation != "none":
-            lines.append("@keyframes advGradient {")
-            lines.append("  0% { background-position: 0% 50%; }")
-            lines.append("  50% { background-position: 100% 50%; }")
-            lines.append("  100% { background-position: 0% 50%; }")
-            lines.append("}")
-            lines.append("")
+            kf = _get_animation_keyframes(bg_type, animation, has_bg_image or bg_type == "image")
+            for k in kf:
+                lines.append(k)
+                lines.append("")
 
     if hover_effects.get("enabled"):
         page_load = hover_effects.get("page_load", "none")
