@@ -27,16 +27,16 @@
     "enabled": false,
     "type": "image",
     "light_colors": [
-      "#e8f4fd",
+      "#f5f5e8",
       "#ffffff",
-      "#1a6ea0",
-      "#0a2a44"
+      "#a6a61a",
+      "#272822"
     ],
     "dark_colors": [
-      "#0a1a2e",
-      "#122a40",
-      "#3a9ad8",
-      "#d6edfc"
+      "#1e1f1c",
+      "#3e3f3a",
+      "#a6e22e",
+      "#f8f8f2"
     ],
     "gradient_subtype": "linear",
     "direction": "to bottom right",
@@ -92,7 +92,7 @@
     "separator_width": 5
   },
   "typography": {
-    "enabled": true,
+    "enabled": false,
     "heading_letter_spacing": 8,
     "body_letter_spacing": 5,
     "body_line_height": 2,
@@ -106,7 +106,7 @@
     "h3_size": 1
   },
   "layout": {
-    "enabled": true,
+    "enabled": false,
     "page_max_width": 870,
     "sidebar_width": 220,
     "content_padding": 40,
