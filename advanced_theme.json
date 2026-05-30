@@ -24,8 +24,8 @@
     "sidebar": 0
   },
   "backgrounds": {
-    "enabled": false,
-    "type": "image",
+    "enabled": true,
+    "type": "video",
     "light_colors": [
       "#f5f5e8",
       "#ffffff",
@@ -45,9 +45,9 @@
     "radial_position": "center",
     "conic_position": "top right",
     "gradient_repeat": false,
-    "animation": "pulse",
+    "animation": "none",
     "animation_speed": 1,
-    "animation_easing": "linear",
+    "animation_easing": "ease-in-out",
     "pattern": "grid",
     "pattern_opacity": 100,
     "pattern_color": "#5277ff",
@@ -62,14 +62,14 @@
     "image_overlay": "gradient",
     "image_overlay_color": "#000000",
     "image_overlay_opacity": 30,
-    "blend_mode": "lighten",
+    "blend_mode": "overlay",
     "bg_opacity": 100,
-    "bg_video": "videos/test_input.webm",
+    "bg_video": "videos/10130349-hd_1920_1080_30fps.webm",
     "video_fallback": "",
     "video_opacity": 100,
     "video_overlay": "color",
-    "video_overlay_color": "#000000",
-    "video_overlay_opacity": 30
+    "video_overlay_color": "#051100",
+    "video_overlay_opacity": 73
   },
   "hover_effects": {
     "enabled": true,
@@ -82,7 +82,7 @@
     "scroll_reveal": true
   },
   "borders": {
-    "enabled": true,
+    "enabled": false,
     "card_width": 5,
     "card_style": "solid",
     "card_color_mode": "theme",
