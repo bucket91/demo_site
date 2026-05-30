@@ -52,5 +52,7 @@
       "url": "mailto:s.mahadialam@gmail.com"
     }
   ],
-  "gui_font_size": 15
+  "gui_font_size": 15,
+  "selected_theme": "Ocean",
+  "selected_font": "Monospace"
 }
