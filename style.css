@@ -1,37 +1,37 @@
 
 :root {
-  --body-bg: #f5f5e8;
-  --text: #272822;
-  --hero-bg: #efefe0;
+  --body-bg: #e8f4fd;
+  --text: #0a2a44;
+  --hero-bg: #d6edfc;
   --card-bg: #ffffff;
-  --card-border: #d8d8c8;
+  --card-border: #b8d4e8;
   --input-bg: #ffffff;
-  --input-border: #c8c8b8;
-  --label: #272822;
-  --muted: #7a7a6a;
-  --accent: #a6a61a;
-  --accent-hover: #88880e;
-  --accent-text: #272822;
+  --input-border: #8ab8d4;
+  --label: #0a2a44;
+  --muted: #5a7a8a;
+  --accent: #1a6ea0;
+  --accent-hover: #145882;
+  --accent-text: #ffffff;
 }
 body.dark-mode {
-  --body-bg: #1e1f1c;
-  --text: #f8f8f2;
-  --hero-bg: #272822;
-  --card-bg: #3e3f3a;
-  --card-border: #4e4f48;
-  --input-bg: #272822;
-  --input-border: #4e4f48;
-  --label: #f8f8f2;
-  --muted: #7a7a6a;
-  --accent: #a6e22e;
-  --accent-hover: #c0f050;
-  --accent-text: #272822;
+  --body-bg: #0a1a2e;
+  --text: #d6edfc;
+  --hero-bg: #0e2238;
+  --card-bg: #122a40;
+  --card-border: #1a3a52;
+  --input-bg: #0e2238;
+  --input-border: #1a3a52;
+  --label: #d6edfc;
+  --muted: #6a8a9a;
+  --accent: #3a9ad8;
+  --accent-hover: #58b0e8;
+  --accent-text: #0a1a2e;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: 'Courier New', Courier, monospace;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
@@ -41,8 +41,8 @@ body {
 }
 
 header {
-  background: #272822;
-  color: #f8f8f2;
+  background: #0e3050;
+  color: #e8f4fd;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -62,8 +62,8 @@ header h1 a {
 
 .theme-toggle {
   background: none;
-  border: 1px solid #6a6a5a;
-  color: #f8f8f2;
+  border: 1px solid #3a7a9a;
+  color: #e8f4fd;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.6rem;
@@ -89,8 +89,8 @@ main {
 
 .sidebar {
   width: 250px;
-  background: #3e3f3a;
-  color: #f8f8f2;
+  background: #0e3050;
+  color: #e8f4fd;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -106,7 +106,7 @@ main {
 .sidebar-owner {
   padding: 1.25rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #4e4f48;
+  border-bottom: 1px solid #1a4a6a;
 }
 .owner-avatar {
   width: 60px;
@@ -114,12 +114,12 @@ main {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.6rem;
-  border: 2px solid #6a6a5a;
+  border: 2px solid #3a7a9a;
 }
 .owner-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #f8f8f2;
+  color: #e8f4fd;
   margin-bottom: 0.25rem;
 }
 .owner-title {
@@ -129,7 +129,7 @@ main {
 }
 .owner-bio {
   font-size: 0.8rem;
-  color: #a8a892;
+  color: #8ab8d4;
 }
 .sidebar.open { transform: translateX(0); }
 
@@ -138,23 +138,23 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #4e4f48;
+  border-bottom: 1px solid #1a4a6a;
 }
 .sidebar-top h2 { font-size: 1.2rem; }
 
-.category { border-bottom: 1px solid #4e4f48; }
+.category { border-bottom: 1px solid #1a4a6a; }
 .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #f8f8f2;
+  color: #e8f4fd;
   font-weight: 600;
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover { background: #4e4f48; }
+.category-header:hover { background: #1a4a6a; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
@@ -169,17 +169,17 @@ main {
 .sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
-  color: #a8a892;
+  color: #8ab8d4;
   text-decoration: none;
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover { background: #4e4f48; color: #ffffff; }
+.sub-links li a:hover { background: #1a4a6a; color: #ffffff; }
 
 .sidebar-toggle, .close-btn {
   background: none;
   border: none;
-  color: #f8f8f2;
+  color: #e8f4fd;
   font-size: 1.5rem;
   cursor: pointer;
 }
@@ -202,7 +202,7 @@ main {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #6a6a5a;
+  border: 3px solid #3a7a9a;
   margin-bottom: 0.75rem;
 }
 .owner-card-name {
@@ -297,8 +297,8 @@ main {
 .home-demo a { color: var(--accent); }
 
 footer {
-  background: #272822;
-  color: #f8f8f2;
+  background: #0e3050;
+  color: #e8f4fd;
   text-align: center;
   padding: 1rem;
 }
