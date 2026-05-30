@@ -363,7 +363,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
 
         # === Background type ===
         self.bg_type_combo = self._add_combo(cl, "Background type", "backgrounds", "type",
-            [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern"), ("image", "Image")])
+            [("solid", "Solid"), ("gradient", "Gradient"), ("pattern", "Pattern"), ("image", "Image"), ("video", "Video")])
 
         # === Base Colors (all except Image) ===
         self.colors_group = QtWidgets.QGroupBox("Base Colors")
@@ -491,6 +491,63 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self._add_slider(ig, "Overlay opacity %", "backgrounds", "image_overlay_opacity", 0, 100, d.get("image_overlay_opacity", 30), "%")
         cl.addWidget(self.image_group)
 
+        # === Video ===
+        self.video_group = QtWidgets.QGroupBox("Video Settings")
+        vg = QtWidgets.QVBoxLayout(self.video_group)
+
+        vid_row = QtWidgets.QHBoxLayout()
+        vid_label = QtWidgets.QLabel("Video:")
+        vid_label.setStyleSheet("color: #6e7681;")
+        vid_row.addWidget(vid_label)
+        self.bg_video_path = QtWidgets.QLineEdit()
+        self.bg_video_path.setPlaceholderText("Select video file...")
+        self.bg_video_path.setText(d.get("bg_video", ""))
+        self.bg_video_path.textChanged.connect(lambda t: self._set("bg_video", "backgrounds", t))
+        vid_row.addWidget(self.bg_video_path, 1)
+        browse_vid_btn = QtWidgets.QPushButton("Browse & Convert")
+        browse_vid_btn.clicked.connect(self._browse_bg_video)
+        vid_row.addWidget(browse_vid_btn)
+        vg.addLayout(vid_row)
+
+        self.video_size_label = QtWidgets.QLabel("")
+        self.video_size_label.setStyleSheet("color: #8b949e; font-size: 12px;")
+        existing_vid = d.get("bg_video", "")
+        if existing_vid:
+            vid_full = os.path.join(SITE_DIR, existing_vid)
+            if os.path.exists(vid_full):
+                size_kb = os.path.getsize(vid_full) / 1024
+                size_str = f"{size_kb:.0f} KB" if size_kb < 1024 else f"{size_kb/1024:.1f} MB"
+                self.video_size_label.setText(f"WebM size: {size_str}")
+        vg.addWidget(self.video_size_label)
+
+        fallback_row = QtWidgets.QHBoxLayout()
+        fb_label = QtWidgets.QLabel("Fallback image:")
+        fb_label.setStyleSheet("color: #6e7681;")
+        fallback_row.addWidget(fb_label)
+        self.video_fallback_path = QtWidgets.QLineEdit()
+        self.video_fallback_path.setPlaceholderText("Optional fallback image...")
+        self.video_fallback_path.setText(d.get("video_fallback", ""))
+        self.video_fallback_path.textChanged.connect(lambda t: self._set("video_fallback", "backgrounds", t))
+        fallback_row.addWidget(self.video_fallback_path, 1)
+        fb_browse_btn = QtWidgets.QPushButton("Browse")
+        fb_browse_btn.clicked.connect(self._browse_video_fallback)
+        fallback_row.addWidget(fb_browse_btn)
+        vg.addLayout(fallback_row)
+
+        self._add_slider(vg, "Opacity %", "backgrounds", "video_opacity", 10, 100, d.get("video_opacity", 100), "%")
+
+        sep_v1 = QtWidgets.QLabel()
+        sep_v1.setFixedHeight(6)
+        vg.addWidget(sep_v1)
+        ov_lb_v = QtWidgets.QLabel("Overlay")
+        ov_lb_v.setStyleSheet("color: #8b949e; font-size: 12px;")
+        vg.addWidget(ov_lb_v)
+        self._add_combo(vg, "Type", "backgrounds", "video_overlay",
+                        [("none", "None"), ("color", "Solid Color"), ("gradient", "Gradient")])
+        self._add_color(vg, "Overlay color", "backgrounds", "video_overlay_color", d.get("video_overlay_color", "#000000"))
+        self._add_slider(vg, "Overlay opacity %", "backgrounds", "video_overlay_opacity", 0, 100, d.get("video_overlay_opacity", 30), "%")
+        cl.addWidget(self.video_group)
+
         # === Animation ===
         self.anim_group = QtWidgets.QGroupBox("Animation")
         ag = QtWidgets.QVBoxLayout(self.anim_group)
@@ -527,11 +584,12 @@ class AdvancedThemeTab(QtWidgets.QWidget):
 
     def _on_bg_type_changed(self):
         bg_type = self.bg_type_combo.currentData() if self.bg_type_combo.count() > 0 else "solid"
-        self.colors_group.setVisible(bg_type != "image")
+        self.colors_group.setVisible(bg_type not in ("image", "video"))
         self.solid_group.setVisible(bg_type == "solid")
         self.gradient_group.setVisible(bg_type == "gradient")
         self.pattern_group.setVisible(bg_type == "pattern")
         self.image_group.setVisible(bg_type == "image")
+        self.video_group.setVisible(bg_type == "video")
         self._populate_anim_options()
 
     def _populate_anim_options(self):
@@ -542,6 +600,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
             "gradient": [("none", "Off"), ("flow", "Flowing Movement"), ("pulse", "Pulse"), ("hue_rotate", "Hue Rotation")],
             "pattern": [("none", "Off"), ("scroll", "Scroll Pattern"), ("pulse", "Pulse"), ("flow", "Flowing Movement")],
             "image": [("none", "Off"), ("ken_burns", "Ken Burns Zoom"), ("slow_zoom", "Slow Zoom"), ("slow_pan", "Slow Pan"), ("pulse", "Pulse"), ("hue_rotate", "Hue Rotation")],
+            "video": [("none", "Off"), ("pulse", "Pulse"), ("hue_rotate", "Hue Rotation")],
         }
         opts = type_opts.get(bg_type, [("none", "Off")])
         self.anim_combo.blockSignals(True)
@@ -660,6 +719,53 @@ class AdvancedThemeTab(QtWidgets.QWidget):
                 shutil.copy2(p, dst)
                 rel = os.path.relpath(dst, SITE_DIR).replace("\\", "/")
                 self.bg_image_path.setText(rel)
+            except Exception as e:
+                self.status.setText(f"Error copying image: {e}")
+
+    def _browse_bg_video(self):
+        p, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Select Video File", "",
+            "Videos (*.mp4 *.webm *.mov *.avi *.mkv *.ogv *.m4v)")
+        if not p:
+            return
+        import shutil
+        vid_dir = os.path.join(SITE_DIR, "videos")
+        os.makedirs(vid_dir, exist_ok=True)
+        # Copy original
+        basename = os.path.basename(p)
+        dst = os.path.join(vid_dir, basename)
+        try:
+            shutil.copy2(p, dst)
+        except Exception as e:
+            self.status.setText(f"Error copying video: {e}")
+            return
+        # Convert to WebM
+        self.status.setText("Converting to WebM (no audio)...")
+        QtWidgets.QApplication.processEvents()
+        ok, result = advanced_theme.convert_to_webm(dst, vid_dir)
+        if ok:
+            rel = os.path.relpath(result, SITE_DIR).replace("\\", "/")
+            self.bg_video_path.setText(rel)
+            size_kb = os.path.getsize(result) / 1024
+            size_str = f"{size_kb:.0f} KB" if size_kb < 1024 else f"{size_kb/1024:.1f} MB"
+            self.video_size_label.setText(f"WebM size: {size_str}")
+            self.status.setText("Video converted to WebM successfully.")
+        else:
+            self.status.setText(f"Conversion failed: {result}")
+
+    def _browse_video_fallback(self):
+        p, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Select Fallback Image", "",
+            "Images (*.png *.jpg *.jpeg *.gif *.webp *.svg)")
+        if p:
+            import shutil
+            dst_dir = os.path.join(SITE_DIR, "images")
+            os.makedirs(dst_dir, exist_ok=True)
+            dst = os.path.join(dst_dir, os.path.basename(p))
+            try:
+                shutil.copy2(p, dst)
+                rel = os.path.relpath(dst, SITE_DIR).replace("\\", "/")
+                self.video_fallback_path.setText(rel)
             except Exception as e:
                 self.status.setText(f"Error copying image: {e}")
 

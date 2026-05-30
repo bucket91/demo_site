@@ -18,6 +18,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
   <link rel="stylesheet" href="{{STYLE_PATH}}">
 </head>
 <body>
+{{VIDEO_BG}}
   <header>
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
     <h1><a href="{{HOME_PATH}}">{{SITE_TITLE}}</a></h1>

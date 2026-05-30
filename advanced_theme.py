@@ -59,7 +59,13 @@ DEFAULT = {
         "image_overlay_color": "#000000",
         "image_overlay_opacity": 30,
         "blend_mode": "normal",
-        "bg_opacity": 100
+        "bg_opacity": 100,
+        "bg_video": "",
+        "video_fallback": "",
+        "video_opacity": 100,
+        "video_overlay": "none",
+        "video_overlay_color": "#000000",
+        "video_overlay_opacity": 30
     },
     "hover_effects": {
         "enabled": False,
@@ -164,6 +170,9 @@ def _get_animation_name(bg_type, anim_type, has_image):
     if bg_type == "pattern":
         m = {"scroll": "advPatternScroll", "pulse": "advPatternPulse", "flow": "advPatternFlow"}
         return m.get(anim_type, "")
+    if bg_type == "video":
+        m = {"pulse": "advVideoPulse", "hue_rotate": "advVideoHue"}
+        return m.get(anim_type, "")
     return ""
 
 
@@ -260,7 +269,52 @@ def _get_animation_keyframes(bg_type, anim_type, has_image):
                 "  50% { background-position: 100% 100%; }",
                 "  100% { background-position: 0% 0%; }",
                 "}"]
+    if bg_type == "video":
+        if anim_type == "pulse":
+            return [
+                "@keyframes advVideoPulse {",
+                "  0%, 100% { opacity: 1; }",
+                "  50% { opacity: 0.7; }",
+                "}"]
+        if anim_type == "hue_rotate":
+            return [
+                "@keyframes advVideoHue {",
+                "  0% { filter: hue-rotate(0deg); }",
+                "  100% { filter: hue-rotate(360deg); }",
+                "}"]
     return []
+
+
+def convert_to_webm(input_path, output_dir):
+    """Convert video to VP9 WebM with no audio for smaller file sizes.
+    Returns (success, output_path)."""
+    import subprocess, shutil, os
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return False, "ffmpeg not found — install ffmpeg to convert videos"
+    os.makedirs(output_dir, exist_ok=True)
+    basename = os.path.splitext(os.path.basename(input_path))[0]
+    output_path = os.path.join(output_dir, f"{basename}.webm")
+    cmd = [
+        ffmpeg, "-y",
+        "-i", input_path,
+        "-an",
+        "-c:v", "libvpx-vp9",
+        "-crf", "35",
+        "-b:v", "0",
+        output_path
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        if result.returncode == 0 and os.path.exists(output_path):
+            return True, output_path
+        else:
+            err = result.stderr.strip()[-200:] if result.stderr else "unknown error"
+            return False, f"ffmpeg error: {err}"
+    except subprocess.TimeoutExpired:
+        return False, "Conversion timed out after 5 minutes"
+    except Exception as e:
+        return False, str(e)
 
 
 def load():
@@ -376,6 +430,10 @@ def generate_css(data):
                 root_vars.append(f"  --adv-bg-size: {psize}px {psize}px;")
         elif bg_type == "image":
             root_vars.append("  --adv-bg: transparent;")
+        elif bg_type == "video":
+            root_vars.append("  --adv-bg: transparent;")
+            vo = backgrounds.get("video_opacity", 100)
+            root_vars.append(f"  --adv-video-opacity: {max(0, min(100, vo)) / 100.0};")
         else:
             lc = light_cols[0] if light_cols else "var(--body-bg)"
             dc = dark_cols[0] if dark_cols else "var(--body-bg)"
@@ -570,18 +628,29 @@ def generate_css(data):
             else:
                 lines.append("  background: var(--adv-bg) !important;")
 
+        elif bg_type == "video":
+            lines.append("  background: transparent !important;")
+            has_fallback = bool(backgrounds.get("video_fallback", ""))
+            if has_fallback:
+                lines.append(f"  background-image: url('{backgrounds['video_fallback']}') !important;")
+                lines.append("  background-size: cover;")
+                lines.append("  background-position: center;")
+            else:
+                lines.append("  background-image: none !important;")
+
         else:
             lines.append("  background: var(--adv-bg) !important;")
 
         # --- Animation ---
-        if animation != "none" and not (has_bg_image or bg_type == "image"):
-            anim_name = _get_animation_name(bg_type, animation, False)
-            if anim_name:
-                lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
-        elif animation != "none" and (has_bg_image or bg_type == "image"):
-            anim_name = _get_animation_name(bg_type, animation, True)
-            if anim_name:
-                lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
+        if bg_type != "video":
+            if animation != "none" and not (has_bg_image or bg_type == "image"):
+                anim_name = _get_animation_name(bg_type, animation, False)
+                if anim_name:
+                    lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
+            elif animation != "none" and (has_bg_image or bg_type == "image"):
+                anim_name = _get_animation_name(bg_type, animation, True)
+                if anim_name:
+                    lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
 
         # --- Blend mode ---
         if blend != "normal":
@@ -608,6 +677,56 @@ def generate_css(data):
         lines.append("  transition: background 0.3s;")
         lines.append("}")
         lines.append("")
+
+        # --- Video background element CSS ---
+        if bg_type == "video":
+            has_video = bool(backgrounds.get("bg_video", ""))
+            if has_video:
+                lines.append("#bg-video-container {")
+                lines.append("  position: fixed;")
+                lines.append("  top: 0; left: 0;")
+                lines.append("  width: 100%; height: 100%;")
+                lines.append("  z-index: -1;")
+                lines.append("  overflow: hidden;")
+                lines.append("}")
+                lines.append("")
+                lines.append("#bg-video {")
+                lines.append("  width: 100%;")
+                lines.append("  height: 100%;")
+                lines.append("  object-fit: cover;")
+                if animation == "none":
+                    lines.append("  opacity: var(--adv-video-opacity, 1);")
+                lines.append("}")
+                lines.append("")
+                ov_type = backgrounds.get("video_overlay", "none")
+                if ov_type != "none":
+                    lines.append("#bg-video-container::after {")
+                    lines.append("  content: '';")
+                    lines.append("  position: absolute;")
+                    lines.append("  top: 0; left: 0;")
+                    lines.append("  width: 100%; height: 100%;")
+                    lines.append("  z-index: 1;")
+                    if ov_type == "color":
+                        oc = backgrounds.get("video_overlay_color", "#000000")
+                        oo = backgrounds.get("video_overlay_opacity", 30)
+                        r = int(oc[1:3], 16) if len(oc) >= 7 else 0
+                        g = int(oc[3:5], 16) if len(oc) >= 7 else 0
+                        b = int(oc[5:7], 16) if len(oc) >= 7 else 0
+                        lines.append(f"  background: rgba({r},{g},{b},{max(0, min(100, oo)) / 100.0});")
+                    elif ov_type == "gradient":
+                        lc = backgrounds.get("light_colors", ["#000", "#000"])
+                        ov_grad_fn = _build_gradient_function(backgrounds, ", ".join(lc[:3]))
+                        lines.append(f"  background: {ov_grad_fn};")
+                    lines.append("}")
+                    lines.append("")
+                # Animation on video element
+                if animation != "none":
+                    anim_name = _get_animation_name("video", animation, False)
+                    if anim_name:
+                        lines.append("#bg-video {")
+                        lines.append(f"  animation: {anim_name} var(--adv-animation-speed) var(--adv-animation-easing) infinite;")
+                        lines.append("}")
+                        lines.append("")
 
         # --- Keyframes ---
         if animation != "none":

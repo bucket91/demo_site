@@ -82,7 +82,7 @@ class DesignWidget(QtWidgets.QWidget):
         # ── Theme ──
         import theme_customizer
         theme_customizer.SITE_DIR = SITE_DIR
-        self.theme_widget = theme_customizer.ThemeCustomizerWidget()
+        self.theme_widget = theme_customizer.ThemeCustomizerWidget(log_widget=self.owner_widget.log)
         cl.addWidget(self.theme_widget)
 
         sep2 = QtWidgets.QFrame()

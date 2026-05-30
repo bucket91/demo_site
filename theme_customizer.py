@@ -244,8 +244,9 @@ class CustomColorDialog(QtWidgets.QDialog):
 
 
 class ThemeCustomizerWidget(QtWidgets.QWidget):
-    def __init__(self):
+    def __init__(self, log_widget=None):
         super().__init__()
+        self.log = log_widget
         self.setStyleSheet("""
             QLabel { color: #c9d1d9; }
             QLabel.dim { color: #6e7681; }
@@ -572,6 +573,12 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             sw.setStyleSheet(
                 f"background: {color}; border-radius: 4px; border: 1px solid #30363d;")
 
+    def _log(self, msg):
+        if self.log:
+            self.log.append(msg)
+        self.status.setText(msg)
+        QtWidgets.QApplication.processEvents()
+
     def apply_theme(self):
         is_custom = self.theme_key() == "Custom"
         t = dict(self.theme_colors())
@@ -584,29 +591,27 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
                 t["font_family"] = f"'{font_name}'"
                 t["font_face_rules"] = make_font_face_rule(cf)
             else:
-                self.status.setText(f"Custom font '{font_name}' not found")
+                self._log(f"Custom font '{font_name}' not found")
                 return
         else:
             t["font_family"] = FONTS[font_name]
             t["font_face_rules"] = ""
 
-        self.status.setText(f"Applying {name} with {font_name}...")
-        QtWidgets.QApplication.processEvents()
+        self._log(f"Applying {name} with {font_name}...")
 
         css = CSS_TEMPLATE.substitute(**t)
         try:
             with open(STYLE_FILE, "w", encoding="utf-8") as f:
                 f.write(css)
         except Exception as e:
-            self.status.setText(f"Error writing CSS: {e}")
+            self._log(f"Error writing CSS: {e}")
             return
 
-        self.status.setText(f"Applied {name}. Running generate...")
-        QtWidgets.QApplication.processEvents()
+        self._log(f"Applied {name}. Running generate...")
 
         import generate
         output = generate.run_generate_captured()
-        self.status.setText(output)
+        self._log(f"Done: {output}")
 
 
 

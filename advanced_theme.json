@@ -25,7 +25,7 @@
   },
   "backgrounds": {
     "enabled": true,
-    "type": "image",
+    "type": "video",
     "light_colors": [
       "#e8ecf0",
       "#dce0e8"
@@ -59,7 +59,11 @@
     "image_overlay_color": "#000000",
     "image_overlay_opacity": 30,
     "blend_mode": "lighten",
-    "bg_opacity": 100
+    "bg_opacity": 100,
+    "bg_video": "videos/test_input.webm",
+    "video_overlay": "color",
+    "video_overlay_color": "#000000",
+    "video_overlay_opacity": 30
   },
   "hover_effects": {
     "enabled": true,

@@ -291,6 +291,31 @@ def build_page(filepath, categories):
         adv_rel = ''
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
+    # Video background
+    adv_json_path = os.path.join(SITE_DIR, "advanced_theme.json")
+    video_html = ""
+    if os.path.exists(adv_json_path):
+        try:
+            with open(adv_json_path, encoding="utf-8") as _f:
+                adv_data = json.load(_f)
+            bg = adv_data.get("backgrounds", {})
+            if bg.get("enabled") and bg.get("type") == "video":
+                vid_path = bg.get("bg_video", "")
+                if vid_path:
+                    vid_abs = os.path.join(SITE_DIR, vid_path)
+                    if os.path.exists(vid_abs):
+                        vid_rel = os.path.relpath(vid_abs, os.path.dirname(os.path.abspath(filepath)))
+                        vid_rel = vid_rel.replace("\\", "/")
+                        video_html = (
+                            '<div id="bg-video-container">'
+                            '<video autoplay muted loop playsinline id="bg-video">'
+                            f'<source src="{vid_rel}" type="video/webm">'
+                            '</video>'
+                            '</div>'
+                        )
+        except Exception:
+            video_html = ""
+
     with open(TEMPLATE_FILE, encoding="utf-8") as f:
         tmpl = f.read()
 
@@ -304,6 +329,7 @@ def build_page(filepath, categories):
     result = result.replace('{{ADVANCED_STYLE_PATH}}', adv_rel)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
+    result = result.replace('{{VIDEO_BG}}', video_html)
     result = result.replace('{{SIDEBAR}}', sidebar)
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
