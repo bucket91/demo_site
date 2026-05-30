@@ -39,8 +39,8 @@ QComboBox, QSpinBox, QDoubleSpinBox {
 }
 QComboBox::drop-down { border: none; width: 24px; }
 QComboBox QAbstractItemView {
-    background: #0d1117; color: #c9d1d9; selection-background-color: #30363d;
-    border: 1px solid #30363d;
+    background: #0d1117; color: #c9d1d9; selection-background-color: #58a6ff;
+    border: 1px solid #30363d; outline: none; font-size: 13px;
 }
 QSlider::groove:horizontal {
     background: #30363d; height: 6px; border-radius: 3px;
@@ -320,6 +320,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         row.addWidget(lb)
         row.addStretch()
         cb = QtWidgets.QComboBox()
+        cb.setView(QtWidgets.QListView())
         for val, text in items:
             cb.addItem(text, val)
         cb.currentIndexChanged.connect(
@@ -589,6 +590,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         anim_row.addWidget(anim_lb)
         anim_row.addStretch()
         self.anim_combo = QtWidgets.QComboBox()
+        self.anim_combo.setView(QtWidgets.QListView())
         self.anim_combo.currentIndexChanged.connect(self._on_anim_changed)
         anim_row.addWidget(self.anim_combo)
         ag.addLayout(anim_row)

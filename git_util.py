@@ -1,8 +1,11 @@
-"""Bundled git helper — finds bundled git first, falls back to system git."""
-import os, sys, subprocess
+"""Bundled git helper — prefers system git (has HTTPS support)."""
+import os, sys, subprocess, shutil
 
 
 def get_git_path():
+    system = shutil.which("git")
+    if system:
+        return system
     if getattr(sys, 'frozen', False):
         meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(sys.argv[0]))
         candidates = [

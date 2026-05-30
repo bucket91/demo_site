@@ -532,6 +532,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         cat_label.setStyleSheet("color: #c9d1d9;")
         dl.addWidget(cat_label)
         cat_combo = QtWidgets.QComboBox()
+        cat_combo.setView(QtWidgets.QListView())
         cat_combo.setEditable(True)
         cat_combo.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
         for cat in self._sidebar_data:

@@ -273,6 +273,7 @@ class DocsWidget(QtWidgets.QWidget):
         tl.addWidget(self.help_heading)
         tl.addSpacing(16)
         self.combo = QtWidgets.QComboBox()
+        self.combo.setView(QtWidgets.QListView())
         self.combo.addItems(["Design", "Advanced", "Content", "Settings", "Comments"])
         self.combo.setMinimumWidth(180)
         tl.addWidget(self.combo)
