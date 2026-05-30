@@ -9,6 +9,10 @@
       {
         "name": "page",
         "file": "/blog/page.html"
+      },
+      {
+        "name": "fcc",
+        "file": "/blog/gf.html"
       }
     ]
   }
