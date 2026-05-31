@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Owner identity tab — name, title, bio, avatar, contacts."""
 import os, sys, json
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -41,7 +41,7 @@ class OwnerWidget(QtWidgets.QWidget):
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         scroll.setStyleSheet("QScrollArea { background: transparent; }")
         container = QtWidgets.QWidget()
         container.setStyleSheet("background: transparent;")
@@ -75,18 +75,18 @@ class OwnerWidget(QtWidgets.QWidget):
         avatar_frame.setMinimumHeight(ROW_HEIGHT)
         al = QtWidgets.QVBoxLayout(avatar_frame)
         al.setContentsMargins(0, 0, 0, 0)
-        al.setAlignment(QtCore.Qt.AlignCenter)
+        al.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
         self.avatar_preview = QtWidgets.QLabel()
         self.avatar_preview.setFixedSize(64, 64)
         self.avatar_preview.setStyleSheet("""
             border: 3px solid #58a6ff;
             background: #0d1117;
         """)
-        self.avatar_preview.setAlignment(QtCore.Qt.AlignCenter)
-        al.addWidget(self.avatar_preview, alignment=QtCore.Qt.AlignCenter)
+        self.avatar_preview.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
+        al.addWidget(self.avatar_preview, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         browse_btn = QtWidgets.QPushButton("Browse…")
         browse_btn.clicked.connect(self._pick_avatar)
-        al.addWidget(browse_btn, alignment=QtCore.Qt.AlignCenter)
+        al.addWidget(browse_btn, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
         top_row.addWidget(avatar_frame, 3)
 
         log_frame = QtWidgets.QFrame()
@@ -98,7 +98,7 @@ class OwnerWidget(QtWidgets.QWidget):
         self.log = QtWidgets.QTextEdit()
         self.log.setReadOnly(True)
         self.log.document().setMaximumBlockCount(5)
-        self.log.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
+        self.log.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
         self.log.setStyleSheet("background: transparent; color: #6e7681; border: none; font-family: monospace;")
         ll.addWidget(self.log)
         top_row.addWidget(log_frame, 3)
@@ -169,10 +169,10 @@ class OwnerWidget(QtWidgets.QWidget):
                 )
                 size = 58
                 scaled = cropped.scaled(
-                    size, size, QtCore.Qt.KeepAspectRatio, QtCore.Qt.SmoothTransformation
+                    size, size, QtCore.Qt.AspectRatioMode.KeepAspectRatio, QtCore.Qt.TransformationMode.SmoothTransformation
                 )
                 rounded = QtGui.QPixmap(size, size)
-                rounded.fill(QtCore.Qt.transparent)
+                rounded.fill(QtCore.Qt.GlobalColor.transparent)
                 painter = QtGui.QPainter(rounded)
                 painter.setRenderHint(QtGui.QPainter.Antialiasing)
                 clip = QtGui.QPainterPath()

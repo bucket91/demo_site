@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Git setup widget for Site Tools."""
 import os, sys, json
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 from git_util import is_git_available as _git_available, git_run as _git_run, _make_push_url, _extract_github_user
 from generate import load_config, save_config
 
@@ -127,7 +127,7 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         scroll.setStyleSheet("QScrollArea { background: transparent; }")
         scroll_body = QtWidgets.QWidget()
         scroll_body.setStyleSheet("background: transparent;")
@@ -151,7 +151,7 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         self.supabase_key = QtWidgets.QLineEdit(cfg.get("supabase_anon_key", ""))
         self.supabase_key.setPlaceholderText("anon public key")
-        self.supabase_key.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.supabase_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         sfl.addRow("Anon Key:", self.supabase_key)
 
         sl.addWidget(supabase_group)
@@ -169,7 +169,7 @@ class SetupGitWidget(QtWidgets.QWidget):
 
         self.token_input = QtWidgets.QLineEdit(cfg.get("github_token", ""))
         self.token_input.setPlaceholderText("ghp_xxxxxxxxxxxxxxxxxxxx  (NOT a GPG key)")
-        self.token_input.setEchoMode(QtWidgets.QLineEdit.Password)
+        self.token_input.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
         gfl.addRow("GitHub Token:", self.token_input)
 
         sl.addWidget(git_group)
@@ -363,7 +363,7 @@ def main_gui():
     layout.setContentsMargins(0, 0, 0, 0)
     layout.addWidget(SetupGitWidget())
     w.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":

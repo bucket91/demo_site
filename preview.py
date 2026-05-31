@@ -1,5 +1,5 @@
 import os, sys
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
+from PyQt6 import QtWidgets, QtCore, QtWebEngineWidgets, QtWebEngineCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -70,11 +70,11 @@ class PreviewDialog(QtWidgets.QDialog):
         self.container.setStyleSheet("background: #010409;")
         self.container_layout = QtWidgets.QVBoxLayout(self.container)
         self.container_layout.setContentsMargins(0, 0, 0, 0)
-        self.container_layout.setAlignment(QtCore.Qt.AlignCenter)
+        self.container_layout.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
 
         self.view = QtWebEngineWidgets.QWebEngineView()
         self.view.setStyleSheet("background: #ffffff;")
-        self.view.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        self.view.settings().setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         self.container_layout.addWidget(self.view)
 
         layout.addWidget(self.container, 1)

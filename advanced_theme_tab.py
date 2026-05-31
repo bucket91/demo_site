@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, json
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -93,7 +93,7 @@ class CollapsibleSection(QtWidgets.QWidget):
         layout.setSpacing(0)
 
         self.header = QtWidgets.QPushButton()
-        self.header.setCursor(QtCore.Qt.PointingHandCursor)
+        self.header.setCursor(QtCore.Qt.CursorShape.PointingHandCursor)
         self.header.setStyleSheet("""
             QPushButton {
                 background: #1c2128; color: #c9d1d9; border: 1px solid #30363d;
@@ -198,7 +198,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         # Scroll area for sections
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         scroll_body = QtWidgets.QWidget()
         scroll_body.setStyleSheet("background: transparent;")
         self.sl = QtWidgets.QVBoxLayout(scroll_body)
@@ -280,7 +280,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         lb.setStyleSheet("color: #6e7681;")
         row.addWidget(lb)
         row.addStretch()
-        sl = QtWidgets.QSlider(QtCore.Qt.Horizontal)
+        sl = QtWidgets.QSlider(QtCore.Qt.Orientation.Horizontal)
         sl.setRange(minimum, maximum)
         sl.setValue(int(default * scale))
         sl.setFixedWidth(140)
@@ -513,8 +513,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
     def _reset(self):
         reply = QtWidgets.QMessageBox.question(
             self, "Reset", "Reset all advanced styling to defaults?",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No)
-        if reply != QtWidgets.QMessageBox.Yes:
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         self._data = dict(DEFAULT)
         advanced_theme.save(self._data)

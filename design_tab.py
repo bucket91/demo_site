@@ -1,5 +1,5 @@
 import os, sys, json, webbrowser
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -14,7 +14,7 @@ class DesignWidget(QtWidgets.QWidget):
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         scroll.setStyleSheet("QScrollArea { background: transparent; }")
 
         container = QtWidgets.QWidget()
@@ -76,7 +76,7 @@ class DesignWidget(QtWidgets.QWidget):
         cl.addWidget(self.owner_widget)
 
         sep1 = QtWidgets.QFrame()
-        sep1.setFrameShape(QtWidgets.QFrame.HLine)
+        sep1.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         sep1.setStyleSheet("background: #30363d; max-height: 1px;")
         cl.addWidget(sep1)
 
@@ -87,7 +87,7 @@ class DesignWidget(QtWidgets.QWidget):
         cl.addWidget(self.theme_widget)
 
         sep2 = QtWidgets.QFrame()
-        sep2.setFrameShape(QtWidgets.QFrame.HLine)
+        sep2.setFrameShape(QtWidgets.QFrame.Shape.HLine)
         sep2.setStyleSheet("background: #30363d; max-height: 1px;")
         cl.addWidget(sep2)
 

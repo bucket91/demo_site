@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import sys, os, json
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -75,7 +75,7 @@ class App(QtWidgets.QMainWindow):
         import first_run
         first_run.SITE_DIR = SITE_DIR
         wizard = first_run.FirstRunWizard(self)
-        if wizard.exec_() == QtWidgets.QDialog.Accepted:
+        if wizard.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             self._auto_init_git()
 
     def _auto_init_git(self):
@@ -111,7 +111,7 @@ class App(QtWidgets.QMainWindow):
 
 
 def main():
-    QtCore.QCoreApplication.setAttribute(QtCore.Qt.AA_ShareOpenGLContexts, True)
+    QtCore.QCoreApplication.setAttribute(QtCore.Qt.ApplicationAttribute.AA_ShareOpenGLContexts, True)
     app = QtWidgets.QApplication(sys.argv)
     app.setStyle("Fusion")
 
@@ -121,7 +121,7 @@ def main():
 
     w = App()
     w.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

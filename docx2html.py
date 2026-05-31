@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, sys, re, html as html_mod, zipfile, base64, email, email.policy, email.parser
 from html.parser import HTMLParser
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -324,7 +324,7 @@ class ImportWidget(QtWidgets.QWidget):
         bl.addWidget(close_btn)
         dl.addWidget(bar)
         dlg.resize(1000, 750)
-        dlg.exec_()
+        dlg.exec()
 
     def save_to_site(self):
         sidebar_util.SITE_DIR = SITE_DIR
@@ -407,7 +407,7 @@ class ImportWidget(QtWidgets.QWidget):
             self.navigate_to_management.emit(fpath, cat)
 
         ok.clicked.connect(do_add)
-        dlg.exec_()
+        dlg.exec()
 
 
 def main_gui():
@@ -419,7 +419,7 @@ def main_gui():
     layout.setContentsMargins(0, 0, 0, 0)
     layout.addWidget(ImportWidget())
     w.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, json
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -157,7 +157,7 @@ class CustomColorDialog(QtWidgets.QDialog):
 
         scroll = QtWidgets.QScrollArea()
         scroll.setWidgetResizable(True)
-        scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+        scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
         body = QtWidgets.QWidget()
         body.setStyleSheet("background: transparent;")
         bl = QtWidgets.QVBoxLayout(body)
@@ -188,10 +188,10 @@ class CustomColorDialog(QtWidgets.QDialog):
                 btn.setToolTip(f"{key} = {color}")
                 btn.color_key = key
                 btn.clicked.connect(self.pick_color)
-                cl.addWidget(btn, alignment=QtCore.Qt.AlignCenter)
+                cl.addWidget(btn, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
                 lb = QtWidgets.QLabel(label)
                 lb.setProperty("class", "dim")
-                cl.addWidget(lb, alignment=QtCore.Qt.AlignCenter)
+                cl.addWidget(lb, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
                 rl.addWidget(col_w)
                 self.color_btns[key] = btn
             bl.addWidget(row_w)
@@ -347,7 +347,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             sw_layout.addWidget(sw, 0, col)
             lbl = QtWidgets.QLabel(label)
             lbl.setStyleSheet("color: #6e7681;")
-            sw_layout.addWidget(lbl, 1, col, alignment=QtCore.Qt.AlignCenter)
+            sw_layout.addWidget(lbl, 1, col, alignment=QtCore.Qt.AlignmentFlag.AlignCenter)
             self.swatch_widgets.append((sw, key))
         layout.addWidget(self.swatch_grid)
 
@@ -596,7 +596,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
     def open_color_dialog(self):
         colors = dict(self.custom_colors) if self.custom_colors else dict(THEMES["Dark"])
         dlg = CustomColorDialog(colors, self)
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             self.custom_colors = dlg.get_colors()
             self.save_custom_theme(self.custom_colors)
             self.update_preview()

@@ -1,5 +1,5 @@
 import os, sys
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")

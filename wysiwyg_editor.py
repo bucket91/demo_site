@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, json, shutil
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
+from PyQt6 import QtWidgets, QtCore, QtWebEngineWidgets, QtWebEngineCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -58,7 +58,7 @@ def _ensure_ckeditor():
                 f.write(html)
 
 
-class _EditorPage(QtWebEngineWidgets.QWebEnginePage):
+class _EditorPage(QtWebEngineCore.QWebEnginePage):
     def __init__(self, parent=None):
         super().__init__(parent)
 
@@ -93,9 +93,9 @@ class WysiwygEditor(QtWidgets.QDialog):
         self.view = QtWebEngineWidgets.QWebEngineView()
         self.view.setPage(_EditorPage(self.view))
         s = self.view.settings()
-        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
-        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled, True)
-        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled, True)
+        s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
+        s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
+        s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
         editor_path = os.path.join(_APP_DIR, "ckeditor", "editor.html")
         self.view.setUrl(QtCore.QUrl.fromLocalFile(editor_path))
         layout.addWidget(self.view, 1)

@@ -1,6 +1,6 @@
 """First-run setup wizard for new Site Tools installations."""
 import os, json
-from PyQt5 import QtWidgets
+from PyQt6 import QtWidgets
 from git_util import _extract_github_user
 
 SITE_DIR = None
@@ -58,7 +58,7 @@ class FirstRunWizard(QtWidgets.QDialog):
                 QLineEdit:focus { border-color: #58a6ff; }
             """)
             if key == "github_token":
-                inp.setEchoMode(QtWidgets.QLineEdit.Password)
+                inp.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
             fl.addRow(lbl, inp)
             layout.addLayout(fl)
             self.inputs[key] = inp

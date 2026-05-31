@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-from PyQt5 import QtWidgets, QtCore
+from PyQt6 import QtWidgets, QtCore
 
 STYLE = """
 QWidget { background: transparent; }
@@ -31,7 +31,7 @@ def _section(title, *lines):
     for text in lines:
         if text == "---":  # thin spacer
             sep = QtWidgets.QFrame()
-            sep.setFrameShape(QtWidgets.QFrame.HLine)
+            sep.setFrameShape(QtWidgets.QFrame.Shape.HLine)
             sep.setStyleSheet("background: #30363d; max-height: 1px; margin: 4px 0;")
             l.addWidget(sep)
         elif text.startswith("$ "):  # sub-heading
@@ -50,7 +50,7 @@ def _section(title, *lines):
 def _build_page(title, sections):
     scroll = QtWidgets.QScrollArea()
     scroll.setWidgetResizable(True)
-    scroll.setFrameShape(QtWidgets.QFrame.NoFrame)
+    scroll.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
     w = QtWidgets.QWidget()
     l = QtWidgets.QVBoxLayout(w)
     l.setContentsMargins(20, 16, 20, 16)
@@ -62,7 +62,7 @@ def _build_page(title, sections):
         l.addWidget(s)
     # Contact footer
     sep = QtWidgets.QFrame()
-    sep.setFrameShape(QtWidgets.QFrame.HLine)
+    sep.setFrameShape(QtWidgets.QFrame.Shape.HLine)
     sep.setStyleSheet("background: #30363d; max-height: 1px; margin: 8px 0;")
     l.addWidget(sep)
     contact = QtWidgets.QLabel(
@@ -70,10 +70,10 @@ def _build_page(title, sections):
         '<a href="https://discord.com/users/mhd235" style="color:#58a6ff;">Discord</a> or '
         '<a href="mailto:mhd235@proton.me" style="color:#58a6ff;">Email</a>'
     )
-    contact.setTextFormat(QtCore.Qt.RichText)
+    contact.setTextFormat(QtCore.Qt.TextFormat.RichText)
     contact.setOpenExternalLinks(True)
     contact.setStyleSheet("color: #6e7681; font-size: 12px;")
-    contact.setAlignment(QtCore.Qt.AlignCenter)
+    contact.setAlignment(QtCore.Qt.AlignmentFlag.AlignCenter)
     l.addWidget(contact)
     l.addStretch()
     scroll.setWidget(w)

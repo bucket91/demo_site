@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os, sys, shutil, glob
 import re, html as html_mod
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -95,10 +95,10 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.tree.setDragEnabled(True)
         self.tree.setAcceptDrops(True)
         self.tree.setDropIndicatorShown(True)
-        self.tree.setDragDropMode(QtWidgets.QAbstractItemView.InternalMove)
-        self.tree.setDefaultDropAction(QtCore.Qt.MoveAction)
-        self.tree.setEditTriggers(QtWidgets.QAbstractItemView.DoubleClicked)
-        self.tree.setContextMenuPolicy(QtCore.Qt.CustomContextMenu)
+        self.tree.setDragDropMode(QtWidgets.QAbstractItemView.DragDropMode.InternalMove)
+        self.tree.setDefaultDropAction(QtCore.Qt.DropAction.MoveAction)
+        self.tree.setEditTriggers(QtWidgets.QAbstractItemView.EditTrigger.DoubleClicked)
+        self.tree.setContextMenuPolicy(QtCore.Qt.ContextMenuPolicy.CustomContextMenu)
         self.tree.customContextMenuRequested.connect(self._context_menu)
         self.tree.itemChanged.connect(self._on_item_changed)
         self.tree.dropped.connect(self._on_drop)
@@ -154,7 +154,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             entries = []
             for j in range(cat_item.childCount()):
                 entry_item = cat_item.child(j)
-                entry_data = entry_item.data(0, QtCore.Qt.UserRole)
+                entry_data = entry_item.data(0, QtCore.Qt.ItemDataRole.UserRole)
                 if entry_data and "file" in entry_data:
                     d = {"name": entry_item.text(0), "file": entry_data["file"]}
                     if "comments" in entry_data:
@@ -168,16 +168,16 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.tree.clear()
         for cat in self._sidebar_data:
             cat_item = QtWidgets.QTreeWidgetItem([cat["category"]])
-            cat_item.setData(0, QtCore.Qt.UserRole, {"type": "category"})
-            cat_item.setFlags(cat_item.flags() | QtCore.Qt.ItemIsDropEnabled)
+            cat_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, {"type": "category"})
+            cat_item.setFlags(cat_item.flags() | QtCore.Qt.ItemFlag.ItemIsDropEnabled)
             for entry in cat["entries"]:
                 entry_item = QtWidgets.QTreeWidgetItem([entry["name"]])
-                entry_item.setData(0, QtCore.Qt.UserRole, {
+                entry_item.setData(0, QtCore.Qt.ItemDataRole.UserRole, {
                     "type": "entry", "category": cat["category"],
                     "name": entry["name"], "file": entry["file"],
                     "comments": entry.get("comments", True)
                 })
-                entry_item.setFlags(entry_item.flags() | QtCore.Qt.ItemIsEditable | QtCore.Qt.ItemIsDragEnabled)
+                entry_item.setFlags(entry_item.flags() | QtCore.Qt.ItemFlag.ItemIsEditable | QtCore.Qt.ItemFlag.ItemIsDragEnabled)
                 cat_item.addChild(entry_item)
             self.tree.addTopLevelItem(cat_item)
         self.tree.expandAll()
@@ -218,7 +218,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.status.setText("Refreshed")
 
     def _on_item_changed(self, item, column):
-        data = item.data(0, QtCore.Qt.UserRole)
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         if data and data.get("type") == "entry":
             new_name = item.text(0).strip()
             if new_name and new_name != data.get("name"):
@@ -240,7 +240,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         item = self.tree.itemAt(pos)
         if not item:
             return
-        data = item.data(0, QtCore.Qt.UserRole)
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         if not data:
             return
         menu = QtWidgets.QMenu(self)
@@ -276,9 +276,9 @@ class RefManagerWidget(QtWidgets.QWidget):
     def _remove_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
             self, "Remove", f"Remove '{data['name']}' from sidebar?\nThe file will be kept on disk.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        if reply != QtWidgets.QMessageBox.Yes:
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         for cat in self._sidebar_data:
             if cat["category"] == data["category"]:
@@ -292,9 +292,9 @@ class RefManagerWidget(QtWidgets.QWidget):
         reply = QtWidgets.QMessageBox.question(
             self, "Delete File",
             f"Delete '{data['name']}'?\nThe file '{data['file']}' will be permanently deleted.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        if reply != QtWidgets.QMessageBox.Yes:
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
         removed = False
@@ -317,9 +317,9 @@ class RefManagerWidget(QtWidgets.QWidget):
         reply = QtWidgets.QMessageBox.question(
             self, "Remove Category",
             f"Remove '{category}' from sidebar?\nFiles and folder will be kept on disk.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        if reply != QtWidgets.QMessageBox.Yes:
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
@@ -334,9 +334,9 @@ class RefManagerWidget(QtWidgets.QWidget):
         reply = QtWidgets.QMessageBox.question(
             self, "Delete Category",
             f"Delete '{category}' and all {file_count} file(s) inside?\nThis cannot be undone.",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        if reply != QtWidgets.QMessageBox.Yes:
+        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
@@ -416,7 +416,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         body = m.group(1).strip() if m else src
         from wysiwyg_editor import WysiwygEditor
         dlg = WysiwygEditor(body, self)
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             html = dlg.result_html()
             if html:
                 wrapped = self._wrap_content(html, data["name"], fpath)
@@ -468,7 +468,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             from wysiwyg_editor import WysiwygEditor
             dlg.accept()
             ed = WysiwygEditor("", self)
-            if ed.exec_() == QtWidgets.QDialog.Accepted:
+            if ed.exec() == QtWidgets.QDialog.DialogCode.Accepted:
                 html = ed.result_html()
                 if html:
                     wrapped = self._wrap_content(html, title, fpath)
@@ -486,7 +486,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                     self.status.setText(f"Created '{title}'")
 
         ok_btn.clicked.connect(do_create)
-        dlg.exec_()
+        dlg.exec()
 
     def _import_file(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
@@ -562,14 +562,14 @@ class RefManagerWidget(QtWidgets.QWidget):
             self.status.setText(f"Imported '{title}'")
 
         ok_btn.clicked.connect(do_import)
-        dlg.exec_()
+        dlg.exec()
 
     def remove_selected(self):
         item = self.tree.currentItem()
         if not item:
             self.status.setText("Select an entry to remove")
             return
-        data = item.data(0, QtCore.Qt.UserRole)
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         if not data:
             return
         if data.get("type") == "entry":
@@ -582,7 +582,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         if not item:
             self.status.setText("Select an entry to delete")
             return
-        data = item.data(0, QtCore.Qt.UserRole)
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
         if not data:
             return
         if data.get("type") == "entry":
@@ -684,7 +684,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             self.status.setText(f"Added '{name}' to '{cat}'")
 
         ok_btn.clicked.connect(do_add)
-        dlg.exec_()
+        dlg.exec()
 
     def convert_media(self):
         self.convert_media_btn.setEnabled(False)

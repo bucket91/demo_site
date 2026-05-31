@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import json, os, sys, urllib.request, urllib.error
-from PyQt5 import QtWidgets, QtCore, QtGui
+from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -53,12 +53,12 @@ class CommentModel(QtCore.QAbstractTableModel):
     def columnCount(self, parent=QtCore.QModelIndex()):
         return len(self.columns)
 
-    def data(self, index, role=QtCore.Qt.DisplayRole):
+    def data(self, index, role=QtCore.Qt.ItemDataRole.DisplayRole):
         if not index.isValid():
             return None
         c = self.comments[index.row()]
         col = index.column()
-        if role == QtCore.Qt.DisplayRole:
+        if role == QtCore.Qt.ItemDataRole.DisplayRole:
             if col == 0:
                 return str(c.get("id", ""))
             if col == 1:
@@ -69,12 +69,12 @@ class CommentModel(QtCore.QAbstractTableModel):
                 return c.get("body", "")
             if col == 4:
                 return c.get("created_at", "")[:19].replace("T", " ")
-        if role == QtCore.Qt.UserRole:
+        if role == QtCore.Qt.ItemDataRole.UserRole:
             return c
         return None
 
     def headerData(self, section, orientation, role):
-        if orientation == QtCore.Qt.Horizontal and role == QtCore.Qt.DisplayRole:
+        if orientation == QtCore.Qt.Orientation.Horizontal and role == QtCore.Qt.ItemDataRole.DisplayRole:
             return self.columns[section]
         return None
 
@@ -177,16 +177,16 @@ class CommentAdminWidget(QtWidgets.QWidget):
         self.model = CommentModel()
         self.table = QtWidgets.QTableView()
         self.table.setModel(self.model)
-        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
-        self.table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
+        self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QtWidgets.QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setAlternatingRowColors(True)
         self.table.setStyleSheet("""
             QTableView { alternate-background-color: #161b22; }
         """)
         hdr_v = self.table.horizontalHeader()
-        hdr_v.setSectionResizeMode(3, QtWidgets.QHeaderView.Stretch)
-        hdr_v.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeToContents)
-        hdr_v.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeToContents)
+        hdr_v.setSectionResizeMode(3, QtWidgets.QHeaderView.ResizeMode.Stretch)
+        hdr_v.setSectionResizeMode(1, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
+        hdr_v.setSectionResizeMode(2, QtWidgets.QHeaderView.ResizeMode.ResizeToContents)
         layout.addWidget(self.table, 1)
 
         # toolbar
@@ -233,7 +233,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
             return
         c = self.model.comments[row]
         dlg = EditDialog(c)
-        if dlg.exec_() == QtWidgets.QDialog.Accepted:
+        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             data = dlg.get_data()
             self.model.update_comment(row, data)
             self.model.layoutChanged.emit()
@@ -247,9 +247,9 @@ class CommentAdminWidget(QtWidgets.QWidget):
         confirm = QtWidgets.QMessageBox.question(
             self, "Delete Comment",
             f"Delete comment #{c['id']} by '{c['name']}'?",
-            QtWidgets.QMessageBox.Yes | QtWidgets.QMessageBox.No
+            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
-        if confirm == QtWidgets.QMessageBox.Yes:
+        if confirm == QtWidgets.QMessageBox.StandardButton.Yes:
             self.model.remove_comment(row)
             self.status.setText(f"Comment #{c['id']} deleted")
 
@@ -267,7 +267,7 @@ def main():
     app = QtWidgets.QApplication(sys.argv)
     w = AdminWindow()
     w.show()
-    sys.exit(app.exec_())
+    sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()

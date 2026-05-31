@@ -94,7 +94,7 @@ QPushButton.danger:hover {{ background: #d32f2f; }}
 
 
 def apply(colors=None):
-    from PyQt5 import QtWidgets
+    from PyQt6 import QtWidgets
     app = QtWidgets.QApplication.instance()
     if app is None:
         return

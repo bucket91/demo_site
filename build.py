@@ -49,9 +49,9 @@ def clean():
 def setup_venv():
     if os.path.exists(PYINSTALLER):
         return
-    print("Creating build venv and installing PyInstaller + PyQt5...")
+    print("Creating build venv and installing PyInstaller + PyQt6...")
     subprocess.run([sys.executable, "-m", "venv", VENV_DIR], check=True)
-    subprocess.run([PIP, "install", "pyinstaller", "PyQt5", "PyQtWebEngine"], check=True)
+    subprocess.run([PIP, "install", "pyinstaller", "PyQt6", "PyQt6-WebEngine"], check=True)
 
 
 def download_mingit():
@@ -114,8 +114,9 @@ def build():
         "--distpath", dist_dir,
         "--workpath", os.path.join(SITE_DIR, "build"),
         "--specpath", SITE_DIR,
-        "--hidden-import", "PyQt5.sip",
-        "--hidden-import", "PyQt5.QtWebEngineWidgets",
+        "--hidden-import", "PyQt6.sip",
+        "--hidden-import", "PyQt6.QtWebEngineWidgets",
+        "--hidden-import", "PyQt6.QtWebEngineCore",
         "app.py",
     ]
 
