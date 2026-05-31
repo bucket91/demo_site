@@ -109,8 +109,8 @@ header h1 a:hover { text-decoration: none; }
 .sub-links li a { display: block; padding: 0.4rem 1rem 0.4rem 2rem; color: var(--link-muted); font-size: 0.85rem; }
 .sub-links li a:hover { color: var(--link-hover-text); background: var(--sidebar-hover); }
 main { flex: 1; padding: 1.25rem; max-width: 860px; margin: 0 auto; width: 100%; }
-.doc-content { padding: 0 0.5rem; }
-.doc-content img, .doc-content table, .doc-content pre, .doc-content div { max-width: 100%; overflow-x: auto; }
+.ck-content { padding: 0 0.5rem; }
+.ck-content img, .ck-content table, .ck-content pre, .ck-content div { max-width: 100%; overflow-x: auto; }
 .owner-card { text-align: center; }
 .owner-card-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--avatar-border); margin-bottom: 0.75rem; }
 .owner-card-name { font-size: 1.2rem; font-weight: 700; color: var(--label); }
@@ -200,7 +200,8 @@ def ensure_site_files(site_dir):
     if not os.path.exists(sidebar_path):
         import sidebar_util
         sidebar_util.SITE_DIR = site_dir
-        created.append("sidebar.json")
         sidebar_util.init_from_filesystem()
+        if os.path.exists(sidebar_path):
+            created.append("sidebar.json")
 
     return created

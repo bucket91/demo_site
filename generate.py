@@ -95,7 +95,7 @@ def generate_sidebar(categories, current_file):
 
 
 def extract_main(html):
-    m = re.search(r'<main>(.*?)</main>', html, re.DOTALL)
+    m = re.search(r'<main[^>]*>(.*?)</main>', html, re.DOTALL)
     if m:
         return m.group(1).strip()
     return html.strip()
@@ -289,6 +289,12 @@ def build_page(filepath, categories):
         adv_rel = adv_rel.replace('\\', '/')
     else:
         adv_rel = ''
+    content_css = os.path.join(SITE_DIR, 'content.css')
+    if os.path.exists(content_css):
+        content_rel = os.path.relpath(content_css, os.path.dirname(os.path.abspath(filepath)))
+        content_rel = content_rel.replace('\\', '/')
+    else:
+        content_rel = ''
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
     # Video background
@@ -326,6 +332,7 @@ def build_page(filepath, categories):
     result = result.replace('{{SITE_TITLE}}', site_title)
     result = result.replace('{{TITLE}}', title)
     result = result.replace('{{STYLE_PATH}}', style_rel)
+    result = result.replace('{{CONTENT_STYLE_PATH}}', content_rel)
     result = result.replace('{{ADVANCED_STYLE_PATH}}', adv_rel)
     result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
@@ -373,7 +380,7 @@ def generate_all(log_func=print):
 
     html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
     updated = 0
-    skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit'}
+    skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
     skip_base = {os.path.basename(TEMPLATE_FILE), "404.html"}
     for fp in sorted(html_files):
         rel = os.path.relpath(fp, SITE_DIR)

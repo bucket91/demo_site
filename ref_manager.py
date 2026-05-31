@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import os, sys, shutil
+import os, sys, shutil, glob
 import re, html as html_mod
 from PyQt5 import QtWidgets, QtCore, QtGui
 
@@ -125,6 +125,11 @@ class RefManagerWidget(QtWidgets.QWidget):
         btn_row.addWidget(self.delete_btn)
 
         btn_row.addStretch()
+
+        self.convert_media_btn = QtWidgets.QPushButton("Convert Media")
+        self.convert_media_btn.setMinimumHeight(40)
+        self.convert_media_btn.clicked.connect(self.convert_media)
+        btn_row.addWidget(self.convert_media_btn)
 
         self.gen_btn = QtWidgets.QPushButton("Generate")
         self.gen_btn.setProperty("class", "primary")
@@ -406,7 +411,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             return
         with open(fpath, encoding="utf-8") as f:
             src = f.read()
-        m = re.search(r'<main>(.*?)</main>', src, re.DOTALL)
+        m = re.search(r'<main[^>]*>(.*?)</main>', src, re.DOTALL)
         body = m.group(1).strip() if m else src
         from wysiwyg_editor import WysiwygEditor
         dlg = WysiwygEditor(body, self)
@@ -485,20 +490,28 @@ class RefManagerWidget(QtWidgets.QWidget):
     def _import_file(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Import File", "",
-            "Supported files (*.zip *.mht *.mhtml);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
+            "Supported files (*.html *.zip *.mht *.mhtml);;HTML files (*.html);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
         if not path:
             return
-        from docx2html import convert_file
-        result, err = convert_file(path)
-        if err:
-            QtWidgets.QMessageBox.warning(self, "Import Error", err)
-            return
-        if not result.get('ok'):
-            QtWidgets.QMessageBox.warning(self, "Import Error", result.get('error', 'Unknown error'))
-            return
-
-        imported_html = result['html']
-        imported_title = result['title']
+        ext = os.path.splitext(path)[1].lower()
+        if ext == '.html':
+            with open(path, encoding="utf-8") as f:
+                raw = f.read()
+            title_m = re.search(r'<title>(.*?)</title>', raw, re.DOTALL | re.IGNORECASE)
+            imported_title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
+            content_m = re.search(r'<main[^>]*>(.*?)</main>', raw, re.DOTALL)
+            imported_html = content_m.group(1).strip() if content_m else raw
+        else:
+            from docx2html import convert_file
+            result, err = convert_file(path)
+            if err:
+                QtWidgets.QMessageBox.warning(self, "Import Error", err)
+                return
+            if not result.get('ok'):
+                QtWidgets.QMessageBox.warning(self, "Import Error", result.get('error', 'Unknown error'))
+                return
+            imported_html = result['html']
+            imported_title = result['title']
 
         dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Import Page")
@@ -685,6 +698,82 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         ok_btn.clicked.connect(do_add)
         dlg.exec_()
+
+    def convert_media(self):
+        """Scan all HTML pages, convert images to WebP and videos to WebM, rewrite src references."""
+        from advanced_theme import convert_to_webp, convert_to_webm
+        media_dir = os.path.join(SITE_DIR, "media")
+        html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
+        skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+        converted = 0
+        errors = []
+        img_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif'}
+        vid_exts = {'.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm'}
+
+        for fp in html_files:
+            rel = os.path.relpath(fp, SITE_DIR)
+            if any(part in skip_dirs for part in rel.split(os.sep)):
+                continue
+            with open(fp, encoding="utf-8") as f:
+                src = f.read()
+
+            changed = False
+
+            def replace_img(m):
+                nonlocal changed, converted, errors
+                url = m.group(1)
+                if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
+                    return m.group(0)
+                ext = os.path.splitext(url)[1].lower()
+                if ext not in img_exts:
+                    return m.group(0)
+                abs_path = os.path.join(os.path.dirname(fp), url)
+                if not os.path.exists(abs_path):
+                    return m.group(0)
+                ok, result = convert_to_webp(abs_path, media_dir)
+                if ok:
+                    webp_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
+                    converted += 1
+                    changed = True
+                    return f'<img src="{webp_rel}"'
+                else:
+                    errors.append(f"{rel}: {result}")
+                    return m.group(0)
+
+            def replace_vid(m):
+                nonlocal changed, converted, errors
+                url = m.group(1)
+                if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
+                    return m.group(0)
+                ext = os.path.splitext(url)[1].lower()
+                if ext not in vid_exts:
+                    return m.group(0)
+                abs_path = os.path.join(os.path.dirname(fp), url)
+                if not os.path.exists(abs_path):
+                    return m.group(0)
+                ok, result = convert_to_webm(abs_path, media_dir)
+                if ok:
+                    webm_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
+                    converted += 1
+                    changed = True
+                    return f'<source src="{webm_rel}"'
+                else:
+                    errors.append(f"{rel}: {result}")
+                    return m.group(0)
+
+            src = re.sub(r'<img\s+src="([^"]+)"', replace_img, src)
+            src = re.sub(r'<source\s+src="([^"]+)"', replace_vid, src)
+
+            if changed:
+                with open(fp, "w", encoding="utf-8") as f:
+                    f.write(src)
+
+        parts = [f"Converted {converted} media file(s)"]
+        if errors:
+            parts.append(f"Errors: {'; '.join(errors[:3])}")
+            if len(errors) > 3:
+                parts.append(f"... and {len(errors)-3} more")
+        self.status.setText(" | ".join(parts))
 
     def generate(self):
         self.status.setText("Generating...")

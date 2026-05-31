@@ -289,6 +289,37 @@ def _get_animation_keyframes(bg_type, anim_type, has_image):
     return []
 
 
+def convert_to_webp(input_path, output_dir):
+    """Convert image to WebP using ffmpeg libwebp encoder.
+    Returns (success, output_path)."""
+    import subprocess, shutil, os
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        return False, "ffmpeg not found — install ffmpeg to convert images"
+    os.makedirs(output_dir, exist_ok=True)
+    basename = os.path.splitext(os.path.basename(input_path))[0]
+    output_path = os.path.join(output_dir, f"{basename}.webp")
+    cmd = [
+        ffmpeg, "-y",
+        "-i", input_path,
+        "-c:v", "libwebp",
+        "-lossless", "0",
+        "-q:v", "85",
+        output_path
+    ]
+    try:
+        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        if result.returncode == 0 and os.path.exists(output_path):
+            return True, output_path
+        else:
+            err = result.stderr.strip()[-200:] if result.stderr else "unknown error"
+            return False, f"ffmpeg error: {err}"
+    except subprocess.TimeoutExpired:
+        return False, "Conversion timed out after 2 minutes"
+    except Exception as e:
+        return False, str(e)
+
+
 def convert_to_webm(input_path, output_dir):
     """Convert video to VP9 WebM with no audio for smaller file sizes.
     Returns (success, output_path)."""
@@ -536,7 +567,7 @@ def generate_css(data):
         if apply_sidebar:
             selectors.append(".sidebar")
         if apply_images:
-            selectors.append(".doc-content img:not([style*=\"float\"])")
+            selectors.append(".ck-content img:not([style*=\"float\"])")
 
         if selectors:
             sel = ", ".join(selectors)
@@ -563,7 +594,7 @@ def generate_css(data):
             (".home-card, .comment, .sidebar-owner", "card"),
             (".theme-toggle, button:not(.sidebar-toggle):not(.close-btn)", "button"),
             ("#comment-form input, #comment-form textarea", "input"),
-            (".doc-content img", "image"),
+            (".ck-content img", "image"),
             (".owner-avatar, .owner-card-avatar", "avatar"),
             ("header", "header"),
             (".sidebar", "sidebar"),
@@ -831,9 +862,9 @@ def generate_css(data):
 
         if image_hover != "none":
             effects = {
-                "zoom": ".doc-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .doc-content img:not([style*=\"float\"]):hover { transform: scale(1.03); }",
-                "overlay": ".doc-content img:not([style*=\"float\"]) { position: relative; } .doc-content img:not([style*=\"float\"]):hover { filter: brightness(1.1); }",
-                "grayscale": ".doc-content img:not([style*=\"float\"]) { filter: grayscale(0); transition: filter 0.3s; } .doc-content img:not([style*=\"float\"]):hover { filter: grayscale(0); }",
+                "zoom": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: scale(1.03); }",
+                "overlay": ".ck-content img:not([style*=\"float\"]) { position: relative; } .ck-content img:not([style*=\"float\"]):hover { filter: brightness(1.1); }",
+                "grayscale": ".ck-content img:not([style*=\"float\"]) { filter: grayscale(0); transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: grayscale(0); }",
             }
             if image_hover in effects:
                 lines.append(effects[image_hover])
@@ -844,7 +875,7 @@ def generate_css(data):
             lines.append("")
 
         if scroll_reveal:
-            lines.append(""".home-card, .comment, .doc-content img, .doc-content blockquote {
+            lines.append(""".home-card, .comment, .ck-content img, .ck-content blockquote {
   opacity: 0;
   transform: translateY(20px);
   animation: advReveal 0.6s ease forwards;
@@ -888,7 +919,7 @@ def generate_css(data):
         sc = typography.get("selection_color", "#3399ff")
 
         lines.append("""
-body, .doc-content {
+body, .ck-content {
   font-size: var(--adv-base-font-size);
   letter-spacing: var(--adv-body-letter-spacing, 0);
   line-height: var(--adv-body-line-height);
@@ -902,11 +933,11 @@ h2 { font-size: var(--adv-h2-size); }
 h3 { font-size: var(--adv-h3-size); }
 """)
         if ls == "colored":
-            lines.append(".doc-content a { color: var(--adv-link-color, var(--accent)); }")
+            lines.append(".ck-content a { color: var(--adv-link-color, var(--accent)); }")
         elif ls == "underline":
-            lines.append(".doc-content a { text-decoration: underline; }")
+            lines.append(".ck-content a { text-decoration: underline; }")
         elif ls == "animated":
-            lines.append(""".doc-content a {
+            lines.append(""".ck-content a {
   background-image: linear-gradient(var(--accent), var(--accent));
   background-size: 0 2px;
   background-repeat: no-repeat;
@@ -914,18 +945,18 @@ h3 { font-size: var(--adv-h3-size); }
   transition: background-size 0.3s;
   text-decoration: none;
 }
-.doc-content a:hover {
+.ck-content a:hover {
   background-size: 100% 2px;
 }
 """)
 
         if bq == "icon":
-            lines.append(""".doc-content blockquote {
+            lines.append(""".ck-content blockquote {
   border-left: none;
   padding-left: 3rem;
   position: relative;
 }
-.doc-content blockquote::before {
+.ck-content blockquote::before {
   content: '\\201C';
   font-size: 4rem;
   position: absolute;
@@ -937,7 +968,7 @@ h3 { font-size: var(--adv-h3-size); }
 }
 """)
         elif bq == "background":
-            lines.append(""".doc-content blockquote {
+            lines.append(""".ck-content blockquote {
   border-left: none;
   background: var(--card-bg);
   border-radius: var(--adv-radius-card, 8px);
@@ -945,7 +976,7 @@ h3 { font-size: var(--adv-h3-size); }
 }
 """)
         elif bq == "stylized":
-            lines.append(""".doc-content blockquote {
+            lines.append(""".ck-content blockquote {
   border-left: 4px solid var(--accent);
   border-radius: 0 8px 8px 0;
   background: var(--card-bg);

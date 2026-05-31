@@ -1,44 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Page</title>
-  <link rel="stylesheet" href="../style.css">
-  <link rel="stylesheet" href="../advanced.css">
-</head>
-<body>
-<div id="bg-video-container"><video autoplay muted loop playsinline id="bg-video"><source src="../videos/10130349-hd_1920_1080_30fps.webm" type="video/webm"></video></div>
-  <header>
-    <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>
-    <h1><a href="../index.html">Placeholder</a></h1>
-        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>
-  </header>
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-owner">
-        <img src="../avatar.png" alt="Jon Doe" class="owner-avatar">
-        <div class="owner-name">Jon Doe</div>
-        <div class="owner-title">maniac</div>
-        <div class="owner-bio">fugaisv uahfi8asfuxb ausgiavsc   asugcuavsc</div>
-      </div>
-      <div class="sidebar-top">
-        <h2>Menu</h2>
-        <button class="close-btn" onclick="toggleSidebar()">&times;</button>
-      </div>
-      <div class="category">
-        <div class="category-header" onclick="toggleCategory(this)">
-          blog <span class="arrow">&#9654;</span>
-        </div>
-        <ul class="sub-links">
-          <li><a href="../blog/test1.html">Test1</a></li>
-          <li><a href="../blog/page.html">page</a></li>
-          <li><a href="../blog/gf.html">fcc</a></li>
-        </ul>
-      </div>
 
-    </aside>
-    <main>
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
 <head>
@@ -48,6 +8,7 @@
 <style>
   body { margin: 0; }
   body.ck-fullscreen { background: var(--ck-color-base-background); }
+  body:not(.ck-fullscreen) .ck-editor__editable { max-height: none; min-height: calc(100vh - 120px); }
   body.ck-fullscreen .ck-editor__editable { max-height: none; min-height: calc(100vh - 56px); }
   body.ck-fullscreen .ck.ck-editor { height: 100vh; display: flex; flex-direction: column; }
   body.ck-fullscreen .ck.ck-editor .ck.ck-editor__main { flex: 1; }
@@ -609,109 +570,5 @@ function getEditorContent() {
   return '';
 }
 </script>
-</body>
-</html>
-    </main>
-  <div id="comments-section" data-page="/ckeditor/editor">
-    <h3>Comments</h3>
-    <div id="comments-list"></div>
-    <form id="comment-form">
-      <input id="comment-name" type="text" placeholder="Your name" required>
-      <textarea id="comment-body" placeholder="Write a comment..." required></textarea>
-      <button type="submit">Post Comment</button>
-    </form>
-  </div>
-  <script>
-const SUPABASE_URL = 'https://oorgvolgpoapoediiuxy.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_29CWP0eIwfFupRdHAe5Czg_uLDo0oT5';
-(function() {
-  var section = document.getElementById('comments-section');
-  var page = section ? section.getAttribute('data-page') : '/';
-  async function loadComments() {
-    var res = await fetch(
-      SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
-      { headers: { apikey: SUPABASE_ANON_KEY } }
-    );
-    if (!res.ok) return;
-    var comments = await res.json();
-    var list = document.getElementById('comments-list');
-    if (!list) return;
-    if (comments.length === 0) {
-      list.innerHTML = '<p class="no-comments">No comments yet.</p>';
-      return;
-    }
-    list.innerHTML = comments.map(function(c) {
-      return '<div class="comment">' +
-        '<div class="comment-header">' +
-          '<strong>' + esc(c.name) + '</strong>' +
-          '<span class="comment-date">' + new Date(c.created_at).toLocaleDateString() + '</span>' +
-        '</div>' +
-        '<p>' + esc(c.body) + '</p>' +
-      '</div>';
-    }).join('');
-  }
-  async function submitComment(e) {
-    e.preventDefault();
-    var nameInput = document.getElementById('comment-name');
-    var bodyInput = document.getElementById('comment-body');
-    var name = nameInput.value.trim();
-    var body = bodyInput.value.trim();
-    if (!name || !body) return;
-    var btn = e.target.querySelector('button');
-    btn.disabled = true;
-    await fetch(SUPABASE_URL + '/rest/v1/comments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify({ page: page, name: name, body: body })
-    });
-    nameInput.value = '';
-    bodyInput.value = '';
-    btn.disabled = false;
-    loadComments();
-  }
-  function esc(s) {
-    var d = document.createElement('div');
-    d.textContent = s;
-    return d.innerHTML;
-  }
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('comment-form');
-    if (form) {
-      form.addEventListener('submit', submitComment);
-      loadComments();
-    }
-  });
-})();
-  </script>
-  </div>
-  <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-    function toggleCategory(header) {
-      header.classList.toggle('active');
-      header.querySelector('.arrow').classList.toggle('open');
-      header.nextElementSibling.classList.toggle('open');
-    }
-  </script>
-  <script>
-    function toggleTheme() {
-      document.body.classList.toggle('dark-mode');
-      var b = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', b ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = b ? '\u{1F319}' : '\u2600\uFE0F';
-    }
-    (function() {
-      var btn = document.querySelector('.theme-toggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '\u{1F319}';
-      }
-    })();
-  </script>
 </body>
 </html>

@@ -42,10 +42,10 @@ class DesignWidget(QtWidgets.QWidget):
         """)
         self.title_input.textChanged.connect(self._on_title_changed)
         title_row.addWidget(self.title_input, 1)
-        local_btn = QtWidgets.QPushButton("Preview Site Locally")
+        local_btn = QtWidgets.QPushButton("Preview Locally")
         local_btn.clicked.connect(self._preview_local)
         title_row.addWidget(local_btn)
-        online_btn = QtWidgets.QPushButton("Preview on GitHub Pages")
+        online_btn = QtWidgets.QPushButton("Visit GitHub Pages")
         online_btn.clicked.connect(self._preview_online)
         title_row.addWidget(online_btn)
         cl.addLayout(title_row)
@@ -120,8 +120,10 @@ class DesignWidget(QtWidgets.QWidget):
             import generate
             generate.run_generate_captured()
         if os.path.exists(index):
-            webbrowser.open(f'file://{os.path.abspath(index)}')
-            self.preview_status.setText("Opened local site in browser")
+            from preview import PreviewDialog
+            dlg = PreviewDialog(index, self)
+            dlg.exec_()
+            self.preview_status.setText("Preview closed")
 
     def _preview_online(self):
         cfg = self._load_cfg()

@@ -79,10 +79,10 @@ main {
   padding: 0 1.25rem;
   width: 100%;
 }
-.doc-content {
+.ck-content {
   padding: 0 0.5rem;
 }
-.doc-content img, .doc-content table, .doc-content pre, .doc-content div {
+.ck-content img, .ck-content table, .ck-content pre, .ck-content div {
   max-width: 100%;
   overflow-x: auto;
 }

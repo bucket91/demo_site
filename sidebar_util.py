@@ -59,6 +59,5 @@ def init_from_filesystem():
             name = os.path.splitext(fname)[0].replace('-', ' ').replace('_', ' ').title()
             entries.append({"name": name, "file": rel})
         data.append({"category": item, "entries": entries})
-    if data:
-        save_sidebar(data)
+    save_sidebar(data)
     return data

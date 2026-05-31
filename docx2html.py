@@ -136,7 +136,7 @@ def convert_zip(path):
             title_m = re.search(r'<title>(.*?)</title>', html_content, re.DOTALL | re.IGNORECASE)
             title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
 
-            html_body = '<div class="doc-content">\n' + clean_html.strip() + '\n</div>'
+            html_body = '<div class="ck-content">\n' + clean_html.strip() + '\n</div>'
             return {'ok': True, 'html': html_body, 'title': title}, None
     except zipfile.BadZipFile:
         return None, "Corrupted zip file"
@@ -186,7 +186,7 @@ def convert_mht(path):
         cleaner = _HtmlCleaner(images)
         cleaner.feed(html_content)
         clean_html = ''.join(cleaner.out)
-        html_body = '<div class="doc-content">\n' + clean_html.strip() + '\n</div>'
+        html_body = '<div class="ck-content">\n' + clean_html.strip() + '\n</div>'
 
         return {'ok': True, 'html': html_body, 'title': title}, None
     except Exception as e:
