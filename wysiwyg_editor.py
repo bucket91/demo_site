@@ -57,6 +57,16 @@ def _ensure_ckeditor():
                 f.write(html)
 
 
+class _EditorPage(QtWebEngineWidgets.QWebEnginePage):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+    def javaScriptConsoleMessage(self, level, msg, line, source):
+        label = {0: "info", 1: "warning", 2: "error"}.get(level, str(level))
+        if level >= 2:
+            print(f"[CKEditor JS {label}] {msg} (at {source}:{line})")
+
+
 class WysiwygEditor(QtWidgets.QDialog):
     def __init__(self, html_content="", parent=None):
         super().__init__(parent)
@@ -80,6 +90,7 @@ class WysiwygEditor(QtWidgets.QDialog):
         layout.setSpacing(0)
 
         self.view = QtWebEngineWidgets.QWebEngineView()
+        self.view.setPage(_EditorPage(self.view))
         s = self.view.settings()
         s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
         s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled, True)
@@ -111,13 +122,7 @@ class WysiwygEditor(QtWidgets.QDialog):
         self._result_html = ""
         self._ready = False
 
-        self.view.page().javaScriptConsoleMessage.connect(self._on_js_console)
         self.view.loadFinished.connect(lambda ok: self._on_loaded(ok, html_content))
-
-    def _on_js_console(self, level, msg, line, source):
-        label = {0: "info", 1: "warning", 2: "error"}.get(level, str(level))
-        if level >= 2:
-            print(f"[CKEditor JS {label}] {msg} (at {source}:{line})")
 
     def _on_loaded(self, ok, initial_html):
         if not ok:

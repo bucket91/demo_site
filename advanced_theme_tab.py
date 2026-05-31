@@ -509,22 +509,6 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         else:
             self.status.setText("Generate failed — check console")
 
-
-class _AdvancedThemeWorker(QtCore.QThread):
-    logged = QtCore.pyqtSignal(str)
-    finished = QtCore.pyqtSignal(bool)
-
-    def run(self):
-        import generate
-        generate.SITE_DIR = SITE_DIR
-        generate.CONFIG.update(generate.load_config())
-        try:
-            generate.generate_all(log_func=self.logged.emit)
-            self.finished.emit(True)
-        except Exception as e:
-            self.logged.emit(f"Generate error: {e}")
-            self.finished.emit(False)
-
     def _reset(self):
         reply = QtWidgets.QMessageBox.question(
             self, "Reset", "Reset all advanced styling to defaults?",
@@ -544,6 +528,22 @@ class _AdvancedThemeWorker(QtCore.QThread):
                 w.deleteLater()
         self._build_ui()
         self._load_data()
+
+
+class _AdvancedThemeWorker(QtCore.QThread):
+    logged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(bool)
+
+    def run(self):
+        import generate
+        generate.SITE_DIR = SITE_DIR
+        generate.CONFIG.update(generate.load_config())
+        try:
+            generate.generate_all(log_func=self.logged.emit)
+            self.finished.emit(True)
+        except Exception as e:
+            self.logged.emit(f"Generate error: {e}")
+            self.finished.emit(False)
 
 
 def main():
