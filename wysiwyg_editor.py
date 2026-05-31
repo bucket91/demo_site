@@ -1,13 +1,26 @@
 #!/usr/bin/env python3
-import os, sys, json
+import os, sys, json, shutil
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 
-SITE_DIR = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+
+
+def _ensure_ckeditor():
+    target = os.path.join(SITE_DIR, "ckeditor")
+    if os.path.isdir(target):
+        return
+    if getattr(sys, 'frozen', False):
+        src = os.path.join(sys._MEIPASS, "ckeditor")
+    else:
+        src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
+    if os.path.isdir(src):
+        shutil.copytree(src, target)
 
 
 class WysiwygEditor(QtWidgets.QDialog):
     def __init__(self, html_content="", parent=None):
         super().__init__(parent)
+        _ensure_ckeditor()
         self.setWindowTitle("Page Editor")
         self.setMinimumSize(800, 550)
         self.resize(1000, 700)

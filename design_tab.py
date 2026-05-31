@@ -119,10 +119,8 @@ class DesignWidget(QtWidgets.QWidget):
         if not os.path.exists(index):
             self.preview_status.setText("No index.html — generate pages from the Content tab first")
             return
-        from preview import PreviewDialog
-        dlg = PreviewDialog(index, self)
-        dlg.exec_()
-        self.preview_status.setText("Preview closed")
+        webbrowser.open(f"file://{os.path.abspath(index)}")
+        self.preview_status.setText(f"Opened in system browser")
 
     def _preview_online(self):
         cfg = self._load_cfg()

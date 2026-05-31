@@ -315,11 +315,6 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         apply_btn.clicked.connect(self.apply_theme)
         selector_row.addWidget(apply_btn)
 
-        preview_theme_btn = QtWidgets.QPushButton("Preview Theme")
-        preview_theme_btn.setMinimumHeight(40)
-        preview_theme_btn.clicked.connect(self.update_preview)
-        selector_row.addWidget(preview_theme_btn)
-
         layout.addLayout(selector_row)
 
         # Font selector
