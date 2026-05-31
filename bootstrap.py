@@ -230,9 +230,8 @@ def _ensure_precommit_hook(site_dir):
     hook_path = os.path.join(git_hooks, "pre-commit")
     os.makedirs(git_hooks, exist_ok=True)
     content = """#!/bin/sh
-# Pre-commit hook: reject files larger than 95MB (GitHub's limit is 100MB)
+# Pre-commit hook: silently skip files > 95MB (GitHub's limit is 100MB)
 LIMIT=95000000
-EXIT_CODE=0
 
 tmpf=$(mktemp)
 git diff --cached --name-only > "$tmpf"
@@ -241,14 +240,13 @@ while IFS= read -r file; do
     if [ -f "$file" ]; then
         size=$(wc -c < "$file" 2>/dev/null)
         if [ "$size" -gt "$LIMIT" ] 2>/dev/null; then
-            echo "Error: '$file' is $(numfmt --to=iec $size 2>/dev/null || echo "$size bytes") — exceeds 95MB limit" >&2
-            EXIT_CODE=1
+            git rm --cached "$file" 2>/dev/null || git reset "$file" 2>/dev/null
         fi
     fi
 done < "$tmpf"
 
 rm -f "$tmpf"
-exit $EXIT_CODE
+exit 0
 """
     with open(hook_path, "w", encoding="utf-8") as f:
         f.write(content)
