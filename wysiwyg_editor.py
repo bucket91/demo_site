@@ -7,8 +7,13 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 
 def _ensure_ckeditor():
     target = os.path.join(SITE_DIR, "ckeditor")
+    required = {"editor.html", "ckeditor5.umd.js", "ckeditor5.css"}
     if os.path.isdir(target):
-        return
+        present = set(os.listdir(target))
+        if required.issubset(present):
+            return
+        import shutil
+        shutil.rmtree(target)
     if getattr(sys, 'frozen', False):
         src = os.path.join(sys._MEIPASS, "ckeditor")
     else:

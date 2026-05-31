@@ -14,8 +14,9 @@ TEMPLATE_HTML = """<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{{TITLE}}</title>
-{{FONT_LINK}}
   <link rel="stylesheet" href="{{STYLE_PATH}}">
+  <link rel="stylesheet" href="{{CONTENT_STYLE_PATH}}">
+  <link rel="stylesheet" href="{{ADVANCED_STYLE_PATH}}">
 </head>
 <body>
 {{VIDEO_BG}}

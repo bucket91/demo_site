@@ -194,11 +194,6 @@ const SUPABASE_ANON_KEY = ''' + repr(key) + ''';
   </script>'''
     return block, ''
 
-def make_nav(filepath):
-    rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(filepath)))
-    home = os.path.join(rel, 'index.html').replace('\\', '/')
-    return f'<a href="{home}">Home</a>'
-
 CONTACT_PATTERNS = [
     ('whatsapp',  lambda u: 'https://wa.me/' + u.lstrip('+').replace('-','').replace(' ','')),
     ('telegram',  lambda u: 'https://t.me/' + u.lstrip('@')),
@@ -279,7 +274,6 @@ def build_page(filepath, categories):
     is_home = os.path.basename(filepath) == 'index.html'
     content = make_homepage_content(categories, filepath) if is_home else extract_main(src)
     sidebar = generate_sidebar(categories, filepath)
-    nav = make_nav(filepath)
     comments_block, _ = make_comments_block(filepath)
     style_rel = os.path.relpath(os.path.join(SITE_DIR, 'style.css'), os.path.dirname(os.path.abspath(filepath)))
     style_rel = style_rel.replace('\\', '/')
@@ -334,7 +328,6 @@ def build_page(filepath, categories):
     result = result.replace('{{STYLE_PATH}}', style_rel)
     result = result.replace('{{CONTENT_STYLE_PATH}}', content_rel)
     result = result.replace('{{ADVANCED_STYLE_PATH}}', adv_rel)
-    result = result.replace('{{NAV}}', nav)
     result = result.replace('{{THEME_TOGGLE}}', toggle)
     result = result.replace('{{VIDEO_BG}}', video_html)
     result = result.replace('{{SIDEBAR}}', sidebar)
