@@ -71,7 +71,7 @@ class WysiwygEditor(QtWidgets.QDialog):
     def __init__(self, html_content="", parent=None):
         super().__init__(parent)
         _ensure_ckeditor()
-        self.setWindowTitle("Page Editor")
+        self.setWindowTitle("Page Editor (experimental — may fail in compiled exe)")
         self.setMinimumSize(800, 550)
         self.resize(1000, 700)
         self.setStyleSheet("""

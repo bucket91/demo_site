@@ -77,7 +77,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.discover_btn.clicked.connect(self.refresh_all)
         top_row.addWidget(self.discover_btn)
 
-        new_page_btn = QtWidgets.QPushButton("New Page")
+        new_page_btn = QtWidgets.QPushButton("New Page (experimental)")
         new_page_btn.setMinimumHeight(36)
         new_page_btn.clicked.connect(self._new_page)
         top_row.addWidget(new_page_btn)
@@ -490,28 +490,19 @@ class RefManagerWidget(QtWidgets.QWidget):
     def _import_file(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Import File", "",
-            "Supported files (*.html *.zip *.mht *.mhtml);;HTML files (*.html);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
+            "Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
         if not path:
             return
-        ext = os.path.splitext(path)[1].lower()
-        if ext == '.html':
-            with open(path, encoding="utf-8") as f:
-                raw = f.read()
-            title_m = re.search(r'<title>(.*?)</title>', raw, re.DOTALL | re.IGNORECASE)
-            imported_title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
-            content_m = re.search(r'<main[^>]*>(.*?)</main>', raw, re.DOTALL)
-            imported_html = content_m.group(1).strip() if content_m else raw
-        else:
-            from docx2html import convert_file
-            result, err = convert_file(path)
-            if err:
-                QtWidgets.QMessageBox.warning(self, "Import Error", err)
-                return
-            if not result.get('ok'):
-                QtWidgets.QMessageBox.warning(self, "Import Error", result.get('error', 'Unknown error'))
-                return
-            imported_html = result['html']
-            imported_title = result['title']
+        from docx2html import convert_file
+        result, err = convert_file(path)
+        if err:
+            QtWidgets.QMessageBox.warning(self, "Import Error", err)
+            return
+        if not result.get('ok'):
+            QtWidgets.QMessageBox.warning(self, "Import Error", result.get('error', 'Unknown error'))
+            return
+        imported_html = result['html']
+        imported_title = result['title']
 
         dlg = QtWidgets.QDialog(self)
         dlg.setWindowTitle("Import Page")
@@ -532,7 +523,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         dl.addWidget(title_input)
 
         btns = QtWidgets.QHBoxLayout()
-        ok_btn = QtWidgets.QPushButton("Import & Edit")
+        ok_btn = QtWidgets.QPushButton("Import & Save")
         cancel_btn = QtWidgets.QPushButton("Cancel")
         cancel_btn.clicked.connect(dlg.reject)
         btns.addWidget(cancel_btn)
@@ -554,25 +545,20 @@ class RefManagerWidget(QtWidgets.QWidget):
             if os.path.exists(fpath):
                 QtWidgets.QMessageBox.warning(dlg, "Exists", f"'{fname}' already exists")
                 return
-            from wysiwyg_editor import WysiwygEditor
             dlg.accept()
-            ed = WysiwygEditor(imported_html, self)
-            if ed.exec_() == QtWidgets.QDialog.Accepted:
-                html = ed.result_html()
-                if html:
-                    wrapped = self._wrap_content(html, title, fpath)
-                    with open(fpath, "w", encoding="utf-8") as f:
-                        f.write(wrapped)
-                    rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
-                    for c in self._sidebar_data:
-                        if c["category"] == cat:
-                            c["entries"].append({"name": title, "file": rel})
-                            break
-                    else:
-                        self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
-                    sidebar_util.save_sidebar(self._sidebar_data)
-                    self.refresh_all()
-                    self.status.setText(f"Imported '{title}'")
+            wrapped = self._wrap_content(imported_html, title, fpath)
+            with open(fpath, "w", encoding="utf-8") as f:
+                f.write(wrapped)
+            rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
+            for c in self._sidebar_data:
+                if c["category"] == cat:
+                    c["entries"].append({"name": title, "file": rel})
+                    break
+            else:
+                self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
+            sidebar_util.save_sidebar(self._sidebar_data)
+            self.refresh_all()
+            self.status.setText(f"Imported '{title}'")
 
         ok_btn.clicked.connect(do_import)
         dlg.exec_()
