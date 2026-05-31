@@ -393,6 +393,15 @@ def generate_all(log_func=print):
             log_func(f"  Wrapped: {rel}")
             updated += 1
 
+    index_path = os.path.join(SITE_DIR, "index.html")
+    if not os.path.exists(index_path):
+        with open(index_path, "w", encoding="utf-8") as f:
+            f.write("<!DOCTYPE html><html><head><title>Home</title></head><body><main></main></body></html>")
+        log_func("  Created: index.html")
+        if build_page(index_path, categories):
+            log_func("  Wrapped: index.html")
+            updated += 1
+
     generate_404(categories, log_func)
     updated += 1
 

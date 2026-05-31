@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import os, sys, json
-from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets, QtWebEngineWidgets as QtWebEngine
+from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 
 SITE_DIR = sys._MEIPASS if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 
@@ -27,7 +27,7 @@ class WysiwygEditor(QtWidgets.QDialog):
         layout.setSpacing(0)
 
         self.view = QtWebEngineWidgets.QWebEngineView()
-        self.view.settings().setAttribute(QtWebEngine.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        self.view.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
         editor_path = os.path.join(SITE_DIR, "ckeditor", "editor.html")
         self.view.setUrl(QtCore.QUrl.fromLocalFile(editor_path))
         layout.addWidget(self.view, 1)

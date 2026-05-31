@@ -117,13 +117,12 @@ class DesignWidget(QtWidgets.QWidget):
     def _preview_local(self):
         index = os.path.join(SITE_DIR, "index.html")
         if not os.path.exists(index):
-            import generate
-            generate.run_generate_captured()
-        if os.path.exists(index):
-            from preview import PreviewDialog
-            dlg = PreviewDialog(index, self)
-            dlg.exec_()
-            self.preview_status.setText("Preview closed")
+            self.preview_status.setText("No index.html — generate pages from the Content tab first")
+            return
+        from preview import PreviewDialog
+        dlg = PreviewDialog(index, self)
+        dlg.exec_()
+        self.preview_status.setText("Preview closed")
 
     def _preview_online(self):
         cfg = self._load_cfg()

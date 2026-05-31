@@ -172,6 +172,20 @@ def ensure_site_files(site_dir):
 
     check(_path("template.html"), TEMPLATE_HTML)
     check(_path("style.css"), DEFAULT_CSS)
+    check(_path("index.html"),
+          "<!DOCTYPE html><html><head><title>Home</title></head><body><main></main></body></html>")
+
+    content_css = """/* CKEditor content styles — mirrors .ck-content appearance in generated site */
+.ck-content { color: var(--text); font-size: 14px; line-height: 1.7; padding: 0 0.5rem; }
+.ck-content h1, .ck-content h2, .ck-content h3, .ck-content h4, .ck-content h5, .ck-content h6 { color: var(--label); }
+.ck-content a { color: var(--accent); }
+.ck-content blockquote { border-left: 3px solid var(--card-border); padding-left: 12px; color: var(--muted); }
+.ck-content pre { background: var(--card-bg); padding: 10px; border-radius: 6px; }
+.ck-content table { border-collapse: collapse; }
+.ck-content td, .ck-content th { border: 1px solid var(--card-border); padding: 6px 10px; }
+.ck-content img, .ck-content table, .ck-content pre, .ck-content div { max-width: 100%; overflow-x: auto; }
+"""
+    check(_path("content.css"), content_css)
 
     if not os.path.exists(_path("config.json")):
         with open(_path("config.json"), "w", encoding="utf-8") as f:
@@ -184,6 +198,7 @@ def ensure_site_files(site_dir):
         created.append("config.local.json")
 
     check(_path(".nojekyll"), "")
+    check(_path(".gitignore"), "*.exe\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\n")
 
     adv_json = _path("advanced_theme.json")
     if not os.path.exists(adv_json):

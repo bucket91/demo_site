@@ -700,80 +700,95 @@ class RefManagerWidget(QtWidgets.QWidget):
         dlg.exec_()
 
     def convert_media(self):
-        """Scan all HTML pages, convert images to WebP and videos to WebM, rewrite src references."""
-        from advanced_theme import convert_to_webp, convert_to_webm
-        media_dir = os.path.join(SITE_DIR, "media")
-        html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
-        skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
-        converted = 0
-        errors = []
-        img_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif'}
-        vid_exts = {'.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm'}
+        self.convert_media_btn.setEnabled(False)
+        self.convert_media_btn.setText("Converting...")
+        self.status.setText("Converting media in background...")
 
-        for fp in html_files:
-            rel = os.path.relpath(fp, SITE_DIR)
-            if any(part in skip_dirs for part in rel.split(os.sep)):
-                continue
-            with open(fp, encoding="utf-8") as f:
-                src = f.read()
+        class ConvertThread(QtCore.QThread):
+            done = QtCore.pyqtSignal(str)
 
-            changed = False
+            def run(self):
+                from advanced_theme import convert_to_webp, convert_to_webm
+                media_dir = os.path.join(SITE_DIR, "media")
+                html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
+                skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+                converted = 0
+                errors = []
+                img_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif'}
+                vid_exts = {'.mp4', '.avi', '.mov', '.mkv', '.flv', '.wmv', '.webm'}
 
-            def replace_img(m):
-                nonlocal changed, converted, errors
-                url = m.group(1)
-                if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
-                    return m.group(0)
-                ext = os.path.splitext(url)[1].lower()
-                if ext not in img_exts:
-                    return m.group(0)
-                abs_path = os.path.join(os.path.dirname(fp), url)
-                if not os.path.exists(abs_path):
-                    return m.group(0)
-                ok, result = convert_to_webp(abs_path, media_dir)
-                if ok:
-                    webp_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
-                    converted += 1
-                    changed = True
-                    return f'<img src="{webp_rel}"'
-                else:
-                    errors.append(f"{rel}: {result}")
-                    return m.group(0)
+                for fp in html_files:
+                    rel = os.path.relpath(fp, SITE_DIR)
+                    if any(part in skip_dirs for part in rel.split(os.sep)):
+                        continue
+                    with open(fp, encoding="utf-8") as f:
+                        src = f.read()
 
-            def replace_vid(m):
-                nonlocal changed, converted, errors
-                url = m.group(1)
-                if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
-                    return m.group(0)
-                ext = os.path.splitext(url)[1].lower()
-                if ext not in vid_exts:
-                    return m.group(0)
-                abs_path = os.path.join(os.path.dirname(fp), url)
-                if not os.path.exists(abs_path):
-                    return m.group(0)
-                ok, result = convert_to_webm(abs_path, media_dir)
-                if ok:
-                    webm_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
-                    converted += 1
-                    changed = True
-                    return f'<source src="{webm_rel}"'
-                else:
-                    errors.append(f"{rel}: {result}")
-                    return m.group(0)
+                    changed = False
 
-            src = re.sub(r'<img\s+src="([^"]+)"', replace_img, src)
-            src = re.sub(r'<source\s+src="([^"]+)"', replace_vid, src)
+                    def replace_img(m):
+                        nonlocal changed, converted, errors
+                        url = m.group(1)
+                        if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
+                            return m.group(0)
+                        ext = os.path.splitext(url)[1].lower()
+                        if ext not in img_exts:
+                            return m.group(0)
+                        abs_path = os.path.join(os.path.dirname(fp), url)
+                        if not os.path.exists(abs_path):
+                            return m.group(0)
+                        ok, result = convert_to_webp(abs_path, media_dir)
+                        if ok:
+                            webp_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
+                            converted += 1
+                            changed = True
+                            return f'<img src="{webp_rel}"'
+                        else:
+                            errors.append(f"{rel}: {result}")
+                            return m.group(0)
 
-            if changed:
-                with open(fp, "w", encoding="utf-8") as f:
-                    f.write(src)
+                    def replace_vid(m):
+                        nonlocal changed, converted, errors
+                        url = m.group(1)
+                        if url.startswith('data:') or url.startswith('http://') or url.startswith('https://'):
+                            return m.group(0)
+                        ext = os.path.splitext(url)[1].lower()
+                        if ext not in vid_exts:
+                            return m.group(0)
+                        abs_path = os.path.join(os.path.dirname(fp), url)
+                        if not os.path.exists(abs_path):
+                            return m.group(0)
+                        ok, result = convert_to_webm(abs_path, media_dir)
+                        if ok:
+                            webm_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
+                            converted += 1
+                            changed = True
+                            return f'<source src="{webm_rel}"'
+                        else:
+                            errors.append(f"{rel}: {result}")
+                            return m.group(0)
 
-        parts = [f"Converted {converted} media file(s)"]
-        if errors:
-            parts.append(f"Errors: {'; '.join(errors[:3])}")
-            if len(errors) > 3:
-                parts.append(f"... and {len(errors)-3} more")
-        self.status.setText(" | ".join(parts))
+                    src = re.sub(r'<img\s+src="([^"]+)"', replace_img, src)
+                    src = re.sub(r'<source\s+src="([^"]+)"', replace_vid, src)
+
+                    if changed:
+                        with open(fp, "w", encoding="utf-8") as f:
+                            f.write(src)
+
+                parts = [f"Converted {converted} media file(s)"]
+                if errors:
+                    parts.append(f"Errors: {'; '.join(errors[:3])}")
+                    if len(errors) > 3:
+                        parts.append(f"... and {len(errors)-3} more")
+                self.done.emit(" | ".join(parts))
+
+        self._convert_thread = ConvertThread()
+        self._convert_thread.done.connect(lambda msg: (
+            self.status.setText(msg),
+            self.convert_media_btn.setEnabled(True),
+            self.convert_media_btn.setText("Convert Media"),
+        ))
+        self._convert_thread.start()
 
     def generate(self):
         self.status.setText("Generating...")

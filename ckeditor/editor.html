@@ -217,6 +217,11 @@
 <script src="ckeditor5.umd.js"></script>
 
 <script>
+if (typeof ckeditor5 === 'undefined') {
+  document.getElementById('editor').innerHTML =
+    '<p style="color:#f85149;padding:20px;">Error: ckeditor5.umd.js failed to load. Check that the file exists at: <code>' +
+    window.location.href.replace(/editor\.html.*$/, 'ckeditor5.umd.js') + '</code></p>';
+}
 var CK = ckeditor5;
 var editorInstance = null;
 
