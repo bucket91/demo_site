@@ -309,11 +309,11 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
         selector_row.addWidget(self.theme_combo, 1)
 
-        apply_btn = QtWidgets.QPushButton("Apply Theme")
-        apply_btn.setProperty("class", "primary")
-        apply_btn.setMinimumHeight(40)
-        apply_btn.clicked.connect(self.apply_theme)
-        selector_row.addWidget(apply_btn)
+        self.apply_btn = QtWidgets.QPushButton("Apply Theme")
+        self.apply_btn.setProperty("class", "primary")
+        self.apply_btn.setMinimumHeight(40)
+        self.apply_btn.clicked.connect(self.apply_theme)
+        selector_row.addWidget(self.apply_btn)
 
         layout.addLayout(selector_row)
 
@@ -668,18 +668,35 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             self._log(f"Error writing CSS: {e}")
             return
 
-        # Update advanced theme base colors to match this theme
         self._update_advanced_base_colors(t)
-
-        self._log(f"Applied {name}. Running generate...")
-
-        import generate
-        output = generate.run_generate_captured()
-        self._log(f"Done: {output}")
         self._save_cfg({
             "selected_theme": self.theme_key(),
             "selected_font": self.font_combo.currentText(),
         })
+
+        self._log(f"Applied {name}. Running generate...")
+        self.apply_btn.setEnabled(False)
+        self.apply_btn.setText("Generating...")
+
+        self._worker = _ThemeWorker()
+        self._worker.logged.connect(self._log)
+        self._worker.finished.connect(self._on_theme_done)
+        self._worker.start()
+
+    def _on_theme_done(self, output):
+        self.apply_btn.setEnabled(True)
+        self.apply_btn.setText("Apply Theme & Generate")
+        self._log(f"Done: {output}")
+
+
+class _ThemeWorker(QtCore.QThread):
+    logged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(str)
+
+    def run(self):
+        import generate
+        generate.run_generate_captured()
+        self.finished.emit("generate complete")
 
 
 

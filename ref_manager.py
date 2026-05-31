@@ -792,13 +792,29 @@ class RefManagerWidget(QtWidgets.QWidget):
 
     def generate(self):
         self.status.setText("Generating...")
-        QtWidgets.QApplication.processEvents()
+        self.gen_btn.setEnabled(False)
+        self.gen_btn.setText("Generating...")
+
+        self._gen_worker = _GenerateWorker()
+        self._gen_worker.finished.connect(self._on_generate_done)
+        self._gen_worker.start()
+
+    def _on_generate_done(self, output):
+        self.gen_btn.setEnabled(True)
+        self.gen_btn.setText("Generate")
+        self.status.setText(output)
+
+
+class _GenerateWorker(QtCore.QThread):
+    finished = QtCore.pyqtSignal(str)
+
+    def run(self):
         import generate
         try:
             output = generate.run_generate_captured()
         except Exception as e:
             output = f"Error: {e}"
-        self.status.setText(output)
+        self.finished.emit(output)
 
     def refresh_categories(self):
         pass

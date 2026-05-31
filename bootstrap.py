@@ -199,7 +199,7 @@ def ensure_site_files(site_dir):
         created.append("config.local.json")
 
     check(_path(".nojekyll"), "")
-    check(_path(".gitignore"), "*.exe\n*.EXE\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\nSiteTools\nSiteTools.exe\n")
+    check(_path(".gitignore"), "*.exe\n*.EXE\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\nSiteTools\nSiteTools.exe\nckeditor/\n")
 
     adv_json = _path("advanced_theme.json")
     if not os.path.exists(adv_json):
@@ -220,4 +220,38 @@ def ensure_site_files(site_dir):
         if os.path.exists(sidebar_path):
             created.append("sidebar.json")
 
+    _ensure_precommit_hook(site_dir)
+
     return created
+
+
+def _ensure_precommit_hook(site_dir):
+    git_hooks = os.path.join(site_dir, ".git", "hooks")
+    hook_path = os.path.join(git_hooks, "pre-commit")
+    if os.path.exists(hook_path):
+        return
+    os.makedirs(git_hooks, exist_ok=True)
+    content = """#!/bin/sh
+# Pre-commit hook: reject files larger than 100MB
+LIMIT=104857600
+EXIT_CODE=0
+
+tmpf=$(mktemp)
+git diff --cached --name-only > "$tmpf"
+
+while IFS= read -r file; do
+    if [ -f "$file" ]; then
+        size=$(stat --printf="%s" "$file" 2>/dev/null)
+        if [ "$size" -gt "$LIMIT" ] 2>/dev/null; then
+            echo "Error: '$file' is $(numfmt --to=iec $size 2>/dev/null || echo "$size bytes") — exceeds 100MB limit" >&2
+            EXIT_CODE=1
+        fi
+    fi
+done < "$tmpf"
+
+rm -f "$tmpf"
+exit $EXIT_CODE
+"""
+    with open(hook_path, "w", encoding="utf-8") as f:
+        f.write(content)
+    os.chmod(hook_path, 0o755)

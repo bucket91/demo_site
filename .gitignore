@@ -28,3 +28,6 @@ __pycache__/
 # Named artifacts (match directory and file)
 SiteTools
 SiteTools.exe
+
+# CKEditor bundle (1.4MB JS, never commit — copied from bundled assets)
+ckeditor/

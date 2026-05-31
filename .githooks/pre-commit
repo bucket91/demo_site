@@ -1,0 +1,20 @@
+#!/bin/sh
+# Pre-commit hook: reject files larger than 100MB
+LIMIT=104857600
+EXIT_CODE=0
+
+tmpf=$(mktemp)
+git diff --cached --name-only > "$tmpf"
+
+while IFS= read -r file; do
+    if [ -f "$file" ]; then
+        size=$(stat --printf="%s" "$file" 2>/dev/null)
+        if [ "$size" -gt "$LIMIT" ] 2>/dev/null; then
+            echo "Error: '$file' is $(numfmt --to=iec $size 2>/dev/null || echo "$size bytes") — exceeds 100MB limit" >&2
+            EXIT_CODE=1
+        fi
+    fi
+done < "$tmpf"
+
+rm -f "$tmpf"
+exit $EXIT_CODE

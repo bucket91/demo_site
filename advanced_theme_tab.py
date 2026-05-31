@@ -490,14 +490,40 @@ class AdvancedThemeTab(QtWidgets.QWidget):
             self.status.setText("Error writing advanced.css")
             return
 
+        self.apply_btn.setEnabled(False)
+        self.apply_btn.setText("Generating...")
+
+        self._worker = _AdvancedThemeWorker()
+        self._worker.logged.connect(self._on_worker_log)
+        self._worker.finished.connect(self._on_adv_theme_done)
+        self._worker.start()
+
+    def _on_worker_log(self, msg):
+        self.status.setText(msg)
+
+    def _on_adv_theme_done(self, ok):
+        self.apply_btn.setEnabled(True)
+        self.apply_btn.setText("Apply & Generate")
+        if ok:
+            self.status.setText("Applied. advanced.css generated, all pages rebuilt.")
+        else:
+            self.status.setText("Generate failed — check console")
+
+
+class _AdvancedThemeWorker(QtCore.QThread):
+    logged = QtCore.pyqtSignal(str)
+    finished = QtCore.pyqtSignal(bool)
+
+    def run(self):
         import generate
         generate.SITE_DIR = SITE_DIR
         generate.CONFIG.update(generate.load_config())
         try:
-            generate.generate_all()
-            self.status.setText("Applied. advanced.css generated, all pages rebuilt.")
+            generate.generate_all(log_func=self.logged.emit)
+            self.finished.emit(True)
         except Exception as e:
-            self.status.setText(f"Generate error: {e}")
+            self.logged.emit(f"Generate error: {e}")
+            self.finished.emit(False)
 
     def _reset(self):
         reply = QtWidgets.QMessageBox.question(

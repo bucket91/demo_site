@@ -27,8 +27,6 @@ def _ensure_ckeditor():
                 src = alt
         if os.path.isdir(src):
             shutil.copytree(src, target)
-    # Inline ckeditor5.umd.js into editor.html so QtWebEngine
-    # doesn't need to load a separate file:// resource
     editor_html = os.path.join(target, "editor.html")
     umd_js = os.path.join(target, "ckeditor5.umd.js")
     if os.path.exists(editor_html) and os.path.exists(umd_js):
@@ -36,11 +34,25 @@ def _ensure_ckeditor():
             html = f.read()
         with open(umd_js, encoding="utf-8") as f:
             js = f.read()
-        if '<script src="ckeditor5.umd.js"></script>' in html:
-            html = html.replace(
-                '<script src="ckeditor5.umd.js"></script>',
-                '<script>' + js + '</script>'
-            )
+        changed = False
+        # Step 1: Replace external script src with inline JS
+        ext_pattern = '<script src="ckeditor5.umd.js"></script>'
+        if ext_pattern in html:
+            html = html.replace(ext_pattern, '<script>' + js + '</script>')
+            changed = True
+        # Step 2: Merge adjacent script tags into one
+        # Pattern: </script>\n\n<script>  (boundary between UMD and CK init scripts)
+        merge_marker = '</script>\n\n<script>'
+        if merge_marker in html:
+            idx = html.find(merge_marker)
+            html = html[:idx] + '\n\n' + html[idx + len(merge_marker):]
+            changed = True
+        # Step 3: Remove source map comment to avoid console noise
+        source_map = '//# sourceMappingURL=ckeditor5.umd.js.map'
+        if source_map in html:
+            html = html.replace(source_map, '')
+            changed = True
+        if changed:
             with open(editor_html, 'w', encoding="utf-8") as f:
                 f.write(html)
 
@@ -99,7 +111,13 @@ class WysiwygEditor(QtWidgets.QDialog):
         self._result_html = ""
         self._ready = False
 
+        self.view.page().javaScriptConsoleMessage.connect(self._on_js_console)
         self.view.loadFinished.connect(lambda ok: self._on_loaded(ok, html_content))
+
+    def _on_js_console(self, level, msg, line, source):
+        label = {0: "info", 1: "warning", 2: "error"}.get(level, str(level))
+        if level >= 2:
+            print(f"[CKEditor JS {label}] {msg} (at {source}:{line})")
 
     def _on_loaded(self, ok, initial_html):
         if not ok:
