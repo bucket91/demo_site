@@ -215,37 +215,17 @@ class AdvancedThemeTab(QtWidgets.QWidget):
             self._build_section(key, sec)
             self.sl.addWidget(sec)
 
-        # === AVIF Optimization ===
+        # === AVIF Optimization (Coming soon) ===
         avif_group = QtWidgets.QGroupBox("AVIF Image Optimization")
         avif_layout = QtWidgets.QVBoxLayout(avif_group)
-        avif_data = self._data.get("avif", {"enabled": False, "quality": 30})
-
-        self.avif_cb = QtWidgets.QCheckBox("Enable AVIF format for images (~30% smaller than WebP)")
-        self.avif_cb.setChecked(avif_data.get("enabled", False))
-        self.avif_cb.toggled.connect(lambda v: self._set("enabled", "avif", v))
-        avif_layout.addWidget(self.avif_cb)
-
-        warn = QtWidgets.QLabel("\u26a0 AVIF conversion is slow (5\u201310 seconds per image). "
-                                "Existing images are converted on next site generation.")
-        warn.setWordWrap(True)
-        warn.setStyleSheet("color: #f0c040; font-size: 12px; padding: 4px 8px; "
-                           "background: #1c2128; border-radius: 4px;")
-        avif_layout.addWidget(warn)
-
-        quality_row = QtWidgets.QHBoxLayout()
-        ql = QtWidgets.QLabel("Quality (lower = smaller file, slower encode):")
-        ql.setStyleSheet("color: #6e7681;")
-        quality_row.addWidget(ql)
-        quality_row.addStretch()
-        self.avif_quality = QtWidgets.QSpinBox()
-        self.avif_quality.setRange(20, 50)
-        self.avif_quality.setValue(avif_data.get("quality", 30))
-        self.avif_quality.setSuffix(" CRF")
-        self.avif_quality.setStyleSheet("background: #0d1117; color: #c9d1d9; border: 1px solid #30363d; border-radius: 6px; padding: 4px 8px;")
-        self.avif_quality.valueChanged.connect(lambda v: self._set("quality", "avif", v))
-        quality_row.addWidget(self.avif_quality)
-        avif_layout.addLayout(quality_row)
-
+        combo = QtWidgets.QComboBox()
+        combo.addItem("Coming soon")
+        combo.setEnabled(False)
+        avif_layout.addWidget(combo)
+        note = QtWidgets.QLabel("AVIF conversion will be available in a future update.")
+        note.setStyleSheet("color: #6e7681; font-size: 12px;")
+        note.setWordWrap(True)
+        avif_layout.addWidget(note)
         self.sl.addWidget(avif_group)
         self.sl.addStretch()
         scroll.setWidget(scroll_body)

@@ -13,11 +13,18 @@ config.local.json
 comments.js
 
 # Build artifacts
-SiteTools
-SiteTools.exe
 build_venv/
 dist/
-*.spec
 build/
 __pycache__/
+
+# Compiled executables — prevent any exe from being tracked
 *.exe
+*.EXE
+
+# PyInstaller artifacts
+*.spec
+
+# Named artifacts (match directory and file)
+SiteTools
+SiteTools.exe

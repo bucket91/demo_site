@@ -199,7 +199,7 @@ def ensure_site_files(site_dir):
         created.append("config.local.json")
 
     check(_path(".nojekyll"), "")
-    check(_path(".gitignore"), "*.exe\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\n")
+    check(_path(".gitignore"), "*.exe\n*.EXE\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\nSiteTools\nSiteTools.exe\n")
 
     adv_json = _path("advanced_theme.json")
     if not os.path.exists(adv_json):

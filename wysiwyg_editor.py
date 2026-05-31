@@ -12,7 +12,6 @@ def _ensure_ckeditor():
         present = set(os.listdir(target))
         if required.issubset(present):
             return
-        import shutil
         shutil.rmtree(target)
     if getattr(sys, 'frozen', False):
         src = os.path.join(sys._MEIPASS, "ckeditor")
@@ -20,6 +19,11 @@ def _ensure_ckeditor():
         src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
     if os.path.isdir(src):
         shutil.copytree(src, target)
+        return
+    # Last resort: look for ckeditor next to this file's source directory
+    alt = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
+    if os.path.isdir(alt):
+        shutil.copytree(alt, target)
 
 
 class WysiwygEditor(QtWidgets.QDialog):
@@ -45,7 +49,10 @@ class WysiwygEditor(QtWidgets.QDialog):
         layout.setSpacing(0)
 
         self.view = QtWebEngineWidgets.QWebEngineView()
-        self.view.settings().setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        s = self.view.settings()
+        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
+        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled, True)
+        s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled, True)
         editor_path = os.path.join(SITE_DIR, "ckeditor", "editor.html")
         self.view.setUrl(QtCore.QUrl.fromLocalFile(editor_path))
         layout.addWidget(self.view, 1)
@@ -77,7 +84,16 @@ class WysiwygEditor(QtWidgets.QDialog):
 
     def _on_loaded(self, ok, initial_html):
         if not ok:
-            self.status_label.setText("Failed to load editor")
+            self.status_label.setText("Failed to load editor page")
+            return
+        self.view.page().runJavaScript(
+            "typeof ckeditor5 !== 'undefined'",
+            lambda loaded: self._on_ckeditor_check(loaded, initial_html)
+        )
+
+    def _on_ckeditor_check(self, loaded, initial_html):
+        if not loaded:
+            self.status_label.setText("CKEditor failed to load — check ckeditor5.umd.js")
             return
         self._ready = True
         if initial_html:
