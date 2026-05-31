@@ -2,7 +2,8 @@
 import json, os, sys, urllib.request, urllib.error
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 
 from generate import load_config
 

@@ -2,7 +2,8 @@
 import re, os, glob, json, sys
 from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")

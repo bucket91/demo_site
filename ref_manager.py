@@ -3,7 +3,8 @@ import os, sys, shutil, glob
 import re, html as html_mod
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 
 import sidebar_util
 sidebar_util.SITE_DIR = SITE_DIR

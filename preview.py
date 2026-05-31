@@ -1,7 +1,8 @@
 import os, sys
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 
 DEVICE_PRESETS = [
     ("Desktop", 0, 0),

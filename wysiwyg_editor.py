@@ -2,11 +2,12 @@
 import os, sys, json, shutil
 from PyQt5 import QtWidgets, QtCore, QtWebEngineWidgets
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 
 
 def _ensure_ckeditor():
-    target = os.path.join(SITE_DIR, "ckeditor")
+    target = os.path.join(_APP_DIR, "ckeditor")
     required = {"editor.html", "ckeditor5.umd.js", "ckeditor5.css"}
     need_copy = False
     if not os.path.isdir(target):
@@ -95,7 +96,7 @@ class WysiwygEditor(QtWidgets.QDialog):
         s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalContentCanAccessFileUrls, True)
         s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.JavascriptEnabled, True)
         s.setAttribute(QtWebEngineWidgets.QWebEngineSettings.LocalStorageEnabled, True)
-        editor_path = os.path.join(SITE_DIR, "ckeditor", "editor.html")
+        editor_path = os.path.join(_APP_DIR, "ckeditor", "editor.html")
         self.view.setUrl(QtCore.QUrl.fromLocalFile(editor_path))
         layout.addWidget(self.view, 1)
 

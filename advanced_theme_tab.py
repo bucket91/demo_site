@@ -2,8 +2,9 @@
 import os, sys, json
 from PyQt5 import QtWidgets, QtCore, QtGui
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, SITE_DIR)
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
+sys.path.insert(0, _APP_DIR)
 
 import advanced_theme
 advanced_theme.SITE_DIR = SITE_DIR

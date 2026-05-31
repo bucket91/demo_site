@@ -5,7 +5,8 @@ from PyQt5 import QtWidgets, QtCore
 from git_util import is_git_available as _git_available, git_run as _git_run, _make_push_url, _extract_github_user
 from generate import load_config, save_config
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
 LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
 
@@ -326,7 +327,7 @@ class SetupGitWidget(QtWidgets.QWidget):
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
             with open(gi, "w", encoding="utf-8") as f:
-                f.write("*.exe\n*.EXE\n*.spec\ndist/\nbuild/\nbuild_venv/\n__pycache__/\nconfig.local.json\nSiteTools\nSiteTools.exe\nckeditor/\n")
+                f.write("__pycache__/\nconfig.local.json\n")
             self.log_msg("Created .gitignore")
         self.check_status()
         self.status.setText("Init complete")

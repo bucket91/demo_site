@@ -3,7 +3,8 @@ import os, sys, re, html as html_mod, zipfile, base64, email, email.policy, emai
 from html.parser import HTMLParser
 from PyQt5 import QtWidgets, QtCore
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.join(_APP_DIR, "site")
 
 import sidebar_util
 
