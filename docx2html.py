@@ -194,14 +194,42 @@ def convert_mht(path):
         return None, str(e)
 
 
+def convert_html(path):
+    try:
+        with open(path, 'r', encoding='utf-8') as f:
+            html_content = f.read()
+    except UnicodeDecodeError:
+        try:
+            with open(path, 'r', encoding='latin-1') as f:
+                html_content = f.read()
+        except Exception as e:
+            return None, str(e)
+    except Exception as e:
+        return None, str(e)
+
+    # Extract title from HTML
+    title_m = re.search(r'<title>(.*?)</title>', html_content, re.DOTALL | re.IGNORECASE)
+    title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
+
+    # Clean the HTML content
+    cleaner = _HtmlCleaner({})
+    cleaner.feed(html_content)
+    clean_html = ''.join(cleaner.out)
+    html_body = '<div class="ck-content">\n' + clean_html.strip() + '\n</div>'
+
+    return {'ok': True, 'html': html_body, 'title': title}, None
+
+
 def convert_file(path):
     ext = os.path.splitext(path)[1].lower()
     if ext in ('.mht', '.mhtml'):
         return convert_mht(path)
     elif ext == '.zip':
         return convert_zip(path)
+    elif ext == '.html':
+        return convert_html(path)
     else:
-        return None, "Unsupported file type. Use .zip, .mht, or .mhtml."
+        return None, "Unsupported file type. Use .html, .zip, .mht, or .mhtml."
 
 
 class ImportWidget(QtWidgets.QWidget):
@@ -229,7 +257,7 @@ class ImportWidget(QtWidgets.QWidget):
 
         file_row = QtWidgets.QHBoxLayout()
         self.path_input = QtWidgets.QLineEdit()
-        self.path_input.setPlaceholderText("Select a .zip (Google Docs) or .mht file (Word)...")
+        self.path_input.setPlaceholderText("Select a .html, .zip (Google Docs) or .mht file (Word)...")
         file_row.addWidget(self.path_input, 1)
         browse_btn = QtWidgets.QPushButton("Browse")
         file_row.addWidget(browse_btn)
@@ -260,7 +288,7 @@ class ImportWidget(QtWidgets.QWidget):
     def browse(self):
         p, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Select file to import", "",
-            "Supported files (*.zip *.mht *.mhtml);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
+            "Supported files (*.html *.zip *.mht *.mhtml);;HTML files (*.html);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
         if p:
             self.path_input.setText(p)
             self.convert()
@@ -270,8 +298,8 @@ class ImportWidget(QtWidgets.QWidget):
         if not p:
             return
         ext = os.path.splitext(p)[1].lower()
-        if ext not in ('.zip', '.mht', '.mhtml'):
-            self.status_label.setText("Unsupported file type. Use .zip, .mht, or .mhtml.")
+        if ext not in ('.html', '.zip', '.mht', '.mhtml'):
+            self.status_label.setText("Unsupported file type. Use .html, .zip, .mht, or .mhtml.")
             return
         self.current_html = ""
         self.save_btn.setEnabled(False)
