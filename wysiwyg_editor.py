@@ -8,22 +8,41 @@ SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 def _ensure_ckeditor():
     target = os.path.join(SITE_DIR, "ckeditor")
     required = {"editor.html", "ckeditor5.umd.js", "ckeditor5.css"}
-    if os.path.isdir(target):
-        present = set(os.listdir(target))
-        if required.issubset(present):
-            return
-        shutil.rmtree(target)
-    if getattr(sys, 'frozen', False):
-        src = os.path.join(sys._MEIPASS, "ckeditor")
+    need_copy = False
+    if not os.path.isdir(target):
+        need_copy = True
     else:
-        src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
-    if os.path.isdir(src):
-        shutil.copytree(src, target)
-        return
-    # Last resort: look for ckeditor next to this file's source directory
-    alt = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
-    if os.path.isdir(alt):
-        shutil.copytree(alt, target)
+        present = set(os.listdir(target))
+        if not required.issubset(present):
+            shutil.rmtree(target)
+            need_copy = True
+    if need_copy:
+        if getattr(sys, 'frozen', False):
+            src = os.path.join(sys._MEIPASS, "ckeditor")
+        else:
+            src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
+        if not os.path.isdir(src):
+            alt = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
+            if os.path.isdir(alt):
+                src = alt
+        if os.path.isdir(src):
+            shutil.copytree(src, target)
+    # Inline ckeditor5.umd.js into editor.html so QtWebEngine
+    # doesn't need to load a separate file:// resource
+    editor_html = os.path.join(target, "editor.html")
+    umd_js = os.path.join(target, "ckeditor5.umd.js")
+    if os.path.exists(editor_html) and os.path.exists(umd_js):
+        with open(editor_html, encoding="utf-8") as f:
+            html = f.read()
+        with open(umd_js, encoding="utf-8") as f:
+            js = f.read()
+        if '<script src="ckeditor5.umd.js"></script>' in html:
+            html = html.replace(
+                '<script src="ckeditor5.umd.js"></script>',
+                '<script>' + js + '</script>'
+            )
+            with open(editor_html, 'w', encoding="utf-8") as f:
+                f.write(html)
 
 
 class WysiwygEditor(QtWidgets.QDialog):

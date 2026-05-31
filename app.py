@@ -12,6 +12,9 @@ class App(QtWidgets.QMainWindow):
         if created:
             print(f"Created missing files: {', '.join(created)}")
 
+        from wysiwyg_editor import _ensure_ckeditor
+        _ensure_ckeditor()
+
         self._check_first_run()
 
         self.setWindowTitle("Site Tools")
