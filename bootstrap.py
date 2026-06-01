@@ -29,7 +29,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     <aside class="sidebar" id="sidebar">
 {{SIDEBAR}}
     </aside>
-    <main>
+    <main style="padding-left: {{SITE_PADDING}}px; padding-right: {{SITE_PADDING}}px;">
 {{CONTENT}}
     </main>
 {{COMMENTS}}
@@ -144,25 +144,27 @@ footer { text-align: center; padding: 1rem; color: var(--footer-text); font-size
 """
 
 DEFAULT_CONFIG = {
-    "supabase_url": "",
-    "supabase_anon_key": "",
-    "git_remote_url": "",
-    "git_user_name": "",
-    "git_user_email": "",
-    "github_token": "",
     "owner_name": "",
     "owner_bio": "",
     "owner_title": "",
     "owner_contacts": [],
     "site_title": "Placeholder",
     "gui_font_size": 14,
+    "site_padding": 0,
 }
 
 
 def ensure_site_files(site_dir):
     global SITE_DIR
     SITE_DIR = site_dir
+    app_dir = os.path.dirname(site_dir)
+    settings_dir = os.path.join(app_dir, "settings")
+    removed_dir = os.path.join(app_dir, "removed")
+    root_config = os.path.join(app_dir, "site_tools.config")
     created = []
+
+    os.makedirs(settings_dir, exist_ok=True)
+    os.makedirs(removed_dir, exist_ok=True)
 
     def check(path, content, mode="w"):
         if not os.path.exists(path):
@@ -171,6 +173,37 @@ def ensure_site_files(site_dir):
                 f.write(content)
             created.append(os.path.basename(path))
 
+    # ── Migrate old config files ──
+    old_cfg = _path("config.json")
+    new_cfg = os.path.join(settings_dir, "config.json")
+    if os.path.exists(old_cfg) and not os.path.exists(new_cfg):
+        with open(old_cfg, encoding="utf-8") as f:
+            old_data = json.load(f)
+        token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
+                       "git_user_name", "git_user_email", "github_token"}
+        tokens = {k: old_data[k] for k in token_keys if k in old_data and old_data[k]}
+        settings = {k: v for k, v in old_data.items() if k not in token_keys}
+        with open(new_cfg, "w", encoding="utf-8") as f:
+            json.dump(settings, f, indent=2)
+        created.append("config.json (settings)")
+        if tokens:
+            with open(root_config, "w", encoding="utf-8") as f:
+                json.dump(tokens, f, indent=2)
+            created.append("site_tools.config")
+        old_local = _path("config.local.json")
+        if os.path.exists(old_local):
+            with open(old_local, encoding="utf-8") as f:
+                local_data = json.load(f)
+            existing_tokens = {}
+            if os.path.exists(root_config):
+                with open(root_config, encoding="utf-8") as f:
+                    existing_tokens = json.load(f)
+            existing_tokens.update(local_data)
+            with open(root_config, "w", encoding="utf-8") as f:
+                json.dump(existing_tokens, f, indent=2)
+            os.remove(old_local)
+
+    # ── Create site files ──
     check(_path("template.html"), TEMPLATE_HTML)
     check(_path("style.css"), DEFAULT_CSS)
     check(_path("index.html"),
@@ -188,23 +221,33 @@ def ensure_site_files(site_dir):
 """
     check(_path("content.css"), content_css)
 
-    if not os.path.exists(_path("config.json")):
-        with open(_path("config.json"), "w", encoding="utf-8") as f:
+    if not os.path.exists(new_cfg) and not os.path.exists(old_cfg):
+        with open(new_cfg, "w", encoding="utf-8") as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
         created.append("config.json")
 
-    if not os.path.exists(_path("config.local.json")):
-        with open(_path("config.local.json"), "w", encoding="utf-8") as f:
-            json.dump({"github_token": ""}, f, indent=2)
-        created.append("config.local.json")
+    if not os.path.exists(root_config):
+        old_local = _path("config.local.json")
+        if os.path.exists(old_local):
+            with open(old_local, encoding="utf-8") as f:
+                local_data = json.load(f)
+            with open(root_config, "w", encoding="utf-8") as f:
+                json.dump(local_data, f, indent=2)
+            os.remove(old_local)
+            created.append("site_tools.config")
 
     check(_path(".nojekyll"), "")
-    check(_path(".gitignore"), "__pycache__/\nconfig.local.json\n")
+    check(_path(".gitignore"), "__pycache__/\n")
 
-    adv_json = _path("advanced_theme.json")
-    if not os.path.exists(adv_json):
+    # ── Migrate advanced_theme.json ──
+    old_adv = _path("advanced_theme.json")
+    new_adv = os.path.join(settings_dir, "advanced_theme.json")
+    if os.path.exists(old_adv) and not os.path.exists(new_adv):
+        import shutil
+        shutil.move(old_adv, new_adv)
+    if not os.path.exists(new_adv) and not os.path.exists(old_adv):
         import advanced_theme
-        advanced_theme.SITE_DIR = site_dir
+        advanced_theme.SETTINGS_DIR = settings_dir
         advanced_theme.save(advanced_theme.DEFAULT)
         created.append("advanced_theme.json")
 

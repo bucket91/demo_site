@@ -5,7 +5,8 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
-CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
+CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
 
 from generate import load_config, save_config
 
@@ -135,15 +136,6 @@ class OwnerWidget(QtWidgets.QWidget):
         scroll.setWidget(container)
         layout.addWidget(scroll, stretch=1)
 
-        btn_row = QtWidgets.QHBoxLayout()
-        btn_row.addStretch()
-        self.save_btn = QtWidgets.QPushButton("Save & Generate")
-        self.save_btn.setProperty("class", "primary")
-        self.save_btn.setMinimumHeight(40)
-        self.save_btn.clicked.connect(self._save)
-        btn_row.addWidget(self.save_btn)
-        layout.addLayout(btn_row)
-
     def _load_fields(self):
         self.name_edit.setText(self.cfg.get("owner_name", ""))
         self.title_edit.setText(self.cfg.get("owner_title", ""))
@@ -174,7 +166,7 @@ class OwnerWidget(QtWidgets.QWidget):
                 rounded = QtGui.QPixmap(size, size)
                 rounded.fill(QtCore.Qt.GlobalColor.transparent)
                 painter = QtGui.QPainter(rounded)
-                painter.setRenderHint(QtGui.QPainter.Antialiasing)
+                painter.setRenderHint(QtGui.QPainter.RenderHint.Antialiasing)
                 clip = QtGui.QPainterPath()
                 clip.addEllipse(0, 0, size, size)
                 painter.setClipPath(clip)
@@ -198,7 +190,7 @@ class OwnerWidget(QtWidgets.QWidget):
             except Exception as e:
                 self.log.append(f"⚠️ Copy failed: {e}")
 
-    def _save(self):
+    def save_owner(self):
         cfg = {}
         if os.path.exists(CONFIG_FILE):
             with open(CONFIG_FILE, encoding="utf-8") as f:
@@ -225,40 +217,4 @@ class OwnerWidget(QtWidgets.QWidget):
 
         save_config(cfg)
         self.cfg = cfg
-        self.log.append("✅ Owner settings saved — generating site...")
-        self.save_btn.setEnabled(False)
-        self.save_btn.setText("Saving & Generating...")
-        self._worker = _OwnerWorker(cfg)
-        self._worker.logged.connect(self.log.append)
-        self._worker.finished.connect(self._on_generate_done)
-        self._worker.start()
-
-    def _on_generate_done(self, ok):
-        self.save_btn.setEnabled(True)
-        self.save_btn.setText("Save & Generate")
-        if ok:
-            self.log.append("✅ Site generated and pushed")
-        else:
-            self.log.append("❌ Generation failed — check output above")
-
-
-class _OwnerWorker(QtCore.QThread):
-    logged = QtCore.pyqtSignal(str)
-    finished = QtCore.pyqtSignal(bool)
-
-    def __init__(self, cfg):
-        super().__init__()
-        self.cfg = cfg
-
-    def run(self):
-        ok = True
-        try:
-            import generate
-            generate.CONFIG.update(self.cfg)
-            if not generate.generate_all(log_func=self.logged.emit):
-                ok = False
-            generate.git_commit_push(log_func=self.logged.emit)
-        except Exception as e:
-            self.logged.emit(f"Error: {e}")
-            ok = False
-        self.finished.emit(ok)
+        self.log.append("✅ Owner settings saved")

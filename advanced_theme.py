@@ -1,9 +1,11 @@
 import os, json
 
 SITE_DIR = None
+SETTINGS_DIR = None
 
 def _adv_json():
-    return os.path.join(SITE_DIR, "advanced_theme.json") if SITE_DIR else None
+    d = SETTINGS_DIR or SITE_DIR
+    return os.path.join(d, "advanced_theme.json") if d else None
 
 def _adv_css():
     return os.path.join(SITE_DIR, "advanced.css") if SITE_DIR else None

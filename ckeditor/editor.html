@@ -7,14 +7,13 @@
 <style>
   body { margin: 0; }
   body.ck-fullscreen { background: var(--ck-color-base-background); }
-  body:not(.ck-fullscreen) .ck-editor__editable { max-height: none; min-height: calc(100vh - 120px); }
   body.ck-fullscreen .ck-editor__editable { max-height: none; min-height: calc(100vh - 56px); }
   body.ck-fullscreen .ck.ck-editor { height: 100vh; display: flex; flex-direction: column; }
   body.ck-fullscreen .ck.ck-editor .ck.ck-editor__main { flex: 1; }
 
   .ck-responsive-preview { background: #010409; }
   .ck-responsive-preview .ck-editor__editable {
-    margin: 24px auto;
+    margin: 24px auto !important;
     box-shadow: 0 0 24px rgba(0,0,0,0.6);
     border-radius: 4px;
     transition: max-width 0.2s ease;
@@ -774,11 +773,6 @@
 
 
 
-if (typeof ckeditor5 === 'undefined') {
-  document.getElementById('editor').innerHTML =
-    '<p style="color:#f85149;padding:20px;">Error: ckeditor5.umd.js failed to load. Check that the file exists at: <code>' +
-    window.location.href.replace(/editor\.html.*$/, 'ckeditor5.umd.js') + '</code></p>';
-} else {
 var CK = ckeditor5;
 var editorInstance = null;
 
@@ -803,6 +797,7 @@ class WebPUploadAdapter {
       return new Promise(function(resolve, reject) {
         var img = new Image();
         img.onload = function() {
+          URL.revokeObjectURL(img.src);
           var canvas = document.createElement('canvas');
           canvas.width = img.width;
           canvas.height = img.height;
@@ -821,7 +816,10 @@ class WebPUploadAdapter {
             }
           }, 'image/webp', 0.85);
         };
-        img.onerror = function() { reject('Image load failed'); };
+        img.onerror = function() {
+          URL.revokeObjectURL(img.src);
+          reject('Image load failed');
+        };
         img.src = URL.createObjectURL(file);
       });
     });
@@ -914,6 +912,7 @@ function ResponsivePreviewPlugin(editor) {
       } else {
         document.body.classList.remove('ck-responsive-preview');
       }
+
       var editable = document.querySelector('.ck-editor__editable');
       if (editable) {
         editable.style.maxWidth = mode.width ? mode.width + 'px' : '';
@@ -925,7 +924,13 @@ function ResponsivePreviewPlugin(editor) {
 }
 
 function prettyPrintHTML(html) {
-  var blocks = ['address','article','aside','blockquote','body','canvas','caption','dd','div','dl','dt','fieldset','figcaption','figure','footer','form','h1','h2','h3','h4','h5','h6','header','hr','html','li','main','nav','noscript','ol','p','pre','section','table','tfoot','ul','video','tr','td','th','thead','tbody','tfoot'];
+  var preBlocks = [];
+  html = html.replace(/<pre[\s\S]*?<\/pre>/gi, function(match) {
+    preBlocks.push(match);
+    return '___PRE_BLOCK_' + (preBlocks.length - 1) + '___';
+  });
+
+  var blocks = ['address','article','aside','blockquote','body','canvas','caption','dd','div','dl','dt','fieldset','figcaption','figure','footer','form','h1','h2','h3','h4','h5','h6','header','hr','html','li','main','nav','noscript','ol','p','section','table','tfoot','ul','video','tr','td','th','thead','tbody','tfoot'];
   html = html.replace(/\r\n?/g, '\n').replace(/\n/g, ' ').replace(/>\s+</g, '><').trim();
   var parts = html.split(/(<[^>]+>)/);
   var out = '', indent = 0, sp = '  ';
@@ -945,7 +950,14 @@ function prettyPrintHTML(html) {
       if (t) out += '\n' + sp.repeat(indent) + t;
     }
   }
-  return out.trim();
+
+  out = out.trim();
+
+  for (var j = 0; j < preBlocks.length; j++) {
+    out = out.replace('___PRE_BLOCK_' + j + '___', preBlocks[j]);
+  }
+
+  return out;
 }
 
 function FormatSourcePlugin(editor) {
@@ -963,6 +975,9 @@ function FormatSourcePlugin(editor) {
         var start = ta.selectionStart;
         var end = ta.selectionEnd;
         ta.value = prettyPrintHTML(ta.value);
+
+        ta.dispatchEvent(new Event('input', { bubbles: true }));
+
         ta.selectionStart = start;
         ta.selectionEnd = end;
       }
@@ -1116,7 +1131,6 @@ CK.ClassicEditor.create(document.querySelector('#editor'), {
     '<p style="color:#f85149;padding:20px;">Error: ' + err.message + '</p>';
   console.error(err);
 });
-}
 
 function setEditorContent(html) {
   if (editorInstance) {
@@ -1131,6 +1145,27 @@ function getEditorContent() {
     return editorInstance.getData();
   }
   return '';
+}
+
+function getEditorContentClean() {
+  if (!editorInstance) return '';
+  var html = editorInstance.getData();
+  html = html.replace(/\sstyle=(["'])(.*?)\1/gi, function(match, quote, style) {
+    var parts = style.split(';');
+    var cleaned = [];
+    for (var i = 0; i < parts.length; i++) {
+      var p = parts[i].trim();
+      if (!p) continue;
+      var prop = p.split(':')[0].trim().toLowerCase();
+      if (prop === 'color' || prop === 'background-color' || prop === 'background') continue;
+      cleaned.push(p);
+    }
+    if (cleaned.length > 0) {
+      return ' style=' + quote + cleaned.join('; ') + quote;
+    }
+    return '';
+  });
+  return html;
 }
 </script>
 </body>

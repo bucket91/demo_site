@@ -13,7 +13,7 @@ class _HtmlCleaner(HTMLParser):
     REMOVE_KEEP_CONTENT = {'html', 'head', 'body'}
     REMOVE_WITH_CONTENT = {'style', 'script', 'title'}
     VOID_REMOVE = {'meta', 'link', 'base'}
-    UNWRAP = {'span'}
+    UNWRAP = set()
     VOID_KEEP = {'br', 'hr', 'img', 'input', 'area', 'col', 'embed', 'source', 'track', 'wbr'}
 
     def __init__(self, images):

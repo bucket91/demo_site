@@ -1,10 +1,10 @@
-#!/usr/bin/env python3
 import os, sys, shutil, glob
 import re, html as html_mod
 from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
+REMOVED_DIR = os.path.join(_APP_DIR, "removed")
 
 import sidebar_util
 sidebar_util.SITE_DIR = SITE_DIR
@@ -19,6 +19,9 @@ class _DropTree(QtWidgets.QTreeWidget):
 
 
 class RefManagerWidget(QtWidgets.QWidget):
+    content_changed = QtCore.pyqtSignal()
+    open_in_ckeditor = QtCore.pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.setStyleSheet("""
@@ -30,7 +33,6 @@ class RefManagerWidget(QtWidgets.QWidget):
                 border-radius: 6px; padding: 6px 10px;
             }
             QComboBox::drop-down { border: none; }
-            QComboBox::down-arrow { image: none; border-left: 5px solid transparent; border-top: 5px solid transparent; border-bottom: 5px solid transparent; }
             QComboBox QAbstractItemView {
                 background: #0d1117; color: #c9d1d9; selection-background-color: #21262d;
                 border: 1px solid #30363d;
@@ -67,26 +69,16 @@ class RefManagerWidget(QtWidgets.QWidget):
         heading.setProperty("class", "heading")
         top_row.addWidget(heading, 1)
 
-        self.add_btn = QtWidgets.QPushButton("+ Add")
-        self.add_btn.setMinimumHeight(36)
-        self.add_btn.clicked.connect(self.show_add_dialog)
-        top_row.addWidget(self.add_btn)
+        self.import_btn = QtWidgets.QPushButton("Import")
+        self.import_btn.setMinimumHeight(36)
+        self.import_btn.clicked.connect(self._import_file)
+        top_row.addWidget(self.import_btn)
 
-        self.discover_btn = QtWidgets.QPushButton("\u27f3")
-        self.discover_btn.setToolTip("Scan for new HTML files")
-        self.discover_btn.setMinimumHeight(36)
-        self.discover_btn.clicked.connect(self.refresh_all)
-        top_row.addWidget(self.discover_btn)
-
-        new_page_btn = QtWidgets.QPushButton("New Page (experimental)")
-        new_page_btn.setMinimumHeight(36)
-        new_page_btn.clicked.connect(self._new_page)
-        top_row.addWidget(new_page_btn)
-
-        import_btn = QtWidgets.QPushButton("Import")
-        import_btn.setMinimumHeight(36)
-        import_btn.clicked.connect(self._import_file)
-        top_row.addWidget(import_btn)
+        self.refresh_btn = QtWidgets.QPushButton("\u27f3")
+        self.refresh_btn.setToolTip("Scan for new HTML files")
+        self.refresh_btn.setMinimumHeight(36)
+        self.refresh_btn.clicked.connect(self.refresh_all)
+        top_row.addWidget(self.refresh_btn)
 
         layout.addLayout(top_row)
 
@@ -104,26 +96,27 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.tree.dropped.connect(self._on_drop)
         layout.addWidget(self.tree, 1)
 
-        self.discover_group = QtWidgets.QGroupBox("Discovered files (not in sidebar)")
-        self.discover_group.hide()
-        discover_layout = QtWidgets.QVBoxLayout(self.discover_group)
-        self.discover_list = QtWidgets.QWidget()
-        self.discover_list_layout = QtWidgets.QVBoxLayout(self.discover_list)
-        self.discover_list_layout.setContentsMargins(0, 0, 0, 0)
-        discover_layout.addWidget(self.discover_list)
-        layout.addWidget(self.discover_group)
-
         btn_row = QtWidgets.QHBoxLayout()
 
         self.remove_btn = QtWidgets.QPushButton("Remove")
         self.remove_btn.setMinimumHeight(40)
-        self.remove_btn.clicked.connect(self.remove_selected)
+        self.remove_btn.clicked.connect(self._on_remove)
         btn_row.addWidget(self.remove_btn)
 
-        self.delete_btn = QtWidgets.QPushButton("Delete File")
+        self.rename_btn = QtWidgets.QPushButton("Rename")
+        self.rename_btn.setMinimumHeight(40)
+        self.rename_btn.clicked.connect(self._on_rename)
+        btn_row.addWidget(self.rename_btn)
+
+        self.delete_btn = QtWidgets.QPushButton("Delete")
         self.delete_btn.setMinimumHeight(40)
-        self.delete_btn.clicked.connect(self.delete_selected)
+        self.delete_btn.clicked.connect(self._on_delete)
         btn_row.addWidget(self.delete_btn)
+
+        self.open_ck_btn = QtWidgets.QPushButton("Open in CKEditor")
+        self.open_ck_btn.setMinimumHeight(40)
+        self.open_ck_btn.clicked.connect(self._open_in_ckeditor)
+        btn_row.addWidget(self.open_ck_btn)
 
         btn_row.addStretch()
 
@@ -132,11 +125,6 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.convert_media_btn.clicked.connect(self.convert_media)
         btn_row.addWidget(self.convert_media_btn)
 
-        self.gen_btn = QtWidgets.QPushButton("Generate")
-        self.gen_btn.setProperty("class", "primary")
-        self.gen_btn.setMinimumHeight(40)
-        self.gen_btn.clicked.connect(self.generate)
-        btn_row.addWidget(self.gen_btn)
         layout.addLayout(btn_row)
 
         self.status = QtWidgets.QLabel("")
@@ -183,39 +171,32 @@ class RefManagerWidget(QtWidgets.QWidget):
         self.tree.expandAll()
         self.tree.blockSignals(False)
 
-    def _refresh_discovered(self):
-        for i in reversed(range(self.discover_list_layout.count())):
-            w = self.discover_list_layout.itemAt(i).widget()
-            if w:
-                w.deleteLater()
-
+    def _auto_import_discovered(self):
         discovered = sidebar_util.auto_discover()
         if not discovered:
-            self.discover_group.hide()
             return
-        self.discover_group.show()
-
+        count = 0
         for d in discovered:
-            row = QtWidgets.QHBoxLayout()
-            row.setContentsMargins(4, 2, 4, 2)
-            label = QtWidgets.QLabel(f"{d['category']} / {d['name']}")
-            label.setStyleSheet("color: #c9d1d9;")
-            row.addWidget(label, 1)
-            add_btn = QtWidgets.QPushButton("+")
-            add_btn.setFixedWidth(30)
-            add_btn.setFixedHeight(26)
-            f = d["file"]
-            n = d["name"]
-            c = d["category"]
-            add_btn.clicked.connect(lambda checked, cat=c, file_path=f, name=n: self._add_discovered(cat, file_path, name))
-            row.addWidget(add_btn)
-            self.discover_list_layout.addLayout(row)
+            for cat in self._sidebar_data:
+                if cat["category"] == d["category"]:
+                    cat["entries"].append({"name": d["name"], "file": d["file"]})
+                    count += 1
+                    break
+            else:
+                self._sidebar_data.append({"category": d["category"], "entries": [{"name": d["name"], "file": d["file"]}]})
+                count += 1
+        if count:
+            sidebar_util.save_sidebar(self._sidebar_data)
+            self.status.setText(f"Auto-imported {count} file(s)")
 
     def refresh_all(self):
         self._sidebar_data = sidebar_util.load_sidebar()
+        self._auto_import_discovered()
         self._rebuild_tree()
-        self._refresh_discovered()
-        self.status.setText("Refreshed")
+        if not self._sidebar_data:
+            self.status.setText("No pages yet — use Import to add content")
+        else:
+            self.status.setText("Refreshed")
 
     def _on_item_changed(self, item, column):
         data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
@@ -229,6 +210,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                                 entry["name"] = new_name
                                 sidebar_util.save_sidebar(self._sidebar_data)
                                 self.status.setText(f"Renamed to '{new_name}'")
+                                self.content_changed.emit()
                                 return
 
     def _on_drop(self):
@@ -245,17 +227,18 @@ class RefManagerWidget(QtWidgets.QWidget):
             return
         menu = QtWidgets.QMenu(self)
         if data.get("type") == "entry":
-            edit_action = menu.addAction("Edit in WYSIWYG")
+            open_action = menu.addAction("Open in CKEditor")
+            menu.addSeparator()
             rename_action = menu.addAction("Rename")
             menu.addSeparator()
             remove_action = menu.addAction("Remove from sidebar")
-            delete_action = menu.addAction("Delete file")
+            delete_action = menu.addAction("Delete (move to /removed)")
             menu.addSeparator()
             comments_on = data.get("comments", True)
             comments_action = menu.addAction("Comments: On" if comments_on else "Comments: Off")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
-            if action == edit_action:
-                self._edit_page(data)
+            if action == open_action:
+                self._open_entry_in_ck(data)
             elif action == rename_action:
                 self.tree.editItem(item, 0)
             elif action == remove_action:
@@ -266,7 +249,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 self._toggle_comments(data)
         elif data.get("type") == "category":
             remove_action = menu.addAction("Remove category from sidebar")
-            delete_action = menu.addAction("Delete category and all files")
+            delete_action = menu.addAction("Delete category (move to /removed)")
             action = menu.exec_(self.tree.viewport().mapToGlobal(pos))
             if action == remove_action:
                 self._remove_category(item.text(0))
@@ -274,12 +257,6 @@ class RefManagerWidget(QtWidgets.QWidget):
                 self._delete_category(item.text(0))
 
     def _remove_entry(self, data):
-        reply = QtWidgets.QMessageBox.question(
-            self, "Remove", f"Remove '{data['name']}' from sidebar?\nThe file will be kept on disk.",
-            QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
-        )
-        if reply != QtWidgets.QMessageBox.StandardButton.Yes:
-            return
         for cat in self._sidebar_data:
             if cat["category"] == data["category"]:
                 cat["entries"] = [e for e in cat["entries"] if e["file"] != data["file"]]
@@ -287,23 +264,29 @@ class RefManagerWidget(QtWidgets.QWidget):
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
         self.status.setText(f"Removed '{data['name']}' from sidebar")
+        self.content_changed.emit()
 
     def _delete_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
             self, "Delete File",
-            f"Delete '{data['name']}'?\nThe file '{data['file']}' will be permanently deleted.",
+            f"Move '{data['name']}' to /removed?\nThe file '{data['file']}' will be moved out of the site.",
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
         if reply != QtWidgets.QMessageBox.StandardButton.Yes:
             return
         fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
-        removed = False
         if os.path.exists(fpath):
+            os.makedirs(REMOVED_DIR, exist_ok=True)
+            dst = os.path.join(REMOVED_DIR, os.path.basename(fpath))
+            base, ext = os.path.splitext(dst)
+            n = 1
+            while os.path.exists(dst):
+                dst = f"{base}_{n}{ext}"
+                n += 1
             try:
-                os.remove(fpath)
-                removed = True
+                shutil.move(fpath, dst)
             except Exception as e:
-                self.status.setText(f"Error deleting file: {e}")
+                self.status.setText(f"Error moving file: {e}")
                 return
         for cat in self._sidebar_data:
             if cat["category"] == data["category"]:
@@ -311,12 +294,13 @@ class RefManagerWidget(QtWidgets.QWidget):
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
-        self.status.setText(f"Deleted '{data['name']}'{' and file' if removed else ''}")
+        self.status.setText(f"Deleted '{data['name']}'")
+        self.content_changed.emit()
 
     def _remove_category(self, category):
         reply = QtWidgets.QMessageBox.question(
             self, "Remove Category",
-            f"Remove '{category}' from sidebar?\nFiles and folder will be kept on disk.",
+            f"Remove '{category}' from sidebar?\nFolder and files will be kept on disk.",
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
         if reply != QtWidgets.QMessageBox.StandardButton.Yes:
@@ -325,15 +309,16 @@ class RefManagerWidget(QtWidgets.QWidget):
         sidebar_util.save_sidebar(self._sidebar_data)
         self.refresh_all()
         self.status.setText(f"Removed category '{category}' from sidebar")
+        self.content_changed.emit()
 
     def _delete_category(self, category):
         cat_dir = os.path.join(SITE_DIR, category)
         file_count = 0
         if os.path.isdir(cat_dir):
-            file_count = sum(1 for f in os.listdir(cat_dir) if os.path.isfile(os.path.join(cat_dir, f)))
+            file_count = len(os.listdir(cat_dir))
         reply = QtWidgets.QMessageBox.question(
             self, "Delete Category",
-            f"Delete '{category}' and all {file_count} file(s) inside?\nThis cannot be undone.",
+            f"Move '{category}' to /removed with {file_count} file(s)?",
             QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No
         )
         if reply != QtWidgets.QMessageBox.StandardButton.Yes:
@@ -341,28 +326,22 @@ class RefManagerWidget(QtWidgets.QWidget):
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
         if os.path.isdir(cat_dir):
-            import shutil
+            os.makedirs(REMOVED_DIR, exist_ok=True)
+            dst = os.path.join(REMOVED_DIR, category)
+            base = dst
+            n = 1
+            while os.path.exists(dst):
+                dst = f"{base}_{n}"
+                n += 1
             try:
-                shutil.rmtree(cat_dir)
+                shutil.move(cat_dir, dst)
             except Exception as e:
-                self.status.setText(f"Error deleting directory: {e}")
+                self.status.setText(f"Error moving directory: {e}")
                 self.refresh_all()
                 return
         self.refresh_all()
-        self.status.setText(f"Deleted category '{category}' and {file_count} file(s)")
-
-    def _add_discovered(self, category, file_path, name):
-        for cat in self._sidebar_data:
-            if cat["category"] == category:
-                cat["entries"].append({"name": name, "file": file_path})
-                sidebar_util.save_sidebar(self._sidebar_data)
-                self.refresh_all()
-                self.status.setText(f"Added '{name}' to '{category}'")
-                return
-        self._sidebar_data.append({"category": category, "entries": [{"name": name, "file": file_path}]})
-        sidebar_util.save_sidebar(self._sidebar_data)
-        self.refresh_all()
-        self.status.setText(f"Added '{name}' to new category '{category}'")
+        self.status.setText(f"Moved '{category}' to /removed")
+        self.content_changed.emit()
 
     def _toggle_comments(self, data):
         for cat in self._sidebar_data:
@@ -405,95 +384,21 @@ class RefManagerWidget(QtWidgets.QWidget):
 </body>
 </html>"""
 
-    def _edit_page(self, data):
-        fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
-        if not os.path.exists(fpath):
-            self.status.setText(f"File not found: {data['file']}")
-            return
-        with open(fpath, encoding="utf-8") as f:
-            src = f.read()
-        m = re.search(r'<main[^>]*>(.*?)</main>', src, re.DOTALL)
-        body = m.group(1).strip() if m else src
-        from wysiwyg_editor import WysiwygEditor
-        dlg = WysiwygEditor(body, self)
-        if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
-            html = dlg.result_html()
-            if html:
-                wrapped = self._wrap_content(html, data["name"], fpath)
-                with open(fpath, "w", encoding="utf-8") as f:
-                    f.write(wrapped)
-                self.status.setText(f"Saved '{data['name']}'")
-
-    def _new_page(self):
-        dlg = QtWidgets.QDialog(self)
-        dlg.setWindowTitle("New Page")
-        dlg.setMinimumWidth(380)
-        dl = QtWidgets.QVBoxLayout(dlg)
-        dl.setSpacing(8)
-        cat_label = QtWidgets.QLabel("Category (folder):")
-        cat_label.setStyleSheet("color: #c9d1d9;")
-        dl.addWidget(cat_label)
-        cat_input = QtWidgets.QLineEdit("blog")
-        dl.addWidget(cat_input)
-        title_label = QtWidgets.QLabel("Page title:")
-        title_label.setStyleSheet("color: #c9d1d9;")
-        dl.addWidget(title_label)
-        title_input = QtWidgets.QLineEdit()
-        title_input.setPlaceholderText("My New Page")
-        dl.addWidget(title_input)
-        btns = QtWidgets.QHBoxLayout()
-        ok_btn = QtWidgets.QPushButton("Create & Edit")
-        ok_btn.setProperty("class", "primary")
-        cancel_btn = QtWidgets.QPushButton("Cancel")
-        cancel_btn.clicked.connect(dlg.reject)
-        btns.addWidget(cancel_btn)
-        btns.addWidget(ok_btn)
-        dl.addLayout(btns)
-
-        def do_create():
-            cat = cat_input.text().strip()
-            title = title_input.text().strip()
-            if not cat or not title:
-                QtWidgets.QMessageBox.warning(dlg, "Missing", "Enter both category and title")
-                return
-            target_dir = os.path.join(SITE_DIR, cat)
-            os.makedirs(target_dir, exist_ok=True)
-            slug = title.lower().replace(' ', '-').replace('--', '-')
-            slug = re.sub(r'[^a-z0-9-]', '', slug)
-            fname = slug + '.html'
-            fpath = os.path.join(target_dir, fname)
-            if os.path.exists(fpath):
-                QtWidgets.QMessageBox.warning(dlg, "Exists", f"'{fname}' already exists")
-                return
-            from wysiwyg_editor import WysiwygEditor
-            dlg.accept()
-            ed = WysiwygEditor("", self)
-            if ed.exec() == QtWidgets.QDialog.DialogCode.Accepted:
-                html = ed.result_html()
-                if html:
-                    wrapped = self._wrap_content(html, title, fpath)
-                    with open(fpath, "w", encoding="utf-8") as f:
-                        f.write(wrapped)
-                    rel = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
-                    for c in self._sidebar_data:
-                        if c["category"] == cat:
-                            c["entries"].append({"name": title, "file": rel})
-                            break
-                    else:
-                        self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
-                    sidebar_util.save_sidebar(self._sidebar_data)
-                    self.refresh_all()
-                    self.status.setText(f"Created '{title}'")
-
-        ok_btn.clicked.connect(do_create)
-        dlg.exec()
-
     def _import_file(self):
         path, _ = QtWidgets.QFileDialog.getOpenFileName(
             self, "Import File", "",
-            "Google Docs Export (*.zip);;MHT files (*.mht *.mhtml)")
+            "All supported (*.zip *.mht *.mhtml *.html);;Google Docs Export (*.zip);;MHT files (*.mht *.mhtml);;HTML files (*.html)")
         if not path:
             return
+
+        ext = os.path.splitext(path)[1].lower()
+
+        if ext == '.html':
+            self._import_html(path)
+        else:
+            self._import_convert(path)
+
+    def _import_convert(self, path):
         from docx2html import convert_file
         result, err = convert_file(path)
         if err:
@@ -525,6 +430,7 @@ class RefManagerWidget(QtWidgets.QWidget):
 
         btns = QtWidgets.QHBoxLayout()
         ok_btn = QtWidgets.QPushButton("Import & Save")
+        ok_btn.setProperty("class", "primary")
         cancel_btn = QtWidgets.QPushButton("Cancel")
         cancel_btn.clicked.connect(dlg.reject)
         btns.addWidget(cancel_btn)
@@ -560,56 +466,17 @@ class RefManagerWidget(QtWidgets.QWidget):
             sidebar_util.save_sidebar(self._sidebar_data)
             self.refresh_all()
             self.status.setText(f"Imported '{title}'")
+            self.content_changed.emit()
 
         ok_btn.clicked.connect(do_import)
         dlg.exec()
 
-    def remove_selected(self):
-        item = self.tree.currentItem()
-        if not item:
-            self.status.setText("Select an entry to remove")
-            return
-        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
-        if not data:
-            return
-        if data.get("type") == "entry":
-            self._remove_entry(data)
-        elif data.get("type") == "category":
-            self._remove_category(item.text(0))
-
-    def delete_selected(self):
-        item = self.tree.currentItem()
-        if not item:
-            self.status.setText("Select an entry to delete")
-            return
-        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
-        if not data:
-            return
-        if data.get("type") == "entry":
-            self._delete_entry(data)
-        elif data.get("type") == "category":
-            self._delete_category(item.text(0))
-
-    def set_file_path(self, path, category=None):
-        self.refresh_all()
-
-    def show_add_dialog(self):
+    def _import_html(self, src):
         dlg = QtWidgets.QDialog(self)
-        dlg.setWindowTitle("Add Page to Site")
+        dlg.setWindowTitle("Import HTML File")
         dlg.setMinimumWidth(420)
         dl = QtWidgets.QVBoxLayout(dlg)
         dl.setSpacing(8)
-
-        file_label = QtWidgets.QLabel("HTML File:")
-        file_label.setStyleSheet("color: #c9d1d9;")
-        dl.addWidget(file_label)
-        file_row = QtWidgets.QHBoxLayout()
-        file_input = QtWidgets.QLineEdit()
-        file_input.setPlaceholderText("Select an HTML file...")
-        file_row.addWidget(file_input, 1)
-        browse_btn = QtWidgets.QPushButton("Browse")
-        file_row.addWidget(browse_btn)
-        dl.addLayout(file_row)
 
         cat_label = QtWidgets.QLabel("Category:")
         cat_label.setStyleSheet("color: #c9d1d9;")
@@ -617,7 +484,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         cat_combo = QtWidgets.QComboBox()
         cat_combo.setView(QtWidgets.QListView())
         cat_combo.setEditable(True)
-        cat_combo.setInsertPolicy(QtWidgets.QComboBox.NoInsert)
+        cat_combo.setInsertPolicy(QtWidgets.QComboBox.InsertPolicy.NoInsert)
         for cat in self._sidebar_data:
             cat_combo.addItem(cat["category"])
         dl.addWidget(cat_combo)
@@ -626,36 +493,26 @@ class RefManagerWidget(QtWidgets.QWidget):
         name_label.setStyleSheet("color: #c9d1d9;")
         dl.addWidget(name_label)
         name_input = QtWidgets.QLineEdit()
-        name_input.setPlaceholderText("My Page")
+        basename = os.path.splitext(os.path.basename(src))[0].replace('-', ' ').title()
+        name_input.setText(basename)
+        name_input.selectAll()
         dl.addWidget(name_input)
 
         dl.addSpacing(8)
 
         btns = QtWidgets.QHBoxLayout()
-        ok_btn = QtWidgets.QPushButton("Add")
+        ok_btn = QtWidgets.QPushButton("Import")
         ok_btn.setProperty("class", "primary")
         cancel_btn = QtWidgets.QPushButton("Cancel")
         btns.addWidget(ok_btn)
         btns.addWidget(cancel_btn)
         dl.addLayout(btns)
 
-        def browse():
-            p, _ = QtWidgets.QFileDialog.getOpenFileName(
-                self, "Select HTML", "", "HTML Files (*.html)")
-            if p:
-                file_input.setText(p)
-                basename = os.path.splitext(os.path.basename(p))[0].replace('-', ' ').title()
-                name_input.setText(basename)
-        browse_btn.clicked.connect(browse)
         cancel_btn.clicked.connect(dlg.reject)
 
         def do_add():
-            src = file_input.text().strip()
             cat = cat_combo.currentText().strip()
             name = name_input.text().strip()
-            if not src:
-                QtWidgets.QMessageBox.warning(dlg, "Missing", "Select an HTML file")
-                return
             if not cat:
                 QtWidgets.QMessageBox.warning(dlg, "Missing", "Enter a category")
                 return
@@ -681,12 +538,81 @@ class RefManagerWidget(QtWidgets.QWidget):
             sidebar_util.save_sidebar(self._sidebar_data)
             dlg.accept()
             self.refresh_all()
-            self.status.setText(f"Added '{name}' to '{cat}'")
+            self.status.setText(f"Imported '{name}' from HTML file")
+            self.content_changed.emit()
 
         ok_btn.clicked.connect(do_add)
         dlg.exec()
 
+    def _on_remove(self):
+        items = self.tree.selectedItems()
+        if not items:
+            self.status.setText("Select an item to remove")
+            return
+        item = items[0]
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not data:
+            self.status.setText("No data for selected item")
+            return
+        if data.get("type") == "entry":
+            reply = QtWidgets.QMessageBox.question(
+                self, "Remove Entry",
+                f"Remove '{data['name']}' from sidebar?\nThe file will be kept on disk.",
+                QtWidgets.QMessageBox.StandardButton.Yes | QtWidgets.QMessageBox.StandardButton.No)
+            if reply == QtWidgets.QMessageBox.StandardButton.Yes:
+                self._remove_entry(data)
+        elif data.get("type") == "category":
+            self._remove_category(item.text(0))
+
+    def _on_rename(self):
+        items = self.tree.selectedItems()
+        if not items:
+            self.status.setText("Select an item to rename")
+            return
+        self.tree.editItem(items[0], 0)
+
+    def _on_delete(self):
+        items = self.tree.selectedItems()
+        if not items:
+            self.status.setText("Select an item to delete")
+            return
+        item = items[0]
+        data = item.data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not data:
+            self.status.setText("No data for selected item")
+            return
+        if data.get("type") == "entry":
+            self._delete_entry(data)
+        elif data.get("type") == "category":
+            self._delete_category(item.text(0))
+
+    def _selected_entry_data(self):
+        items = self.tree.selectedItems()
+        if not items:
+            self.status.setText("Select an entry first")
+            return None
+        data = items[0].data(0, QtCore.Qt.ItemDataRole.UserRole)
+        if not data or data.get("type") != "entry":
+            self.status.setText("Select an entry (not a category)")
+            return None
+        return data
+
+    def _open_in_ckeditor(self):
+        data = self._selected_entry_data()
+        if data:
+            self._open_entry_in_ck(data)
+
+    def _open_entry_in_ck(self, data):
+        fpath = os.path.join(SITE_DIR, data["file"].lstrip("/"))
+        if not os.path.exists(fpath):
+            self.status.setText(f"File not found: {fpath}")
+            return
+        self.open_in_ckeditor.emit(fpath)
+        self.status.setText(f"Opened '{data['name']}' in CKEditor")
+
     def convert_media(self):
+        if hasattr(self, '_convert_thread') and self._convert_thread and self._convert_thread.isRunning():
+            return
         self.convert_media_btn.setEnabled(False)
         self.convert_media_btn.setText("Converting...")
         self.status.setText("Converting media in background...")
@@ -770,38 +696,11 @@ class RefManagerWidget(QtWidgets.QWidget):
                 self.done.emit(" | ".join(parts))
 
         self._convert_thread = ConvertThread()
-        self._convert_thread.done.connect(lambda msg: (
-            self.status.setText(msg),
-            self.convert_media_btn.setEnabled(True),
-            self.convert_media_btn.setText("Convert Media"),
-        ))
+        self._convert_thread.done.connect(self._on_convert_done)
         self._convert_thread.start()
 
-    def generate(self):
-        self.status.setText("Generating...")
-        self.gen_btn.setEnabled(False)
-        self.gen_btn.setText("Generating...")
-
-        self._gen_worker = _GenerateWorker()
-        self._gen_worker.finished.connect(self._on_generate_done)
-        self._gen_worker.start()
-
-    def _on_generate_done(self, output):
-        self.gen_btn.setEnabled(True)
-        self.gen_btn.setText("Generate")
-        self.status.setText(output)
-
-
-class _GenerateWorker(QtCore.QThread):
-    finished = QtCore.pyqtSignal(str)
-
-    def run(self):
-        import generate
-        try:
-            output = generate.run_generate_captured()
-        except Exception as e:
-            output = f"Error: {e}"
-        self.finished.emit(output)
-
-    def refresh_categories(self):
-        pass
+    def _on_convert_done(self, msg):
+        self.status.setText(msg)
+        self.convert_media_btn.setEnabled(True)
+        self.convert_media_btn.setText("Convert Media")
+        self._convert_thread = None

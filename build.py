@@ -117,6 +117,12 @@ def build():
         "--hidden-import", "PyQt6.sip",
         "--hidden-import", "PyQt6.QtWebEngineWidgets",
         "--hidden-import", "PyQt6.QtWebEngineCore",
+        "--hidden-import", "docx2html",
+        "--hidden-import", "sidebar_util",
+        "--hidden-import", "first_run",
+        "--hidden-import", "advanced_theme",
+        "--hidden-import", "git_util",
+        "--hidden-import", "bootstrap",
         "app.py",
     ]
 
@@ -124,8 +130,12 @@ def build():
         download_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
         cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
-        cmd.extend(["--icon", "logo.ico"])
-        cmd.extend(["--version-file", "version_info.txt"])
+        ico = os.path.join(SITE_DIR, "logo.ico")
+        if os.path.exists(ico):
+            cmd.extend(["--icon", "logo.ico"])
+        ver = os.path.join(SITE_DIR, "version_info.txt")
+        if os.path.exists(ver):
+            cmd.extend(["--version-file", "version_info.txt"])
     else:
         download_linux_git()
         cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])

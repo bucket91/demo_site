@@ -1,0 +1,16 @@
+{
+  "site_title": "Placeholder",
+  "gui_font_size": 14,
+  "selected_theme": "Dracula",
+  "selected_font": "Classic Sans",
+  "owner_name": "name",
+  "owner_title": "site",
+  "owner_bio": "jhsb",
+  "owner_contacts": [
+    {
+      "label": "dbjxc",
+      "url": "https://x.com/"
+    }
+  ],
+  "site_padding": 6
+}

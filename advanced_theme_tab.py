@@ -4,10 +4,12 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
+SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 sys.path.insert(0, _APP_DIR)
 
 import advanced_theme
 advanced_theme.SITE_DIR = SITE_DIR
+advanced_theme.SETTINGS_DIR = SETTINGS_DIR
 from advanced_theme import DEFAULT
 
 NAME_MAP = {
@@ -491,6 +493,8 @@ class AdvancedThemeTab(QtWidgets.QWidget):
             self.status.setText("Error writing advanced.css")
             return
 
+        if hasattr(self, '_worker') and self._worker and self._worker.isRunning():
+            return
         self.apply_btn.setEnabled(False)
         self.apply_btn.setText("Generating...")
 
@@ -503,6 +507,7 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         self.status.setText(msg)
 
     def _on_adv_theme_done(self, ok):
+        self._worker = None
         self.apply_btn.setEnabled(True)
         self.apply_btn.setText("Apply & Generate")
         if ok:

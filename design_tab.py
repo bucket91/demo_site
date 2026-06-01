@@ -1,12 +1,15 @@
-import os, sys, json, webbrowser
+import os, sys, json
 from PyQt6 import QtWidgets, QtCore
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
-CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
+CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
 
 
 class DesignWidget(QtWidgets.QWidget):
+    settings_changed = QtCore.pyqtSignal()
+
     def __init__(self):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
@@ -43,31 +46,33 @@ class DesignWidget(QtWidgets.QWidget):
         """)
         self.title_input.textChanged.connect(self._on_title_changed)
         title_row.addWidget(self.title_input, 1)
-        local_btn = QtWidgets.QPushButton("Preview Locally")
-        local_btn.clicked.connect(self._preview_local)
-        title_row.addWidget(local_btn)
-        online_btn = QtWidgets.QPushButton("Visit GitHub Pages")
-        online_btn.clicked.connect(self._preview_online)
-        title_row.addWidget(online_btn)
         cl.addLayout(title_row)
 
-        self.preview_status = QtWidgets.QLabel("")
-        self.preview_status.setProperty("class", "dim")
-        self.preview_status.setStyleSheet("color: #6e7681; margin: 0 16px 8px;")
-        cl.addWidget(self.preview_status)
+        opts_row = QtWidgets.QHBoxLayout()
+        opts_row.setContentsMargins(16, 0, 16, 4)
+        opts_row.setSpacing(16)
 
-        font_row = QtWidgets.QHBoxLayout()
-        font_row.setContentsMargins(16, 0, 16, 4)
         font_label = QtWidgets.QLabel("UI Font Size:")
         font_label.setStyleSheet("color: #6e7681;")
-        font_row.addWidget(font_label)
+        opts_row.addWidget(font_label)
         self.font_size_spin = QtWidgets.QSpinBox()
         self.font_size_spin.setRange(10, 24)
         self.font_size_spin.setValue(cfg.get("gui_font_size", 14))
         self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
-        font_row.addWidget(self.font_size_spin)
-        font_row.addStretch()
-        cl.addLayout(font_row)
+        opts_row.addWidget(self.font_size_spin)
+
+        pad_label = QtWidgets.QLabel("Site Padding:")
+        pad_label.setStyleSheet("color: #6e7681;")
+        opts_row.addWidget(pad_label)
+        self.padding_spin = QtWidgets.QSpinBox()
+        self.padding_spin.setRange(0, 80)
+        self.padding_spin.setSuffix(" px")
+        self.padding_spin.setValue(cfg.get("site_padding", 0))
+        self.padding_spin.valueChanged.connect(self._on_padding_changed)
+        opts_row.addWidget(self.padding_spin)
+
+        opts_row.addStretch()
+        cl.addLayout(opts_row)
 
         # ── Owner ──
         import owner_tab
@@ -91,6 +96,20 @@ class DesignWidget(QtWidgets.QWidget):
         sep2.setStyleSheet("background: #30363d; max-height: 1px;")
         cl.addWidget(sep2)
 
+        save_row = QtWidgets.QHBoxLayout()
+        save_row.setContentsMargins(16, 8, 16, 8)
+        save_row.addStretch()
+        self.save_all_btn = QtWidgets.QPushButton("Save All")
+        self.save_all_btn.setStyleSheet("""
+            QPushButton { background: #3fb950; color: #fff; border: none;
+                          border-radius: 6px; padding: 10px 32px;
+                          font-weight: bold; font-size: 14px; }
+            QPushButton:hover { background: #2ea043; }
+        """)
+        self.save_all_btn.clicked.connect(self._save_all)
+        save_row.addWidget(self.save_all_btn)
+        cl.addLayout(save_row)
+
         scroll.setWidget(container)
         layout.addWidget(scroll)
 
@@ -108,6 +127,7 @@ class DesignWidget(QtWidgets.QWidget):
 
     def _on_title_changed(self, text):
         self._save_cfg({"site_title": text.strip()})
+        self.settings_changed.emit()
 
     @QtCore.pyqtSlot(int)
     def _on_font_size_changed(self, size):
@@ -115,28 +135,12 @@ class DesignWidget(QtWidgets.QWidget):
         import gui_theme
         gui_theme.apply()
 
-    def _preview_local(self):
-        index = os.path.join(SITE_DIR, "index.html")
-        if not os.path.exists(index):
-            self.preview_status.setText("No index.html — generate pages from the Content tab first")
-            return
-        webbrowser.open(f"file://{os.path.abspath(index)}")
-        self.preview_status.setText(f"Opened in system browser")
+    @QtCore.pyqtSlot(int)
+    def _on_padding_changed(self, value):
+        self._save_cfg({"site_padding": value})
+        self.settings_changed.emit()
 
-    def _preview_online(self):
-        cfg = self._load_cfg()
-        url = cfg.get("git_remote_url", "")
-        if not url or 'github.com/' not in url:
-            self.preview_status.setText("No GitHub remote URL configured in Settings")
-            return
-        after = url.split('github.com/', 1)[1]
-        if after.endswith('.git'):
-            after = after[:-4]
-        if '/' in after:
-            user, repo = after.split('/', 1)
-            if repo == f'{user}.github.io':
-                base = f"https://{user}.github.io/"
-            else:
-                base = f"https://{user}.github.io/{repo}/"
-            webbrowser.open(base)
-            self.preview_status.setText(f"Opened {base} in browser")
+    def _save_all(self):
+        self.owner_widget.save_owner()
+        self.theme_widget.apply_theme()
+        self.settings_changed.emit()

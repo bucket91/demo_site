@@ -4,6 +4,7 @@ from PyQt6 import QtWidgets
 from git_util import _extract_github_user
 
 SITE_DIR = None
+_APP_DIR = None
 
 
 class FirstRunWizard(QtWidgets.QDialog):
@@ -116,7 +117,8 @@ class FirstRunWizard(QtWidgets.QDialog):
         save_setup_config(remote, token, supabase_url, supabase_key)
 
         if self._extracted_user:
-            cfg_path = os.path.join(SITE_DIR, "config.json")
+            settings_dir = os.path.join(os.path.dirname(SITE_DIR), "settings")
+            cfg_path = os.path.join(settings_dir, "config.json")
             cfg = {}
             if os.path.exists(cfg_path):
                 with open(cfg_path, encoding="utf-8") as f:

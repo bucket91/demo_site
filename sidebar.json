@@ -27,5 +27,22 @@
         "file": "/blog/m.html"
       }
     ]
+  },
+  {
+    "category": "site",
+    "entries": [
+      {
+        "name": "404",
+        "file": "/site/404.html"
+      },
+      {
+        "name": "Index",
+        "file": "/site/index.html"
+      },
+      {
+        "name": "Template",
+        "file": "/site/template.html"
+      }
+    ]
   }
 ]

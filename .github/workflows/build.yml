@@ -56,9 +56,11 @@ jobs:
       - name: Build executable
         run: |
           DATA_ARGS=""
+          HIDDEN=""
           if [ "${{ runner.os }}" = "Windows" ]; then
             DATA_ARGS="--add-data mingit;mingit --add-data ckeditor;ckeditor"
-            ICON_ARGS="--icon logo.ico --version-file version_info.txt"
+            [ -f logo.ico ] && ICON_ARGS="--icon logo.ico"
+            [ -f version_info.txt ] && ICON_ARGS="$ICON_ARGS --version-file version_info.txt"
           else
             DATA_ARGS="--add-data bundled-git:bundled-git --add-data ckeditor:ckeditor"
             ICON_ARGS="--icon logo.png"
@@ -67,6 +69,12 @@ jobs:
             --hidden-import PyQt6.sip \
             --hidden-import PyQt6.QtWebEngineWidgets \
             --hidden-import PyQt6.QtWebEngineCore \
+            --hidden-import docx2html \
+            --hidden-import sidebar_util \
+            --hidden-import first_run \
+            --hidden-import advanced_theme \
+            --hidden-import git_util \
+            --hidden-import bootstrap \
             $DATA_ARGS $ICON_ARGS app.py
         shell: bash
         working-directory: ${{ github.workspace }}

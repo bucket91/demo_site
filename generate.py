@@ -4,42 +4,50 @@ from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_p
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
+SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
-CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
-LOCAL_CONFIG_FILE = os.path.join(SITE_DIR, "config.local.json")
+CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
+ROOT_CONFIG_FILE = os.path.join(_APP_DIR, "site_tools.config")
 
 import sidebar_util
 sidebar_util.SITE_DIR = SITE_DIR
 
 def load_config():
     default = {
-        "supabase_url": "",
-        "supabase_anon_key": "",
-        "git_remote_url": "",
-        "git_user_name": "",
-        "git_user_email": "",
-        "github_token": "",
         "owner_name": "",
         "owner_bio": "",
         "owner_title": "",
         "owner_contacts": [],
         "site_title": "Placeholder",
         "gui_font_size": 14,
+        "site_padding": 0,
     }
-    cfg = default
+    token_keys = ["supabase_url", "supabase_anon_key", "git_remote_url",
+                   "git_user_name", "git_user_email", "github_token"]
+    for k in token_keys:
+        default[k] = ""
+    cfg = dict(default)
     if os.path.exists(CONFIG_FILE):
         with open(CONFIG_FILE, encoding="utf-8") as f:
-            cfg = {**default, **json.load(f)}
-    if os.path.exists(LOCAL_CONFIG_FILE):
-        with open(LOCAL_CONFIG_FILE, encoding="utf-8") as f:
-            cfg.update(json.load(f))
+            cfg.update({k: v for k, v in json.load(f).items() if k in default})
+    if os.path.exists(ROOT_CONFIG_FILE):
+        with open(ROOT_CONFIG_FILE, encoding="utf-8") as f:
+            cfg.update({k: v for k, v in json.load(f).items() if k in token_keys})
     return cfg
 
 CONFIG = load_config()
 
 def save_config(cfg):
+    os.makedirs(SETTINGS_DIR, exist_ok=True)
+    token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
+                   "git_user_name", "git_user_email", "github_token"}
+    tokens = {k: cfg[k] for k in token_keys if k in cfg}
+    settings = {k: v for k, v in cfg.items() if k not in token_keys}
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
-        json.dump(cfg, f, indent=2)
+        json.dump(settings, f, indent=2)
+    if tokens:
+        with open(ROOT_CONFIG_FILE, "w", encoding="utf-8") as f:
+            json.dump(tokens, f, indent=2)
 
 def scan_categories():
     sidebar_data = sidebar_util.load_sidebar()
@@ -293,7 +301,7 @@ def build_page(filepath, categories):
     toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
 
     # Video background
-    adv_json_path = os.path.join(SITE_DIR, "advanced_theme.json")
+    adv_json_path = os.path.join(SETTINGS_DIR, "advanced_theme.json")
     video_html = ""
     if os.path.exists(adv_json_path):
         try:
@@ -334,6 +342,8 @@ def build_page(filepath, categories):
     result = result.replace('{{SIDEBAR}}', sidebar)
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
+    padding = CONFIG.get("site_padding", 0)
+    result = result.replace('{{SITE_PADDING}}', str(padding))
 
     with open(filepath, 'w', encoding="utf-8") as f:
         f.write(result)
@@ -438,7 +448,7 @@ def git_commit_push(log_func=print):
             _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
             _git_run(["remote", "add", "origin", orig_remote], cwd=SITE_DIR, capture_output=True)
 def run_generate_captured():
-    """Run generate and return the last line of output."""
+    """Run local generate only (no git). Returns last line of output."""
     import io
     buf = io.StringIO()
     def log(msg):
@@ -446,13 +456,11 @@ def run_generate_captured():
         buf.write(msg + '\n')
     CONFIG.update(load_config())
     generate_all(log)
-    git_commit_push(log)
     output = buf.getvalue().strip()
     return output.split('\n')[-1] if output else "Done"
 
 def main():
     generate_all()
-    git_commit_push()
 
 if __name__ == "__main__":
     main()

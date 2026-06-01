@@ -4,10 +4,11 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
+SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 STYLE_FILE = os.path.join(SITE_DIR, "style.css")
 FONTS_DIR = os.path.join(SITE_DIR, "fonts")
 FONTS_JSON = os.path.join(FONTS_DIR, "fonts.json")
-CONFIG_FILE = os.path.join(SITE_DIR, "config.json")
+CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 
 from themes import THEMES, FONTS, CSS_TEMPLATE
@@ -310,11 +311,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.theme_combo.currentIndexChanged.connect(self.on_theme_changed)
         selector_row.addWidget(self.theme_combo, 1)
 
-        self.apply_btn = QtWidgets.QPushButton("Apply Theme")
-        self.apply_btn.setProperty("class", "primary")
-        self.apply_btn.setMinimumHeight(40)
-        self.apply_btn.clicked.connect(self.apply_theme)
-        selector_row.addWidget(self.apply_btn)
+
 
         layout.addLayout(selector_row)
 
@@ -438,7 +435,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self.on_theme_changed(self.theme_combo.currentIndex())
 
     def _update_advanced_base_colors(self, theme_colors):
-        adv_json = os.path.join(SITE_DIR, "advanced_theme.json")
+        adv_json = os.path.join(SETTINGS_DIR, "advanced_theme.json")
         if not os.path.exists(adv_json):
             return
         try:
@@ -675,29 +672,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
             "selected_font": self.font_combo.currentText(),
         })
 
-        self._log(f"Applied {name}. Running generate...")
-        self.apply_btn.setEnabled(False)
-        self.apply_btn.setText("Generating...")
-
-        self._worker = _ThemeWorker()
-        self._worker.logged.connect(self._log)
-        self._worker.finished.connect(self._on_theme_done)
-        self._worker.start()
-
-    def _on_theme_done(self, output):
-        self.apply_btn.setEnabled(True)
-        self.apply_btn.setText("Apply Theme & Generate")
-        self._log(f"Done: {output}")
-
-
-class _ThemeWorker(QtCore.QThread):
-    logged = QtCore.pyqtSignal(str)
-    finished = QtCore.pyqtSignal(str)
-
-    def run(self):
-        import generate
-        generate.run_generate_captured()
-        self.finished.emit("generate complete")
+        self._log(f"Saved {name} with {font_name}")
 
 
 
