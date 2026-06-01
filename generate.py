@@ -339,7 +339,7 @@ def build_page(filepath, categories):
         content_rel = content_rel.replace('\\', '/')
     else:
         content_rel = ''
-    toggle = '        <button class="theme-toggle" onclick="toggleTheme()">\u2600\ufe0f</button>'
+    toggle = '        <button class="theme-toggle" onclick="toggleTheme()">☀️</button>'
 
     # Video background
     adv_json_path = os.path.join(SETTINGS_DIR, "advanced_theme.json")
@@ -455,6 +455,15 @@ def generate_all(log_func=print):
     finally:
         clear_sidebar_cache()
 
+def _get_current_branch():
+    """Get the current local branch name."""
+    r = _git_run(["rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
+    if r.returncode == 0:
+        branch = r.stdout.strip()
+        if branch and branch != "HEAD":
+            return branch
+    return "main"  # fallback
+
 def git_commit_push(log_func=print):
     msg = "update site via generator"
     url = CONFIG.get("git_remote_url", "")
@@ -482,8 +491,10 @@ def git_commit_push(log_func=print):
         else:
             log_func(r.stderr.strip())
         if url:
-            _git_run(["pull", "--rebase", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
-            r2 = _git_run(["push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
+            # Get the current branch name instead of using HEAD
+            branch = _get_current_branch()
+            _git_run(["pull", "--rebase", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+            r2 = _git_run(["push", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:
         log_func(f"Git error: {e}")
@@ -491,6 +502,7 @@ def git_commit_push(log_func=print):
         if orig_remote and orig_remote != push_url:
             _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
             _git_run(["remote", "add", "origin", orig_remote], cwd=SITE_DIR, capture_output=True)
+
 def run_generate_captured():
     """Run local generate only (no git). Returns last line of output."""
     import io
