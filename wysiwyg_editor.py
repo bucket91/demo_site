@@ -94,6 +94,7 @@ class CkeditorTab(QtWidgets.QWidget):
         layout.addWidget(bar)
 
         self._ready = False
+        self._current_file = None
         self.view.loadFinished.connect(lambda ok: self._on_loaded(ok))
 
     def _on_loaded(self, ok):
@@ -119,6 +120,7 @@ class CkeditorTab(QtWidgets.QWidget):
         except Exception as e:
             self.status_label.setText(f"Error reading file: {e}")
             return
+        self._current_file = file_path
         content = html
         m = re.search(r'<main[^>]*>(.*?)</main>', html, re.DOTALL | re.IGNORECASE)
         if m:
@@ -137,6 +139,9 @@ class CkeditorTab(QtWidgets.QWidget):
         if not self._ready:
             self.status_label.setText("Editor not ready yet")
             return
+        if not self._current_file:
+            self.status_label.setText("No file loaded — load a file first")
+            return
         self.view.page().runJavaScript("getEditorContentClean()", self._on_export_result)
 
     def _on_export_result(self, html):
@@ -144,6 +149,34 @@ class CkeditorTab(QtWidgets.QWidget):
         if not html:
             self.status_label.setText("Nothing to export")
             return
-        cb = QtWidgets.QApplication.clipboard()
-        cb.setText(html)
-        self.status_label.setText(f"Exported {len(html)} chars to clipboard")
+        try:
+            with open(self._current_file, encoding="utf-8") as f:
+                orig = f.read()
+        except Exception:
+            orig = None
+        try:
+            if orig is not None and re.search(r'<main[^>]*>', orig, re.DOTALL | re.IGNORECASE):
+                result = re.sub(
+                    r'(<main[^>]*>).*?(</main>)',
+                    lambda m: m.group(1) + '\n' + html + '\n' + m.group(2),
+                    orig, count=1, flags=re.DOTALL | re.IGNORECASE
+                )
+            else:
+                result = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page</title>
+</head>
+<body>
+  <main>
+{html}
+  </main>
+</body>
+</html>"""
+            with open(self._current_file, "w", encoding="utf-8") as f:
+                f.write(result)
+            self.status_label.setText(f"Exported to {os.path.basename(self._current_file)}")
+        except Exception as e:
+            self.status_label.setText(f"Error writing file: {e}")
