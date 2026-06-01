@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import re, os, glob, json, sys
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
@@ -16,6 +17,10 @@ _SKIP_DIRS = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dis
 _SKIP_FILES = {'template.html', '404.html'}
 
 _CONFIG_CACHE = None
+
+# Pre-compile regex patterns for better performance
+_MAIN_PATTERN = re.compile(r'<main[^>]*>(.*?)</main>', re.DOTALL)
+_TITLE_PATTERN = re.compile(r'<title>(.*?)</title>', re.DOTALL | re.IGNORECASE)
 
 def load_config():
     global _CONFIG_CACHE
@@ -97,43 +102,48 @@ def generate_sidebar(categories, current_file):
     owner_bio = CONFIG.get("owner_bio", "")
     owner_avatar = "avatar.png" if os.path.exists(os.path.join(SITE_DIR, "avatar.png")) else ""
     owner_title = CONFIG.get("owner_title", "")
-    html = ''
+    
+    # Use list and join instead of string concatenation (fix #3)
+    parts = []
     if owner_name:
-        html += '      <div class="sidebar-owner">\n'
+        parts.append('      <div class="sidebar-owner">')
         if owner_avatar:
             src = rel_path(current_file, '/' + owner_avatar)
-            html += f'        <img src="{src}" alt="{owner_name}" class="owner-avatar">\n'
-        html += f'        <div class="owner-name">{owner_name}</div>\n'
+            parts.append(f'        <img src="{src}" alt="{owner_name}" class="owner-avatar">')
+        parts.append(f'        <div class="owner-name">{owner_name}</div>')
         if owner_title:
-            html += f'        <div class="owner-title">{owner_title}</div>\n'
+            parts.append(f'        <div class="owner-title">{owner_title}</div>')
         if owner_bio:
-            html += f'        <div class="owner-bio">{owner_bio}</div>\n'
-        html += '      </div>\n'
-    html += '      <div class="sidebar-top">\n'
-    html += '        <h2>Menu</h2>\n'
-    html += '        <button class="close-btn" onclick="toggleSidebar()">&times;</button>\n'
-    html += '      </div>\n'
+            parts.append(f'        <div class="owner-bio">{owner_bio}</div>')
+        parts.append('      </div>')
+    
+    parts.append('      <div class="sidebar-top">')
+    parts.append('        <h2>Menu</h2>')
+    parts.append('        <button class="close-btn" onclick="toggleSidebar()">&times;</button>')
+    parts.append('      </div>')
+    
     for cat_name, entries in categories:
-        html += '      <div class="category">\n'
-        html += f'        <div class="category-header" onclick="toggleCategory(this)">\n'
-        html += f'          {cat_name} <span class="arrow">&#9654;</span>\n'
-        html += '        </div>\n'
-        html += '        <ul class="sub-links">\n'
+        parts.append('      <div class="category">')
+        parts.append(f'        <div class="category-header" onclick="toggleCategory(this)">')
+        parts.append(f'          {cat_name} <span class="arrow">&#9654;</span>')
+        parts.append('        </div>')
+        parts.append('        <ul class="sub-links">')
         for name, file_path in entries:
             href = rel_path(current_file, file_path)
-            html += f'          <li><a href="{href}">{name}</a></li>\n'
-        html += '        </ul>\n'
-        html += '      </div>\n'
-    return html
-
+            parts.append(f'          <li><a href="{href}">{name}</a></li>')
+        parts.append('        </ul>')
+        parts.append('      </div>')
+    
+    return '\n'.join(parts)
 
 
 def extract_main(html):
     if '<main' not in html:
         return html.strip()
-    m = re.search(r'<main[^>]*>(.*?)</main>', html, re.DOTALL)
+    m = _MAIN_PATTERN.search(html)
     if m:
         return m.group(1).strip()
+    # Fallback manual parsing
     pos = html.find('<main')
     end = html.find('</main>', pos)
     if end != -1:
@@ -143,13 +153,9 @@ def extract_main(html):
 def extract_title(html):
     if '<title' not in html:
         return "Page"
-    m = re.search(r'<title>(.*?)</title>', html, re.DOTALL)
+    m = _TITLE_PATTERN.search(html)
     if m:
         return m.group(1).strip()
-    pos = html.find('<title>')
-    end = html.find('</title>', pos)
-    if end != -1:
-        return html[pos + 7:end].strip()
     return "Page"
 
 def make_comments_block(filepath):
@@ -276,42 +282,45 @@ def make_homepage_content(categories, current_file):
     owner_avatar = "avatar.png" if os.path.exists(os.path.join(SITE_DIR, "avatar.png")) else ""
     owner_title = CONFIG.get("owner_title", "")
     owner_contacts = CONFIG.get("owner_contacts", [])
-    html = '''<div class="home-hero">
-  <h1>Welcome</h1>
-  <p class="home-tagline">Explore the site</p>
-</div>
-<div class="home-sections">
-'''
+    
+    # Use list and join for efficiency (fix #3)
+    parts = []
+    parts.append('<div class="home-hero">')
+    parts.append('  <h1>Welcome</h1>')
+    parts.append('  <p class="home-tagline">Explore the site</p>')
+    parts.append('</div>')
+    parts.append('<div class="home-sections">')
+    
     if owner_name:
-        html += '  <div class="home-card owner-card">\n'
+        parts.append('  <div class="home-card owner-card">')
         if owner_avatar:
             src = rel_path(current_file, '/' + owner_avatar)
-            html += f'    <img src="{src}" alt="{owner_name}" class="owner-card-avatar">\n'
-        html += f'    <div class="owner-card-name">{owner_name}</div>\n'
+            parts.append(f'    <img src="{src}" alt="{owner_name}" class="owner-card-avatar">')
+        parts.append(f'    <div class="owner-card-name">{owner_name}</div>')
         if owner_title:
-            html += f'    <div class="owner-card-title">{owner_title}</div>\n'
+            parts.append(f'    <div class="owner-card-title">{owner_title}</div>')
         if owner_bio:
-            html += f'    <div class="owner-card-bio">{owner_bio}</div>\n'
+            parts.append(f'    <div class="owner-card-bio">{owner_bio}</div>')
         if owner_contacts:
-            html += '    <div class="owner-card-contacts">\n'
+            parts.append('    <div class="owner-card-contacts">')
             for c in owner_contacts:
                 url = normalize_contact_url(c.get("label", ""), c.get("url", ""))
-                html += f'      <a href="{url}" class="owner-card-link">{c["label"]}</a>\n'
-            html += '    </div>\n'
-        html += '  </div>\n'
+                parts.append(f'      <a href="{url}" class="owner-card-link">{c["label"]}</a>')
+            parts.append('    </div>')
+        parts.append('  </div>')
+    
     for cat_name, entries in categories:
-        html += f'''  <div class="home-card">
-    <h2>{cat_name}</h2>
-    <ul>
-'''
+        parts.append(f'  <div class="home-card">')
+        parts.append(f'    <h2>{cat_name}</h2>')
+        parts.append('    <ul>')
         for name, file_path in entries:
             href = rel_path(current_file, file_path)
-            html += f'      <li><a href="{href}">{name}</a></li>\n'
-        html += '''    </ul>
-  </div>
-'''
-    html += '</div>'
-    return html
+            parts.append(f'      <li><a href="{href}">{name}</a></li>')
+        parts.append('    </ul>')
+        parts.append('  </div>')
+    parts.append('</div>')
+    
+    return '\n'.join(parts)
 
 def build_page(filepath, categories):
     with open(filepath, encoding="utf-8") as f:
@@ -417,7 +426,20 @@ def generate_404(categories, log_func=print):
     return True
 
 
-def generate_all(log_func=print):
+def _process_html_file(args):
+    """Worker function for parallel processing of HTML files (fix #6)."""
+    filepath, categories, skip_dirs, skip_files = args
+    rel = os.path.relpath(filepath, SITE_DIR)
+    if any(part in skip_dirs for part in rel.split(os.sep)):
+        return None
+    if os.path.basename(filepath) in skip_files:
+        return None
+    if build_page(filepath, categories):
+        return (rel, True)
+    return None
+
+
+def generate_all(log_func=print, max_workers=None):
     clear_sidebar_cache()
     clear_config_cache()
     CONFIG.update(load_config())
@@ -427,16 +449,21 @@ def generate_all(log_func=print):
 
         html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
         updated = 0
-        for fp in sorted(html_files):
-            rel = os.path.relpath(fp, SITE_DIR)
-            if any(part in _SKIP_DIRS for part in rel.split(os.sep)):
-                continue
-            if os.path.basename(fp) in _SKIP_FILES:
-                continue
-            if build_page(fp, categories):
-                rel = os.path.relpath(fp, SITE_DIR)
-                log_func(f"  Wrapped: {rel}")
-                updated += 1
+        
+        # Use ThreadPoolExecutor for parallel HTML file processing (fix #6)
+        # max_workers=None will use min(32, os.cpu_count() + 4)
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = {
+                executor.submit(_process_html_file, (fp, categories, _SKIP_DIRS, _SKIP_FILES)): fp
+                for fp in sorted(html_files)
+            }
+            
+            for future in as_completed(futures):
+                result = future.result()
+                if result:
+                    rel, _ = result
+                    log_func(f"  Wrapped: {rel}")
+                    updated += 1
 
         index_path = os.path.join(SITE_DIR, "index.html")
         if not os.path.exists(index_path):
