@@ -17,9 +17,23 @@
   </header>
   <div class="layout">
     <aside class="sidebar" id="sidebar">
+      <div class="sidebar-owner">
+        <img src="avatar.png" alt="name" class="owner-avatar">
+        <div class="owner-name">name</div>
+        <div class="owner-title">site</div>
+        <div class="owner-bio">jhsb</div>
+      </div>
       <div class="sidebar-top">
         <h2>Menu</h2>
         <button class="close-btn" onclick="toggleSidebar()">&times;</button>
+      </div>
+      <div class="category">
+        <div class="category-header" onclick="toggleCategory(this)">
+          blog <span class="arrow">&#9654;</span>
+        </div>
+        <ul class="sub-links">
+          <li><a href="blog/brochure.html">Brochure</a></li>
+        </ul>
       </div>
 
     </aside>
