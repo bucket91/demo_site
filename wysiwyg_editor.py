@@ -26,35 +26,11 @@ def _ensure_ckeditor():
             src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
         if os.path.isdir(src):
             shutil.copytree(src, target)
-    editor_html = os.path.join(target, "editor.html")
-    umd_js = os.path.join(target, "ckeditor5.umd.js")
-    if os.path.exists(editor_html) and os.path.exists(umd_js):
-        with open(editor_html, encoding="utf-8") as f:
-            html = f.read()
-        with open(umd_js, encoding="utf-8") as f:
-            js = f.read()
-        changed = False
-        ext_pattern = '<script src="ckeditor5.umd.js"></script>'
-        if ext_pattern in html:
-            html = html.replace(ext_pattern, '<script>' + js + '</script>')
-            changed = True
-        merge_marker = '</script>\n\n<script>'
-        if merge_marker in html:
-            idx = html.find(merge_marker)
-            html = html[:idx] + '\n\n' + html[idx + len(merge_marker):]
-            changed = True
-        source_map = '//# sourceMappingURL=ckeditor5.umd.js.map'
-        if source_map in html:
-            html = html.replace(source_map, '')
-            changed = True
-        if changed:
-            with open(editor_html, 'w', encoding="utf-8") as f:
-                f.write(html)
 
 
 class _EditorPage(QtWebEngineCore.QWebEnginePage):
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, profile, parent=None):
+        super().__init__(profile, parent)
 
     def javaScriptConsoleMessage(self, level, msg, line, source):
         label = {0: "info", 1: "warning", 2: "error"}.get(level, str(level))
@@ -65,6 +41,18 @@ class _EditorPage(QtWebEngineCore.QWebEnginePage):
 class CkeditorTab(QtWidgets.QWidget):
     file_loaded = QtCore.pyqtSignal(str)
 
+    _profile = None
+
+    @classmethod
+    def _get_profile(cls):
+        if cls._profile is None:
+            cache_dir = os.path.join(_APP_DIR, "cache", "ckeditor")
+            os.makedirs(cache_dir, exist_ok=True)
+            cls._profile = QtWebEngineCore.QWebEngineProfile("ckeditor", None)
+            cls._profile.setHttpCacheDirectory(cache_dir)
+            cls._profile.setHttpCacheType(QtWebEngineCore.QWebEngineProfile.HttpCacheType.DiskHttpCache)
+        return cls._profile
+
     def __init__(self, parent=None):
         super().__init__(parent)
         _ensure_ckeditor()
@@ -74,7 +62,8 @@ class CkeditorTab(QtWidgets.QWidget):
         layout.setSpacing(0)
 
         self.view = QtWebEngineWidgets.QWebEngineView()
-        self.view.setPage(_EditorPage(self.view))
+        page = _EditorPage(self._get_profile(), self.view)
+        self.view.setPage(page)
         s = self.view.settings()
         s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.JavascriptEnabled, True)

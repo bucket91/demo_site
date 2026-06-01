@@ -9,6 +9,10 @@ REMOVED_DIR = os.path.join(_APP_DIR, "removed")
 import sidebar_util
 sidebar_util.SITE_DIR = SITE_DIR
 
+from generate import clear_sidebar_cache
+
+_SKIP_DIRS = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+
 
 class _DropTree(QtWidgets.QTreeWidget):
     dropped = QtCore.pyqtSignal()
@@ -187,6 +191,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 count += 1
         if count:
             sidebar_util.save_sidebar(self._sidebar_data)
+            clear_sidebar_cache()
             self.status.setText(f"Auto-imported {count} file(s)")
 
     def refresh_all(self):
@@ -209,6 +214,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                             if entry["file"] == data["file"]:
                                 entry["name"] = new_name
                                 sidebar_util.save_sidebar(self._sidebar_data)
+                                clear_sidebar_cache()
                                 self.status.setText(f"Renamed to '{new_name}'")
                                 self.content_changed.emit()
                                 return
@@ -216,6 +222,7 @@ class RefManagerWidget(QtWidgets.QWidget):
     def _on_drop(self):
         self._sidebar_data = self._tree_to_sidebar()
         sidebar_util.save_sidebar(self._sidebar_data)
+        clear_sidebar_cache()
         self.status.setText("Order updated")
 
     def _context_menu(self, pos):
@@ -262,6 +269,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 cat["entries"] = [e for e in cat["entries"] if e["file"] != data["file"]]
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
+        clear_sidebar_cache()
         self.refresh_all()
         self.status.setText(f"Removed '{data['name']}' from sidebar")
         self.content_changed.emit()
@@ -293,6 +301,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 cat["entries"] = [e for e in cat["entries"] if e["file"] != data["file"]]
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
+        clear_sidebar_cache()
         self.refresh_all()
         self.status.setText(f"Deleted '{data['name']}'")
         self.content_changed.emit()
@@ -307,6 +316,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             return
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
+        clear_sidebar_cache()
         self.refresh_all()
         self.status.setText(f"Removed category '{category}' from sidebar")
         self.content_changed.emit()
@@ -325,6 +335,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             return
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
+        clear_sidebar_cache()
         if os.path.isdir(cat_dir):
             os.makedirs(REMOVED_DIR, exist_ok=True)
             dst = os.path.join(REMOVED_DIR, category)
@@ -351,6 +362,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                         current = entry.get("comments", True)
                         entry["comments"] = not current
                         sidebar_util.save_sidebar(self._sidebar_data)
+                        clear_sidebar_cache()
                         self.refresh_all()
                         self.status.setText(f"{'Enabled' if not current else 'Disabled'} comments for '{data['name']}'")
                         return
@@ -464,6 +476,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             else:
                 self._sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel}]})
             sidebar_util.save_sidebar(self._sidebar_data)
+            clear_sidebar_cache()
             self.refresh_all()
             self.status.setText(f"Imported '{title}'")
             self.content_changed.emit()
@@ -536,6 +549,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             else:
                 self._sidebar_data.append({"category": cat, "entries": [{"name": name, "file": rel}]})
             sidebar_util.save_sidebar(self._sidebar_data)
+            clear_sidebar_cache()
             dlg.accept()
             self.refresh_all()
             self.status.setText(f"Imported '{name}' from HTML file")
@@ -624,7 +638,6 @@ class RefManagerWidget(QtWidgets.QWidget):
                 from advanced_theme import convert_to_webp, convert_to_webm
                 media_dir = os.path.join(SITE_DIR, "media")
                 html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
-                skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
                 converted = 0
                 errors = []
                 img_exts = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.tiff', '.tif'}
@@ -632,7 +645,7 @@ class RefManagerWidget(QtWidgets.QWidget):
 
                 for fp in html_files:
                     rel = os.path.relpath(fp, SITE_DIR)
-                    if any(part in skip_dirs for part in rel.split(os.sep)):
+                    if any(part in _SKIP_DIRS for part in rel.split(os.sep)):
                         continue
                     with open(fp, encoding="utf-8") as f:
                         src = f.read()

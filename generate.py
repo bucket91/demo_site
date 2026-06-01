@@ -12,6 +12,9 @@ ROOT_CONFIG_FILE = os.path.join(_APP_DIR, "site_tools.config")
 import sidebar_util
 sidebar_util.SITE_DIR = SITE_DIR
 
+_SKIP_DIRS = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
+_SKIP_FILES = {'template.html', '404.html'}
+
 def load_config():
     default = {
         "owner_name": "",
@@ -36,6 +39,17 @@ def load_config():
     return cfg
 
 CONFIG = load_config()
+_SIDEBAR_CACHE = None
+
+def get_sidebar_cached():
+    global _SIDEBAR_CACHE
+    if _SIDEBAR_CACHE is None:
+        _SIDEBAR_CACHE = sidebar_util.load_sidebar()
+    return _SIDEBAR_CACHE
+
+def clear_sidebar_cache():
+    global _SIDEBAR_CACHE
+    _SIDEBAR_CACHE = None
 
 def save_config(cfg):
     os.makedirs(SETTINGS_DIR, exist_ok=True)
@@ -50,7 +64,7 @@ def save_config(cfg):
             json.dump(tokens, f, indent=2)
 
 def scan_categories():
-    sidebar_data = sidebar_util.load_sidebar()
+    sidebar_data = get_sidebar_cached()
     categories = []
     for cat in sidebar_data:
         entries = []
@@ -65,7 +79,7 @@ def scan_categories():
 def rel_path(from_file, to_absolute):
     from_dir = os.path.dirname(os.path.abspath(from_file))
     to_full = os.path.join(SITE_DIR, to_absolute.lstrip('/'))
-    return os.path.relpath(to_full, from_dir)
+    return os.path.relpath(to_full, from_dir).replace('\\', '/')
 
 def generate_sidebar(categories, current_file):
     owner_name = CONFIG.get("owner_name", "")
@@ -121,7 +135,7 @@ def make_comments_block(filepath):
     if not url or not key:
         return '', ''
     rel = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')
-    for cat in sidebar_util.load_sidebar():
+    for cat in get_sidebar_cached():
         for entry in cat["entries"]:
             if entry["file"] == rel and entry.get("comments") is False:
                 return '', ''
@@ -142,27 +156,29 @@ const SUPABASE_ANON_KEY = ''' + repr(key) + ''';
   var section = document.getElementById('comments-section');
   var page = section ? section.getAttribute('data-page') : '/';
   async function loadComments() {
-    var res = await fetch(
-      SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
-      { headers: { apikey: SUPABASE_ANON_KEY } }
-    );
-    if (!res.ok) return;
-    var comments = await res.json();
-    var list = document.getElementById('comments-list');
-    if (!list) return;
-    if (comments.length === 0) {
-      list.innerHTML = '<p class="no-comments">No comments yet.</p>';
-      return;
-    }
-    list.innerHTML = comments.map(function(c) {
-      return '<div class="comment">' +
-        '<div class="comment-header">' +
-          '<strong>' + esc(c.name) + '</strong>' +
-          '<span class="comment-date">' + new Date(c.created_at).toLocaleDateString() + '</span>' +
-        '</div>' +
-        '<p>' + esc(c.body) + '</p>' +
-      '</div>';
-    }).join('');
+    try {
+      var res = await fetch(
+        SUPABASE_URL + '/rest/v1/comments?page=eq.' + encodeURIComponent(page) + '&order=created_at.desc',
+        { headers: { apikey: SUPABASE_ANON_KEY } }
+      );
+      if (!res.ok) return;
+      var comments = await res.json();
+      var list = document.getElementById('comments-list');
+      if (!list) return;
+      if (comments.length === 0) {
+        list.innerHTML = '<p class="no-comments">No comments yet.</p>';
+        return;
+      }
+      list.innerHTML = comments.map(function(c) {
+        return '<div class="comment">' +
+          '<div class="comment-header">' +
+            '<strong>' + esc(c.name) + '</strong>' +
+            '<span class="comment-date">' + new Date(c.created_at).toLocaleDateString() + '</span>' +
+          '</div>' +
+          '<p>' + esc(c.body) + '</p>' +
+        '</div>';
+      }).join('');
+    } catch (e) {}
   }
   async function submitComment(e) {
     e.preventDefault();
@@ -173,15 +189,17 @@ const SUPABASE_ANON_KEY = ''' + repr(key) + ''';
     if (!name || !body) return;
     var btn = e.target.querySelector('button');
     btn.disabled = true;
-    await fetch(SUPABASE_URL + '/rest/v1/comments', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: SUPABASE_ANON_KEY,
-        Prefer: 'return=representation'
-      },
-      body: JSON.stringify({ page: page, name: name, body: body })
-    });
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/comments', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          apikey: SUPABASE_ANON_KEY,
+          Prefer: 'return=representation'
+        },
+        body: JSON.stringify({ page: page, name: name, body: body })
+      });
+    } catch (e) {}
     nameInput.value = '';
     bodyInput.value = '';
     btn.disabled = false;
@@ -377,40 +395,41 @@ def generate_404(categories, log_func=print):
 
 
 def generate_all(log_func=print):
+    clear_sidebar_cache()
     CONFIG.update(load_config())
+    try:
+        categories = scan_categories()
+        log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")
 
-    categories = scan_categories()
-    log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")
-
-    html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
-    updated = 0
-    skip_dirs = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
-    skip_base = {os.path.basename(TEMPLATE_FILE), "404.html"}
-    for fp in sorted(html_files):
-        rel = os.path.relpath(fp, SITE_DIR)
-        if any(part in skip_dirs for part in rel.split(os.sep)):
-            continue
-        if os.path.basename(fp) in skip_base:
-            continue
-        if build_page(fp, categories):
+        html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
+        updated = 0
+        for fp in sorted(html_files):
             rel = os.path.relpath(fp, SITE_DIR)
-            log_func(f"  Wrapped: {rel}")
-            updated += 1
+            if any(part in _SKIP_DIRS for part in rel.split(os.sep)):
+                continue
+            if os.path.basename(fp) in _SKIP_FILES:
+                continue
+            if build_page(fp, categories):
+                rel = os.path.relpath(fp, SITE_DIR)
+                log_func(f"  Wrapped: {rel}")
+                updated += 1
 
-    index_path = os.path.join(SITE_DIR, "index.html")
-    if not os.path.exists(index_path):
-        with open(index_path, "w", encoding="utf-8") as f:
-            f.write("<!DOCTYPE html><html><head><title>Home</title></head><body><main></main></body></html>")
-        log_func("  Created: index.html")
-        if build_page(index_path, categories):
-            log_func("  Wrapped: index.html")
-            updated += 1
+        index_path = os.path.join(SITE_DIR, "index.html")
+        if not os.path.exists(index_path):
+            with open(index_path, "w", encoding="utf-8") as f:
+                f.write("<!DOCTYPE html><html><head><title>Home</title></head><body><main></main></body></html>")
+            log_func("  Created: index.html")
+            if build_page(index_path, categories):
+                log_func("  Wrapped: index.html")
+                updated += 1
 
-    generate_404(categories, log_func)
-    updated += 1
+        generate_404(categories, log_func)
+        updated += 1
 
-    log_func(f"\nDone. {updated} files wrapped.")
-    return True
+        log_func(f"\nDone. {updated} files wrapped.")
+        return True
+    finally:
+        clear_sidebar_cache()
 
 def git_commit_push(log_func=print):
     msg = "update site via generator"

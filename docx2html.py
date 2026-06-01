@@ -7,6 +7,7 @@ _APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen
 SITE_DIR = os.path.join(_APP_DIR, "site")
 
 import sidebar_util
+from generate import clear_sidebar_cache
 
 
 class _HtmlCleaner(HTMLParser):
@@ -430,6 +431,7 @@ class ImportWidget(QtWidgets.QWidget):
             if not found:
                 sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel_path}]})
             sidebar_util.save_sidebar(sidebar_data)
+            clear_sidebar_cache()
 
             dlg.accept()
             self.navigate_to_management.emit(fpath, cat)

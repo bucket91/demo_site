@@ -89,6 +89,10 @@ class App(QtWidgets.QMainWindow):
         tabs.setCurrentIndex(0)
         tabs.currentChanged.connect(self._on_tab_changed)
 
+        self._debounce_timer = QtCore.QTimer(self)
+        self._debounce_timer.setSingleShot(True)
+        self._debounce_timer.timeout.connect(self._auto_generate)
+
         self.content_widget.mgr_widget.content_changed.connect(self._on_content_changed)
         self.content_widget.mgr_widget.open_in_ckeditor.connect(self._on_open_in_ckeditor)
         self.design_widget.settings_changed.connect(self._on_content_changed)
@@ -216,7 +220,7 @@ class App(QtWidgets.QMainWindow):
         event.accept()
 
     def _on_content_changed(self):
-        self._auto_generate()
+        self._debounce_timer.start(400)
 
     def _on_open_in_ckeditor(self, file_path):
         self.ckeditor_tab.load_file(file_path)
