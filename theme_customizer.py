@@ -121,6 +121,45 @@ def make_font_face_rule(cf):
 }}"""
 
 
+def regenerate_style_css(site_dir, settings_dir):
+    """Regenerate style.css from the currently saved theme config."""
+    import json, os
+    from themes import CSS_TEMPLATE, THEMES, FONTS
+
+    cfg_path = os.path.join(settings_dir, "config.json")
+    cfg = {}
+    if os.path.exists(cfg_path):
+        with open(cfg_path, encoding="utf-8") as f:
+            cfg = json.load(f)
+
+    theme_key = cfg.get("selected_theme", "Dark")
+    font_name = cfg.get("selected_font", "System UI")
+
+    if theme_key == "Custom":
+        t = dict(THEMES["Dark"])
+        custom = cfg.get("custom_theme", {})
+        t.update(custom)
+    else:
+        t = dict(THEMES.get(theme_key, THEMES["Dark"]))
+
+    if font_name not in FONTS:
+        cf = get_custom_font(font_name)
+        if cf:
+            t["font_family"] = f"'{font_name}'"
+            t["font_face_rules"] = make_font_face_rule(cf)
+        else:
+            t["font_family"] = FONTS["System UI"]
+            t["font_face_rules"] = ""
+    else:
+        t["font_family"] = FONTS[font_name]
+        t["font_face_rules"] = ""
+
+    css = CSS_TEMPLATE.substitute(**t)
+    style_path = os.path.join(site_dir, "style.css")
+    with open(style_path, "w", encoding="utf-8") as f:
+        f.write(css)
+
+
 class CustomColorDialog(QtWidgets.QDialog):
     def __init__(self, colors, parent=None):
         super().__init__(parent)

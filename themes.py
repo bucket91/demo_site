@@ -82,9 +82,6 @@ main {
   padding: 0 1.25rem;
   width: 100%;
 }
-.ck-content {
-  padding: 0 0.5rem;
-}
 .ck-content img, .ck-content table, .ck-content pre, .ck-content div {
   max-width: 100%;
   overflow-x: auto;
@@ -96,11 +93,10 @@ main {
   color: $sidebar_text;
   display: flex;
   flex-direction: column;
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
+  left: -250px;
+  transition: left 0.3s ease;
   position: fixed;
   top: 0;
-  left: 0;
   height: 100%;
   z-index: 1000;
   overflow-y: auto;
@@ -134,7 +130,7 @@ main {
   font-size: 0.8rem;
   color: $link_muted;
 }
-.sidebar.open { transform: translateX(0); }
+.sidebar.open { left: 0; }
 
 .sidebar-top {
   display: flex;

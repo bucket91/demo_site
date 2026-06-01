@@ -29,7 +29,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     <aside class="sidebar" id="sidebar">
 {{SIDEBAR}}
     </aside>
-    <main style="padding-left: {{SITE_PADDING}}px; padding-right: {{SITE_PADDING}}px;">
+    <main style="padding-left: {{SITE_PADDING}}px !important; padding-right: {{SITE_PADDING}}px !important;">
 {{CONTENT}}
     </main>
 {{COMMENTS}}
@@ -48,15 +48,18 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     function toggleTheme() {
       document.body.classList.toggle('dark-mode');
       var b = document.body.classList.contains('dark-mode');
-      localStorage.setItem('theme', b ? 'dark' : 'light');
-      document.querySelector('.theme-toggle').textContent = b ? '\\u{1F319}' : '\\u2600\\uFE0F';
+      try { localStorage.setItem('theme', b ? 'dark' : 'light'); } catch(e) {}
+      document.querySelector('.theme-toggle').textContent = b ? '\\uD83C\\uDF19' : '\\u2600\\uFE0F';
     }
     (function() {
       var btn = document.querySelector('.theme-toggle');
-      if (localStorage.getItem('theme') === 'dark') {
-        document.body.classList.add('dark-mode');
-        if (btn) btn.textContent = '\\u{1F319}';
-      }
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved !== 'light') {
+          document.body.classList.add('dark-mode');
+          if (btn) btn.textContent = '\\uD83C\\uDF19';
+        }
+      } catch(e) {}
     })();
   </script>
 </body>
@@ -150,7 +153,7 @@ DEFAULT_CONFIG = {
     "owner_contacts": [],
     "site_title": "Placeholder",
     "gui_font_size": 14,
-    "site_padding": 0,
+    "site_padding": 20,
 }
 
 
@@ -210,7 +213,7 @@ def ensure_site_files(site_dir):
           "<!DOCTYPE html><html><head><title>Home</title></head><body><main></main></body></html>")
 
     content_css = """/* CKEditor content styles — mirrors .ck-content appearance in generated site */
-.ck-content { color: var(--text); font-size: 14px; line-height: 1.7; padding: 0 0.5rem; }
+.ck-content { color: var(--text); font-size: 14px; line-height: 1.7; }
 .ck-content h1, .ck-content h2, .ck-content h3, .ck-content h4, .ck-content h5, .ck-content h6 { color: var(--label); }
 .ck-content a { color: var(--accent); }
 .ck-content blockquote { border-left: 3px solid var(--card-border); padding-left: 12px; color: var(--muted); }

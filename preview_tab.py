@@ -4,6 +4,31 @@ from PyQt6 import QtWidgets, QtCore, QtWebEngineWidgets, QtWebEngineCore
 _APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 
+import sidebar_util
+sidebar_util.SITE_DIR = SITE_DIR
+
+class _RegenThread(QtCore.QThread):
+    done = QtCore.pyqtSignal()
+
+    def run(self):
+        from generate import generate_all, clear_sidebar_cache, clear_config_cache, CONFIG, load_config
+        discovered = sidebar_util.auto_discover()
+        if discovered:
+            sidebar = sidebar_util.load_sidebar()
+            for d in discovered:
+                for cat in sidebar:
+                    if cat["category"] == d["category"]:
+                        cat["entries"].append({"name": d["name"], "file": d["file"]})
+                        break
+                else:
+                    sidebar.append({"category": d["category"], "entries": [{"name": d["name"], "file": d["file"]}]})
+            sidebar_util.save_sidebar(sidebar)
+        clear_sidebar_cache()
+        clear_config_cache()
+        CONFIG.update(load_config())
+        generate_all(log_func=lambda m: None)
+        self.done.emit()
+
 MARGIN = 24
 MIN_W = 200
 MIN_H = 120
@@ -114,4 +139,14 @@ class PreviewTab(QtWidgets.QWidget):
         self.view.updateGeometry()
 
     def _refresh(self):
-        self.view.reload()
+        if hasattr(self, '_regen_thread') and self._regen_thread and self._regen_thread.isRunning():
+            return
+        self.url_input.setText("Generating...")
+        self._regen_thread = _RegenThread()
+        self._regen_thread.done.connect(self._on_regen_done)
+        self._regen_thread.start()
+
+    def _on_regen_done(self):
+        self._regen_thread.done.disconnect(self._on_regen_done)
+        self._regen_thread = None
+        self.load_site()

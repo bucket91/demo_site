@@ -23,3 +23,157 @@ Init Parameters:
   *  use-gl desktop 
  (line 0, None)
 2026-06-01 11:55:27 [INFO] UI ready, entering event loop
+2026-06-01 11:59:16 [INFO] === Site Tools started ===
+2026-06-01 11:59:17 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 11:59:18 [INFO] UI ready, entering event loop
+2026-06-01 12:26:48 [INFO] === Site Tools started ===
+2026-06-01 12:26:48 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 12:26:49 [INFO] UI ready, entering event loop
+2026-06-01 12:31:32 [INFO] === Site Tools started ===
+2026-06-01 12:31:32 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 12:31:34 [INFO] UI ready, entering event loop
+2026-06-01 12:33:33 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)
+2026-06-01 12:33:35 [INFO] === Site Tools started ===
+2026-06-01 12:33:36 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 12:33:37 [INFO] UI ready, entering event loop
+2026-06-01 12:33:59 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)
+2026-06-01 12:40:12 [INFO] === Site Tools started ===
+2026-06-01 12:40:12 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 12:40:13 [INFO] UI ready, entering event loop
+2026-06-01 12:40:39 [CRITICAL] Qt: QThread: Destroyed while thread is still running (line 0, None)
+2026-06-01 12:41:25 [INFO] === Site Tools started ===
+2026-06-01 12:41:26 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-01 12:41:27 [INFO] UI ready, entering event loop
+2026-06-01 12:41:35 [CRITICAL] Qt: QThread: Destroyed while thread is still running (line 0, None)

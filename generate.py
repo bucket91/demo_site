@@ -28,7 +28,7 @@ def load_config():
         "owner_contacts": [],
         "site_title": "Placeholder",
         "gui_font_size": 14,
-        "site_padding": 0,
+        "site_padding": 20,
     }
     token_keys = ["supabase_url", "supabase_anon_key", "git_remote_url",
                    "git_user_name", "git_user_email", "github_token"]
@@ -383,7 +383,7 @@ def build_page(filepath, categories):
     result = result.replace('{{SIDEBAR}}', sidebar)
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
-    padding = CONFIG.get("site_padding", 0)
+    padding = CONFIG.get("site_padding", 20)
     result = result.replace('{{SITE_PADDING}}', str(padding))
 
     with open(filepath, 'w', encoding="utf-8") as f:

@@ -35,6 +35,8 @@ class App(QtWidgets.QMainWindow):
         created = bootstrap.ensure_site_files(SITE_DIR)
         if created:
             print(f"Created missing files: {', '.join(created)}")
+            from theme_customizer import regenerate_style_css
+            regenerate_style_css(SITE_DIR, SETTINGS_DIR)
 
         self._check_secrets_in_site_dir()
 

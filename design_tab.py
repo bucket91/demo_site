@@ -67,7 +67,7 @@ class DesignWidget(QtWidgets.QWidget):
         self.padding_spin = QtWidgets.QSpinBox()
         self.padding_spin.setRange(0, 80)
         self.padding_spin.setSuffix(" px")
-        self.padding_spin.setValue(cfg.get("site_padding", 0))
+        self.padding_spin.setValue(cfg.get("site_padding", 20))
         self.padding_spin.valueChanged.connect(self._on_padding_changed)
         opts_row.addWidget(self.padding_spin)
 

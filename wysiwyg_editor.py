@@ -139,9 +139,14 @@ class CkeditorTab(QtWidgets.QWidget):
         if not self._ready:
             self.status_label.setText("Editor not ready yet")
             return
-        if not self._current_file:
-            self.status_label.setText("No file loaded — load a file first")
+        default_name = os.path.basename(self._current_file) if self._current_file else "page.html"
+        path, _ = QtWidgets.QFileDialog.getSaveFileName(
+            self, "Export HTML", default_name,
+            "HTML files (*.html);;All files (*)"
+        )
+        if not path:
             return
+        self._export_path = path
         self.view.page().runJavaScript("getEditorContentClean()", self._on_export_result)
 
     def _on_export_result(self, html):
@@ -149,9 +154,16 @@ class CkeditorTab(QtWidgets.QWidget):
         if not html:
             self.status_label.setText("Nothing to export")
             return
+        path = getattr(self, '_export_path', None)
+        if not path:
+            self.status_label.setText("No export path set")
+            return
         try:
-            with open(self._current_file, encoding="utf-8") as f:
-                orig = f.read()
+            if self._current_file and os.path.exists(self._current_file):
+                with open(self._current_file, encoding="utf-8") as f:
+                    orig = f.read()
+            else:
+                orig = None
         except Exception:
             orig = None
         try:
@@ -162,21 +174,31 @@ class CkeditorTab(QtWidgets.QWidget):
                     orig, count=1, flags=re.DOTALL | re.IGNORECASE
                 )
             else:
+                style_css = content_css = ""
+                for fn in ("style.css", "content.css"):
+                    fp = os.path.join(SITE_DIR, fn)
+                    try:
+                        with open(fp, encoding="utf-8") as f:
+                            css = f.read()
+                    except Exception:
+                        css = ""
+                    if css:
+                        style_css += f"<style>\n{css}\n</style>\n"
                 result = f"""<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page</title>
-</head>
+{style_css}</head>
 <body>
   <main>
 {html}
   </main>
 </body>
 </html>"""
-            with open(self._current_file, "w", encoding="utf-8") as f:
+            with open(path, "w", encoding="utf-8") as f:
                 f.write(result)
-            self.status_label.setText(f"Exported to {os.path.basename(self._current_file)}")
+            self.status_label.setText(f"Exported to {os.path.basename(path)}")
         except Exception as e:
             self.status_label.setText(f"Error writing file: {e}")
