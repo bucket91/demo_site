@@ -2,7 +2,7 @@
 import json, os, sys, urllib.request, urllib.error
 from PyQt6 import QtWidgets, QtCore, QtGui
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 
 from generate import load_config
@@ -31,21 +31,53 @@ def req(method, path, data=None):
     except urllib.error.HTTPError as e:
         raise Exception(f"HTTP {e.code}: {e.read().decode(errors='replace')}")
 
+class ApiThread(QtCore.QThread):
+    done = QtCore.pyqtSignal(object)
+
+    def __init__(self, method, path, data=None):
+        super().__init__()
+        self.method = method
+        self.path = path
+        self.data = data
+
+    def run(self):
+        try:
+            result = req(self.method, self.path, self.data)
+            self.done.emit(("ok", result))
+        except Exception as e:
+            self.done.emit(("error", str(e)))
+
+
 class CommentModel(QtCore.QAbstractTableModel):
+    updated_signal = QtCore.pyqtSignal(str)
+
     def __init__(self):
         super().__init__()
         self.comments = []
         self.columns = ["ID", "Page", "Name", "Body", "Created"]
+        self._thread = None
 
     def load(self):
-        try:
-            data = req("GET", "comments?select=id,page,name,body,created_at&order=created_at.desc")
-            self.beginResetModel()
-            self.comments = data
-            self.endResetModel()
-            return True
-        except Exception as e:
-            return str(e)
+        if self._thread and self._thread.isRunning():
+            return "loading"
+        self._thread = ApiThread("GET", "comments?select=id,page,name,body,created_at&order=created_at.desc")
+        self._thread.done.connect(self._on_loaded)
+        self._thread.start()
+        return "loading"
+
+    def _on_loaded(self, result):
+        if self._thread:
+            self._thread.done.disconnect(self._on_loaded)
+            self._thread = None
+        status, data = result
+        if status == "error":
+            self._last_error = data
+            self.updated_signal.emit(f"Error: {data}")
+            return
+        self.beginResetModel()
+        self.comments = data
+        self.endResetModel()
+        self.updated_signal.emit(f"{len(self.comments)} comments")
 
     def rowCount(self, parent=QtCore.QModelIndex()):
         return len(self.comments)
@@ -80,15 +112,36 @@ class CommentModel(QtCore.QAbstractTableModel):
 
     def remove_comment(self, row):
         cid = self.comments[row]["id"]
-        req("DELETE", f"comments?id=eq.{cid}")
+        t = ApiThread("DELETE", f"comments?id=eq.{cid}")
+        t.done.connect(lambda r, r2=row: self._on_removed(r, r2))
+        t.start()
+
+    def _on_removed(self, result, row):
+        status, _ = result
+        if status == "error":
+            self._last_error = row
+            self.updated_signal.emit(f"Error deleting comment: {status}")
+            return
         self.beginRemoveRows(QtCore.QModelIndex(), row, row)
         self.comments.pop(row)
         self.endRemoveRows()
+        self.updated_signal.emit("Comment deleted")
 
     def update_comment(self, row, data):
         cid = self.comments[row]["id"]
-        req("PATCH", f"comments?id=eq.{cid}", data)
+        t = ApiThread("PATCH", f"comments?id=eq.{cid}", data)
+        t.done.connect(lambda r, r2=row, rd=data: self._on_updated(r, r2, rd))
+        t.start()
+
+    def _on_updated(self, result, row, data):
+        status, _ = result
+        if status == "error":
+            self._last_error = row
+            self.updated_signal.emit(f"Error updating comment: {status}")
+            return
         self.comments[row].update(data)
+        self.layoutChanged.emit()
+        self.updated_signal.emit("Comment updated")
 
 class EditDialog(QtWidgets.QDialog):
     def __init__(self, comment):
@@ -175,6 +228,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
 
         # table
         self.model = CommentModel()
+        self.model.updated_signal.connect(lambda msg: self.status.setText(msg))
         self.table = QtWidgets.QTableView()
         self.table.setModel(self.model)
         self.table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectionBehavior.SelectRows)
@@ -215,11 +269,7 @@ class CommentAdminWidget(QtWidgets.QWidget):
         self.refresh()
 
     def refresh(self):
-        err = self.model.load()
-        if err is True:
-            self.status.setText(f"{len(self.model.comments)} comments")
-        else:
-            self.status.setText(f"Error: {err}")
+        self.model.load()
 
     def selected_row(self):
         sel = self.table.selectionModel().selectedRows()
@@ -236,8 +286,6 @@ class CommentAdminWidget(QtWidgets.QWidget):
         if dlg.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             data = dlg.get_data()
             self.model.update_comment(row, data)
-            self.model.layoutChanged.emit()
-            self.status.setText("Comment updated")
 
     def delete_selected(self):
         row = self.selected_row()
@@ -251,7 +299,6 @@ class CommentAdminWidget(QtWidgets.QWidget):
         )
         if confirm == QtWidgets.QMessageBox.StandardButton.Yes:
             self.model.remove_comment(row)
-            self.status.setText(f"Comment #{c['id']} deleted")
 
 class AdminWindow(QtWidgets.QMainWindow):
     def __init__(self):

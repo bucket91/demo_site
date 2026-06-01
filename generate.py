@@ -2,7 +2,7 @@
 import re, os, glob, json, sys
 from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
@@ -15,7 +15,12 @@ sidebar_util.SITE_DIR = SITE_DIR
 _SKIP_DIRS = {'.git', '__pycache__', 'node_modules', 'build', 'build_venv', 'dist', '.github', 'fonts', 'bundled-git', 'mingit', 'ckeditor'}
 _SKIP_FILES = {'template.html', '404.html'}
 
+_CONFIG_CACHE = None
+
 def load_config():
+    global _CONFIG_CACHE
+    if _CONFIG_CACHE is not None:
+        return _CONFIG_CACHE
     default = {
         "owner_name": "",
         "owner_bio": "",
@@ -36,7 +41,12 @@ def load_config():
     if os.path.exists(ROOT_CONFIG_FILE):
         with open(ROOT_CONFIG_FILE, encoding="utf-8") as f:
             cfg.update({k: v for k, v in json.load(f).items() if k in token_keys})
+    _CONFIG_CACHE = cfg
     return cfg
+
+def clear_config_cache():
+    global _CONFIG_CACHE
+    _CONFIG_CACHE = None
 
 CONFIG = load_config()
 _SIDEBAR_CACHE = None
@@ -62,6 +72,7 @@ def save_config(cfg):
     if tokens:
         with open(ROOT_CONFIG_FILE, "w", encoding="utf-8") as f:
             json.dump(tokens, f, indent=2)
+    clear_config_cache()
 
 def scan_categories():
     sidebar_data = get_sidebar_cached()
@@ -118,15 +129,27 @@ def generate_sidebar(categories, current_file):
 
 
 def extract_main(html):
+    if '<main' not in html:
+        return html.strip()
     m = re.search(r'<main[^>]*>(.*?)</main>', html, re.DOTALL)
     if m:
         return m.group(1).strip()
+    pos = html.find('<main')
+    end = html.find('</main>', pos)
+    if end != -1:
+        return html[pos + html[pos:].find('>') + 1:end].strip()
     return html.strip()
 
 def extract_title(html):
+    if '<title' not in html:
+        return "Page"
     m = re.search(r'<title>(.*?)</title>', html, re.DOTALL)
     if m:
         return m.group(1).strip()
+    pos = html.find('<title>')
+    end = html.find('</title>', pos)
+    if end != -1:
+        return html[pos + 7:end].strip()
     return "Page"
 
 def make_comments_block(filepath):
@@ -396,6 +419,7 @@ def generate_404(categories, log_func=print):
 
 def generate_all(log_func=print):
     clear_sidebar_cache()
+    clear_config_cache()
     CONFIG.update(load_config())
     try:
         categories = scan_categories()
@@ -474,6 +498,7 @@ def run_generate_captured():
     def log(msg):
         print(msg)
         buf.write(msg + '\n')
+    clear_config_cache()
     CONFIG.update(load_config())
     generate_all(log)
     output = buf.getvalue().strip()

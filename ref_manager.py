@@ -2,7 +2,7 @@ import os, sys, shutil, glob
 import re, html as html_mod
 from PyQt6 import QtWidgets, QtCore, QtGui
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 REMOVED_DIR = os.path.join(_APP_DIR, "removed")
 
@@ -270,9 +270,23 @@ class RefManagerWidget(QtWidgets.QWidget):
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
         clear_sidebar_cache()
-        self.refresh_all()
+        self._remove_entry_from_tree(data)
         self.status.setText(f"Removed '{data['name']}' from sidebar")
         self.content_changed.emit()
+
+    def _remove_entry_from_tree(self, data):
+        for i in range(self.tree.topLevelItemCount()):
+            cat_item = self.tree.topLevelItem(i)
+            if cat_item.text(0) == data["category"]:
+                for j in range(cat_item.childCount()):
+                    child = cat_item.child(j)
+                    cd = child.data(0, QtCore.Qt.ItemDataRole.UserRole)
+                    if cd and cd.get("file") == data["file"]:
+                        cat_item.removeChild(child)
+                        break
+                if cat_item.childCount() == 0:
+                    self.tree.takeTopLevelItem(i)
+                break
 
     def _delete_entry(self, data):
         reply = QtWidgets.QMessageBox.question(
@@ -302,7 +316,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 break
         sidebar_util.save_sidebar(self._sidebar_data)
         clear_sidebar_cache()
-        self.refresh_all()
+        self._remove_entry_from_tree(data)
         self.status.setText(f"Deleted '{data['name']}'")
         self.content_changed.emit()
 
@@ -317,7 +331,7 @@ class RefManagerWidget(QtWidgets.QWidget):
         self._sidebar_data = [c for c in self._sidebar_data if c["category"] != category]
         sidebar_util.save_sidebar(self._sidebar_data)
         clear_sidebar_cache()
-        self.refresh_all()
+        self._remove_category_from_tree(category)
         self.status.setText(f"Removed category '{category}' from sidebar")
         self.content_changed.emit()
 
@@ -350,7 +364,7 @@ class RefManagerWidget(QtWidgets.QWidget):
                 self.status.setText(f"Error moving directory: {e}")
                 self.refresh_all()
                 return
-        self.refresh_all()
+        self._remove_category_from_tree(category)
         self.status.setText(f"Moved '{category}' to /removed")
         self.content_changed.emit()
 
@@ -363,8 +377,26 @@ class RefManagerWidget(QtWidgets.QWidget):
                         entry["comments"] = not current
                         sidebar_util.save_sidebar(self._sidebar_data)
                         clear_sidebar_cache()
-                        self.refresh_all()
+                        self._update_entry_comments_in_tree(data["file"], data["category"], not current)
                         self.status.setText(f"{'Enabled' if not current else 'Disabled'} comments for '{data['name']}'")
+                        return
+
+    def _remove_category_from_tree(self, category):
+        for i in range(self.tree.topLevelItemCount()):
+            if self.tree.topLevelItem(i).text(0) == category:
+                self.tree.takeTopLevelItem(i)
+                break
+
+    def _update_entry_comments_in_tree(self, file_path, category, comments_on):
+        for i in range(self.tree.topLevelItemCount()):
+            cat_item = self.tree.topLevelItem(i)
+            if cat_item.text(0) == category:
+                for j in range(cat_item.childCount()):
+                    child = cat_item.child(j)
+                    cd = child.data(0, QtCore.Qt.ItemDataRole.UserRole)
+                    if cd and cd.get("file") == file_path:
+                        cd["comments"] = comments_on
+                        child.setData(0, QtCore.Qt.ItemDataRole.UserRole, cd)
                         return
 
     def _wrap_content(self, body_html, title, file_path=None):
@@ -537,7 +569,7 @@ class RefManagerWidget(QtWidgets.QWidget):
             dst = os.path.join(target_dir, os.path.basename(src))
             if os.path.abspath(src) != os.path.abspath(dst):
                 try:
-                    shutil.copy2(src, dst)
+                    shutil.copy(src, dst)
                 except Exception as e:
                     QtWidgets.QMessageBox.warning(dlg, "Error", f"Failed to copy file: {e}")
                     return

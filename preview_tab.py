@@ -1,7 +1,7 @@
 import os, sys
 from PyQt6 import QtWidgets, QtCore, QtWebEngineWidgets, QtWebEngineCore
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 
 MARGIN = 24
@@ -21,6 +21,11 @@ class PreviewTab(QtWidgets.QWidget):
         super().__init__(parent)
 
         self._aspect_ratio = 16 / 9
+
+        self._resize_timer = QtCore.QTimer()
+        self._resize_timer.setSingleShot(True)
+        self._resize_timer.setInterval(80)
+        self._resize_timer.timeout.connect(self._fit_to_container)
 
         layout = QtWidgets.QVBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
@@ -81,7 +86,7 @@ class PreviewTab(QtWidgets.QWidget):
 
     def resizeEvent(self, event):
         super().resizeEvent(event)
-        self._fit_to_container()
+        self._resize_timer.start()
 
     def _fit_to_container(self):
         cw = self.container.width() - 2 * MARGIN

@@ -2,7 +2,7 @@
 import sys, os, json, traceback
 from PyQt6 import QtWidgets, QtCore
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 REMOVED_DIR = os.path.join(_APP_DIR, "removed")

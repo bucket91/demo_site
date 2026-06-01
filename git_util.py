@@ -9,7 +9,7 @@ def get_git_path():
         return system
     # Fall back to bundled git (Windows or systems without git)
     if getattr(sys, 'frozen', False):
-        meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(sys.argv[0]))
+        meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
         candidates = [
             os.path.join(meipass, "bundled-git", "git"),
             os.path.join(meipass, "mingit", "cmd", "git.exe"),

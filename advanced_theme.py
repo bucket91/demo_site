@@ -310,7 +310,7 @@ def convert_to_webp(input_path, output_dir):
         output_path
     ]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
         if result.returncode == 0 and os.path.exists(output_path):
             return True, output_path
         else:
@@ -342,7 +342,7 @@ def convert_to_webm(input_path, output_dir):
         output_path
     ]
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
+        result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=300)
         if result.returncode == 0 and os.path.exists(output_path):
             return True, output_path
         else:

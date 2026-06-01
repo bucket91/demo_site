@@ -12,7 +12,7 @@ Usage:
 """
 import os, sys, platform, subprocess, shutil, argparse, tarfile, urllib.request, zipfile, stat
 
-SITE_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+SITE_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 IS_WINDOWS = platform.system() == "Windows"
 EXE_NAME = "SiteTools.exe" if IS_WINDOWS else "SiteTools"
 VENV_DIR = os.path.join(SITE_DIR, "build_venv")
@@ -148,7 +148,7 @@ def build():
 
     src = os.path.join(dist_dir, EXE_NAME)
     dst = os.path.join(SITE_DIR, EXE_NAME)
-    shutil.copy2(src, dst)
+    shutil.copy(src, dst)
     # Clean up git bundle after build
     for p in [MINGIT_DIR, MINGIT_ZIP, LINUX_GIT_DIR, LINUX_GIT_TGZ]:
         if os.path.exists(p):

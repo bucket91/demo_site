@@ -2,7 +2,7 @@
 import os, sys, json
 from PyQt6 import QtWidgets, QtCore, QtGui
 
-_APP_DIR = os.path.dirname(os.path.abspath(sys.argv[0])) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
+_APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 SETTINGS_DIR = os.path.join(_APP_DIR, "settings")
 STYLE_FILE = os.path.join(SITE_DIR, "style.css")
@@ -509,7 +509,7 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         dst = os.path.join(FONTS_DIR, os.path.basename(src))
         try:
             import shutil
-            shutil.copy2(src, dst)
+            shutil.copy(src, dst)
         except Exception as e:
             self.status.setText(f"Error copying font: {e}")
             return

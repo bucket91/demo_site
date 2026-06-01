@@ -20,7 +20,10 @@ def setup(app_dir):
         lines = "".join(traceback.format_exception(exc_type, exc_value, exc_tb))
         _LOGGER.critical("Unhandled exception:\n" + lines)
         if sys.stderr:
-            sys.stderr.write(lines)
+            try:
+                sys.stderr.write(lines)
+            except UnicodeEncodeError:
+                sys.stderr.buffer.write(lines.encode(sys.stderr.encoding or 'utf-8', errors='replace'))
 
     sys.excepthook = excepthook
 
