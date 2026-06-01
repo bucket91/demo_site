@@ -1,31 +1,31 @@
 
 :root {
-  --body-bg: #fef0e8;
-  --text: #4a2a1a;
-  --hero-bg: #fde4d0;
+  --body-bg: #f8f0fc;
+  --text: #282a36;
+  --hero-bg: #f0e6f6;
   --card-bg: #ffffff;
-  --card-border: #e8c8b0;
+  --card-border: #d8c8e8;
   --input-bg: #ffffff;
-  --input-border: #d4a888;
-  --label: #4a2a1a;
-  --muted: #8a6a52;
-  --accent: #c05a3a;
-  --accent-hover: #a04a2e;
+  --input-border: #c8a8d8;
+  --label: #282a36;
+  --muted: #7a6a8a;
+  --accent: #8a5ab5;
+  --accent-hover: #6a3a95;
   --accent-text: #ffffff;
 }
 body.dark-mode {
-  --body-bg: #2a1a0e;
-  --text: #fde4d0;
-  --hero-bg: #342216;
-  --card-bg: #3e2a1a;
-  --card-border: #5a3a22;
-  --input-bg: #342216;
-  --input-border: #5a3a22;
-  --label: #fde4d0;
-  --muted: #8a6a52;
-  --accent: #e07a5a;
-  --accent-hover: #f08a6a;
-  --accent-text: #2a1a0e;
+  --body-bg: #1e1e2e;
+  --text: #e0d6f0;
+  --hero-bg: #282a36;
+  --card-bg: #32304a;
+  --card-border: #44405a;
+  --input-bg: #282a36;
+  --input-border: #44405a;
+  --label: #e0d6f0;
+  --muted: #7a6a8a;
+  --accent: #bd93f9;
+  --accent-hover: #d4b0ff;
+  --accent-text: #282a36;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -41,8 +41,8 @@ body {
 }
 
 header {
-  background: #5a2a1a;
-  color: #fef0e8;
+  background: #32304a;
+  color: #f8f0fc;
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -62,8 +62,8 @@ header h1 a {
 
 .theme-toggle {
   background: none;
-  border: 1px solid #a06a3a;
-  color: #fef0e8;
+  border: 1px solid #7a6a9a;
+  color: #f8f0fc;
   font-size: 1.1rem;
   cursor: pointer;
   padding: 0.3rem 0.6rem;
@@ -89,8 +89,8 @@ main {
 
 .sidebar {
   width: 250px;
-  background: #5a2a1a;
-  color: #fef0e8;
+  background: #32304a;
+  color: #f8f0fc;
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
@@ -106,7 +106,7 @@ main {
 .sidebar-owner {
   padding: 1.25rem 1rem;
   text-align: center;
-  border-bottom: 1px solid #7a4a2a;
+  border-bottom: 1px solid #4a4a62;
 }
 .owner-avatar {
   width: 60px;
@@ -114,12 +114,12 @@ main {
   border-radius: 50%;
   object-fit: cover;
   margin-bottom: 0.6rem;
-  border: 2px solid #a06a3a;
+  border: 2px solid #7a6a9a;
 }
 .owner-name {
   font-size: 1rem;
   font-weight: 700;
-  color: #fef0e8;
+  color: #f8f0fc;
   margin-bottom: 0.25rem;
 }
 .owner-title {
@@ -129,7 +129,7 @@ main {
 }
 .owner-bio {
   font-size: 0.8rem;
-  color: #d4a888;
+  color: #b8a8d0;
 }
 .sidebar.open { transform: translateX(0); }
 
@@ -138,23 +138,23 @@ main {
   justify-content: space-between;
   align-items: center;
   padding: 1rem;
-  border-bottom: 1px solid #7a4a2a;
+  border-bottom: 1px solid #4a4a62;
 }
 .sidebar-top h2 { font-size: 1.2rem; }
 
-.category { border-bottom: 1px solid #7a4a2a; }
+.category { border-bottom: 1px solid #4a4a62; }
 .category-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 1rem;
   cursor: pointer;
-  color: #fef0e8;
+  color: #f8f0fc;
   font-weight: 600;
   transition: background 0.2s;
   user-select: none;
 }
-.category-header:hover { background: #7a4a2a; }
+.category-header:hover { background: #4a4a62; }
 .category-header .arrow {
   transition: transform 0.2s;
   font-size: 0.8rem;
@@ -169,17 +169,17 @@ main {
 .sub-links.open { max-height: 300px; }
 .sub-links li a {
   display: block;
-  color: #d4a888;
+  color: #b8a8d0;
   text-decoration: none;
   padding: 0.6rem 1rem 0.6rem 2rem;
   transition: background 0.2s;
 }
-.sub-links li a:hover { background: #7a4a2a; color: #ffffff; }
+.sub-links li a:hover { background: #4a4a62; color: #ffffff; }
 
 .sidebar-toggle, .close-btn {
   background: none;
   border: none;
-  color: #fef0e8;
+  color: #f8f0fc;
   font-size: 1.5rem;
   cursor: pointer;
 }
@@ -202,7 +202,7 @@ main {
   height: 80px;
   border-radius: 50%;
   object-fit: cover;
-  border: 3px solid #a06a3a;
+  border: 3px solid #7a6a9a;
   margin-bottom: 0.75rem;
 }
 .owner-card-name {
@@ -297,8 +297,8 @@ main {
 .home-demo a { color: var(--accent); }
 
 footer {
-  background: #5a2a1a;
-  color: #fef0e8;
+  background: #32304a;
+  color: #f8f0fc;
   text-align: center;
   padding: 1rem;
 }
