@@ -49,7 +49,7 @@ class CkeditorTab(QtWidgets.QWidget):
             cache_dir = os.path.join(_APP_DIR, "cache", "ckeditor")
             os.makedirs(cache_dir, exist_ok=True)
             cls._profile = QtWebEngineCore.QWebEngineProfile("ckeditor", None)
-            cls._profile.setHttpCacheDirectory(cache_dir)
+            cls._profile.setCachePath(cache_dir)
             cls._profile.setHttpCacheType(QtWebEngineCore.QWebEngineProfile.HttpCacheType.DiskHttpCache)
         return cls._profile
 
