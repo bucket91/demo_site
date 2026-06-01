@@ -9,6 +9,9 @@ SITE_DIR = os.path.join(_APP_DIR, "site")
 import sidebar_util
 from generate import clear_sidebar_cache
 
+# Pre-compile regex patterns for efficiency (fix #8)
+_STYLE_PATTERN = re.compile(r'\b(color|background|background-color)\s*:\s*[^;]+;?\s*', re.I)
+_FILE_URL_PATTERN = re.compile(r'src="file:///[^"]*?([^"/]+)"')
 
 class _HtmlCleaner(HTMLParser):
     REMOVE_KEEP_CONTENT = {'html', 'head', 'body'}
@@ -40,10 +43,8 @@ class _HtmlCleaner(HTMLParser):
             if name == 'class':
                 continue
             if name == 'style' and val:
-                val = re.sub(
-                    r'\b(color|background|background-color)\s*:\s*[^;]+;?\s*',
-                    '', val, flags=re.I
-                ).strip()
+                # Use pre-compiled regex (fix #8)
+                val = _STYLE_PATTERN.sub('', val).strip()
                 if not val:
                     continue
             clean.append((name, val))
@@ -180,7 +181,8 @@ def convert_mht(path):
         if not html_content:
             return None, "No HTML content found in MHT file"
 
-        html_content = re.sub(r'src="file:///[^"]*?([^"/]+)"', r'src="\1"', html_content)
+        # Use pre-compiled regex pattern (fix #8)
+        html_content = _FILE_URL_PATTERN.sub(r'src="\1"', html_content)
 
         title_m = re.search(r'<title>(.*?)</title>', html_content, re.DOTALL | re.IGNORECASE)
         title = title_m.group(1).strip() if title_m else os.path.splitext(os.path.basename(path))[0]
@@ -422,13 +424,11 @@ class ImportWidget(QtWidgets.QWidget):
 
             rel_path = '/' + os.path.relpath(fpath, SITE_DIR).replace('\\', '/')
             sidebar_data = sidebar_util.load_sidebar()
-            found = False
-            for c in sidebar_data:
-                if c["category"] == cat:
-                    c["entries"].append({"name": title, "file": rel_path})
-                    found = True
-                    break
-            if not found:
+            # Use dict lookup for O(1) search instead of linear search (fix #5)
+            category_dict = {c["category"]: c for c in sidebar_data}
+            if cat in category_dict:
+                category_dict[cat]["entries"].append({"name": title, "file": rel_path})
+            else:
                 sidebar_data.append({"category": cat, "entries": [{"name": title, "file": rel_path}]})
             sidebar_util.save_sidebar(sidebar_data)
             clear_sidebar_cache()
