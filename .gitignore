@@ -32,3 +32,4 @@ SiteTools.exe
 # CKEditor bundle (1.4MB JS, never commit — copied from bundled assets)
 ckeditor/
 site/
+site_tools.config
