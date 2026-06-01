@@ -27,6 +27,6 @@ VSVersionInfo(
            StringStruct('ProductName', 'Site Tools'),
            StringStruct('ProductVersion', '1.6.0.0')])
       ]),
-    VarFileInfo([VarStruct('Translation', 1033, 1200)])
+    VarFileInfo([VarStruct('Translation', [1033, 1200])])
   ]
 )
