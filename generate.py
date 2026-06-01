@@ -36,7 +36,7 @@ def load_config():
         "site_padding": 20,
     }
     token_keys = ["supabase_url", "supabase_anon_key", "git_remote_url",
-                   "git_user_name", "git_user_email", "github_token"]
+                  "git_user_name", "git_user_email", "github_token"]
     for k in token_keys:
         default[k] = ""
     cfg = dict(default)
@@ -69,7 +69,7 @@ def clear_sidebar_cache():
 def save_config(cfg):
     os.makedirs(SETTINGS_DIR, exist_ok=True)
     token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
-                   "git_user_name", "git_user_email", "github_token"}
+                  "git_user_name", "git_user_email", "github_token"}
     tokens = {k: cfg[k] for k in token_keys if k in cfg}
     settings = {k: v for k, v in cfg.items() if k not in token_keys}
     with open(CONFIG_FILE, "w", encoding="utf-8") as f:
@@ -103,7 +103,6 @@ def generate_sidebar(categories, current_file):
     owner_avatar = "avatar.png" if os.path.exists(os.path.join(SITE_DIR, "avatar.png")) else ""
     owner_title = CONFIG.get("owner_title", "")
     
-    # Use list and join instead of string concatenation (fix #3)
     parts = []
     if owner_name:
         parts.append('      <div class="sidebar-owner">')
@@ -143,7 +142,6 @@ def extract_main(html):
     m = _MAIN_PATTERN.search(html)
     if m:
         return m.group(1).strip()
-    # Fallback manual parsing
     pos = html.find('<main')
     end = html.find('</main>', pos)
     if end != -1:
@@ -283,7 +281,6 @@ def make_homepage_content(categories, current_file):
     owner_title = CONFIG.get("owner_title", "")
     owner_contacts = CONFIG.get("owner_contacts", [])
     
-    # Use list and join for efficiency (fix #3)
     parts = []
     parts.append('<div class="home-hero">')
     parts.append('  <h1>Welcome</h1>')
@@ -400,7 +397,6 @@ def build_page(filepath, categories):
     return True
 
 
-
 def generate_404(categories, log_func=print):
     path = os.path.join(SITE_DIR, "404.html")
     with open(path, "w", encoding="utf-8") as f:
@@ -427,7 +423,6 @@ def generate_404(categories, log_func=print):
 
 
 def _process_html_file(args):
-    """Worker function for parallel processing of HTML files (fix #6)."""
     filepath, categories, skip_dirs, skip_files = args
     rel = os.path.relpath(filepath, SITE_DIR)
     if any(part in skip_dirs for part in rel.split(os.sep)):
@@ -450,8 +445,6 @@ def generate_all(log_func=print, max_workers=None):
         html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
         updated = 0
         
-        # Use ThreadPoolExecutor for parallel HTML file processing (fix #6)
-        # max_workers=None will use min(32, os.cpu_count() + 4)
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
                 executor.submit(_process_html_file, (fp, categories, _SKIP_DIRS, _SKIP_FILES)): fp
@@ -482,14 +475,16 @@ def generate_all(log_func=print, max_workers=None):
     finally:
         clear_sidebar_cache()
 
+
 def _get_current_branch():
-    """Get the current local branch name."""
-    r = _git_run(["rev-parse", "--abbrev-ref", "HEAD"], capture_output=True, text=True)
+    """Robust branch acquisition targeted directly inside the user's SITE_DIR."""
+    r = _git_run(["rev-parse", "--abbrev-ref", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
     if r.returncode == 0:
         branch = r.stdout.strip()
         if branch and branch != "HEAD":
             return branch
-    return "main"  # fallback
+    return "main"
+
 
 def git_commit_push(log_func=print):
     msg = "update site via generator"
@@ -511,27 +506,44 @@ def git_commit_push(log_func=print):
             if orig_remote != push_url:
                 _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
                 _git_run(["remote", "add", "origin", push_url], cwd=SITE_DIR, capture_output=True)
+        
+        # Track all new and existing assets/HTML safely
         _git_run(["add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
+        
+        # Safely capture non-zero statuses like 'nothing to commit' without causing executable crashes
         r = _git_run(["commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
         if r.returncode == 0:
             log_func(r.stdout.strip())
         else:
-            log_func(r.stderr.strip())
+            if "nothing to commit" in r.stdout or "nothing to commit" in r.stderr:
+                log_func("No structural updates or changes to commit.")
+            else:
+                log_func(r.stderr.strip())
+                
         if url:
-            # Get the current branch name instead of using HEAD
-            branch = _get_current_branch()
+            # Force branch convergence to match Remote 'main' ecosystems across varying local git configurations
+            current_branch = _get_current_branch()
+            if current_branch == "master":
+                _git_run(["branch", "-m", "master", "main"], cwd=SITE_DIR, capture_output=True)
+                branch = "main"
+            else:
+                branch = current_branch
+
+            # Rebase cleanly. Swallows tracking warnings if origin branch is uninitialized
             _git_run(["pull", "--rebase", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+            
             r2 = _git_run(["push", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
+            
     except Exception as e:
-        log_func(f"Git error: {e}")
+        log_func(f"Git execution failure: {e}")
     finally:
         if orig_remote and orig_remote != push_url:
             _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
             _git_run(["remote", "add", "origin", orig_remote], cwd=SITE_DIR, capture_output=True)
 
+
 def run_generate_captured():
-    """Run local generate only (no git). Returns last line of output."""
     import io
     buf = io.StringIO()
     def log(msg):
