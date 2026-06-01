@@ -35,9 +35,8 @@ MIN_H = 120
 
 DEVICE_PRESETS = [
     ("Desktop", 16 / 9),
-    ("Tablet (768px)", 768 / 1024),
-    ("Mobile (375px)", 375 / 667),
-    ("Mobile (414px)", 414 / 896),
+    ("Tablet", 768 / 1024),
+    ("Mobile", 375 / 667),
 ]
 
 
