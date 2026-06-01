@@ -439,6 +439,7 @@ def git_commit_push(log_func=print):
         else:
             log_func(r.stderr.strip())
         if url:
+            _git_run(["pull", "--rebase", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
             r2 = _git_run(["push", "-u", "origin", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
             log_func(r2.stdout.strip() or r2.stderr.strip())
     except Exception as e:

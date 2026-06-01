@@ -263,9 +263,34 @@ def ensure_site_files(site_dir):
         if os.path.exists(sidebar_path):
             created.append("sidebar.json")
 
+    _ensure_gitignore(site_dir)
     _ensure_precommit_hook(site_dir)
 
     return created
+
+
+def _ensure_gitignore(site_dir):
+    path = os.path.join(site_dir, ".gitignore")
+    patterns = [
+        "__pycache__/",
+        "config.local.json",
+        "# secrets - never commit",
+        "site_tools.config",
+        "settings/",
+        "*secret*",
+        "*token*",
+    ]
+    existing = ""
+    if os.path.exists(path):
+        with open(path, encoding="utf-8") as f:
+            existing = f.read()
+    needed = []
+    for p in patterns:
+        if p not in existing:
+            needed.append(p)
+    if needed:
+        with open(path, "a", encoding="utf-8") as f:
+            f.write("\n" + "\n".join(needed) + "\n")
 
 
 def _ensure_precommit_hook(site_dir):
@@ -273,17 +298,36 @@ def _ensure_precommit_hook(site_dir):
     hook_path = os.path.join(git_hooks, "pre-commit")
     os.makedirs(git_hooks, exist_ok=True)
     content = """#!/bin/sh
-# Pre-commit hook: silently skip files > 95MB (GitHub's limit is 100MB)
+# Pre-commit hook:
+#   - Blocks commits containing secrets (github_token, supabase keys, etc.)
+#   - Silently un-stages files > 95MB (GitHub's limit is 100MB)
 LIMIT=95000000
 
 tmpf=$(mktemp)
 git diff --cached --name-only > "$tmpf"
 
 while IFS= read -r file; do
+    [ -z "$file" ] && continue
     if [ -f "$file" ]; then
+        # ── Size check ──
         size=$(wc -c < "$file" 2>/dev/null)
         if [ "$size" -gt "$LIMIT" ] 2>/dev/null; then
             git rm --cached "$file" 2>/dev/null || git reset "$file" 2>/dev/null
+            continue
+        fi
+
+        # ── Secret scan ──
+        if grep -Eq '(github_token|supabase_anon_key|supabase_url)[[:space:]]*[:=]' "$file" 2>/dev/null; then
+            echo "SECURITY BLOCKED: '$file' contains a secret pattern (github_token/supabase)."
+            echo "  Remove the secret from the file or add the file to .gitignore."
+            rm -f "$tmpf"
+            exit 1
+        fi
+        if grep -Eq 'gh[p_ro]|github_pat_' "$file" 2>/dev/null; then
+            echo "SECURITY BLOCKED: '$file' appears to contain a GitHub token."
+            echo "  Remove the token from the file or add the file to .gitignore."
+            rm -f "$tmpf"
+            exit 1
         fi
     fi
 done < "$tmpf"

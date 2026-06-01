@@ -36,6 +36,8 @@ class App(QtWidgets.QMainWindow):
         if created:
             print(f"Created missing files: {', '.join(created)}")
 
+        self._check_secrets_in_site_dir()
+
         from wysiwyg_editor import _ensure_ckeditor
         _ensure_ckeditor()
 
@@ -135,6 +137,19 @@ class App(QtWidgets.QMainWindow):
 
         if os.path.exists(old_adv) and not os.path.exists(new_adv):
             os.rename(old_adv, new_adv)
+
+    def _check_secrets_in_site_dir(self):
+        suspicious = []
+        for root, _dirs, files in os.walk(SITE_DIR):
+            for f in files:
+                if any(pat in f.lower() for pat in ["token", "secret", "site_tools.config"]):
+                    suspicious.append(os.path.join(root, f))
+        if suspicious:
+            msg = "WARNING: The following files containing secret-like names were found inside the site/ folder:\n\n"
+            msg += "\n".join(suspicious)
+            msg += "\n\nThese files will be COMMITTED to git when you publish. Move them outside site/ to keep them safe."
+            print(msg)
+            QtWidgets.QMessageBox.warning(self, "Security Warning", msg)
 
     def _check_first_run(self):
         if os.path.exists(ROOT_CONFIG_FILE):
