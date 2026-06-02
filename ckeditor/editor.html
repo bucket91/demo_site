@@ -6,7 +6,10 @@
 <link rel="stylesheet" href="ckeditor5.css">
 <link rel="preload" href="ckeditor5.umd.js" as="script">
 <style>
-  body { margin: 0; }
+  body { margin: 0; height: 100vh; display: flex; flex-direction: column; }
+  .ck.ck-editor { flex: 1; display: flex; flex-direction: column; }
+  .ck.ck-editor .ck.ck-editor__main { flex: 1; }
+  .ck-editor__editable_inline { min-height: calc(100vh - 220px); }
   body.ck-fullscreen { background: var(--ck-color-base-background); }
   body.ck-fullscreen .ck-editor__editable { max-height: none; min-height: calc(100vh - 56px); }
   body.ck-fullscreen .ck.ck-editor { height: 100vh; display: flex; flex-direction: column; }
@@ -229,7 +232,7 @@ var PHONE_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><p
 var FORMAT_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 5l6 5-6 5 1 1 7-6-7-6-1 1zm8 10h8v2H10v-2z" fill="currentColor"/></svg>';
 
 (function() {
-  var saved = localStorage.getItem('ckeditor-theme');
+  var saved = localStorage.getItem('theme') || localStorage.getItem('ckeditor-theme');
   if (saved) document.documentElement.dataset.theme = saved;
 })();
 
@@ -300,6 +303,7 @@ function ThemeTogglePlugin(editor) {
       isDark = root.dataset.theme === 'light';
       root.dataset.theme = isDark ? 'dark' : 'light';
       localStorage.setItem('ckeditor-theme', isDark ? 'dark' : 'light');
+      localStorage.setItem('theme', isDark ? 'dark' : 'light');
       view.set({ icon: isDark ? SUN_ICON : MOON_ICON, label: isDark ? 'Light theme' : 'Dark theme' });
     });
     return view;

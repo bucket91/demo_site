@@ -140,6 +140,15 @@ class CkeditorTab(QtWidgets.QWidget):
         self.status_label.setStyleSheet("color: #6e7681; font-size: 12px;")
         bl.addWidget(self.status_label, 1)
 
+        import_btn = QtWidgets.QPushButton("Import")
+        import_btn.clicked.connect(self._import_file)
+        bl.addWidget(import_btn)
+
+        save_btn = QtWidgets.QPushButton("Save")
+        save_btn.setStyleSheet("background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 8px 20px;")
+        save_btn.clicked.connect(self._save)
+        bl.addWidget(save_btn)
+
         clear_btn = QtWidgets.QPushButton("Clear")
         clear_btn.clicked.connect(self._clear)
         bl.addWidget(clear_btn)
@@ -151,6 +160,10 @@ class CkeditorTab(QtWidgets.QWidget):
         bl.addWidget(export_btn)
 
         layout.addWidget(bar)
+
+        warning = QtWidgets.QLabel("⚠ Under construction — may not function properly")
+        warning.setStyleSheet("color: #f0883e; background: #161b22; padding: 6px 12px; font-size: 12px;")
+        layout.addWidget(warning)
 
         self._ready = False
         self._current_file = None
@@ -193,6 +206,50 @@ class CkeditorTab(QtWidgets.QWidget):
         if self._ready:
             self.view.page().runJavaScript("setEditorContent('')")
             self.status_label.setText("Cleared")
+
+    def _import_file(self):
+        path, _ = QtWidgets.QFileDialog.getOpenFileName(
+            self, "Import File", "",
+            "Supported files (*.zip *.mht *.mhtml *.html);;Zip files (*.zip);;MHT files (*.mht *.mhtml);;HTML files (*.html)")
+        if not path:
+            return
+        ext = os.path.splitext(path)[1].lower()
+        if ext == '.html':
+            self.load_file(path)
+        else:
+            try:
+                from docx2html import convert_file
+                result, err = convert_file(path)
+                if err:
+                    self.status_label.setText(f"Import error: {err}")
+                    return
+                if not result.get('ok'):
+                    self.status_label.setText(f"Import error: {result.get('error', 'Unknown')}")
+                    return
+                html = result['html']
+                self._current_file = None
+                js_content = json.dumps(html)
+                self.view.page().runJavaScript(f"setEditorContent({js_content})")
+                self.status_label.setText(f"Imported: {os.path.basename(path)}")
+            except Exception as e:
+                self.status_label.setText(f"Import error: {e}")
+
+    def _save(self):
+        if not self._ready:
+            self.status_label.setText("Editor not ready yet")
+            return
+        if self._current_file:
+            self._export_path = self._current_file
+            self.view.page().runJavaScript("getEditorContent()", self._on_save_result)
+        else:
+            self._export()
+
+    def _on_save_result(self, html):
+        self._on_export_result(html)
+        path = getattr(self, '_export_path', None)
+        if path:
+            self.status_label.setText(f"Saved to {os.path.basename(path)}")
+            self._current_file = path
 
     def _export(self):
         if not self._ready:
