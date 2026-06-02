@@ -1,4 +1,4 @@
-import os, json
+import os, json, sys
 
 SITE_DIR = None
 SETTINGS_DIR = None
@@ -291,11 +291,25 @@ def _get_animation_keyframes(bg_type, anim_type, has_image):
     return []
 
 
+def get_ffmpeg_path():
+    """Find ffmpeg — prefer bundled, fall back to system PATH."""
+    if getattr(sys, 'frozen', False):
+        meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
+        candidates = [
+            os.path.join(meipass, "ffmpeg", "ffmpeg.exe"),
+            os.path.join(meipass, "ffmpeg", "ffmpeg"),
+        ]
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+    return shutil.which("ffmpeg")
+
+
 def convert_to_webp(input_path, output_dir):
     """Convert image to WebP using ffmpeg libwebp encoder.
     Returns (success, output_path)."""
-    import subprocess, shutil, os
-    ffmpeg = shutil.which("ffmpeg")
+    import subprocess, os
+    ffmpeg = get_ffmpeg_path()
     if not ffmpeg:
         return False, "ffmpeg not found — install ffmpeg to convert images"
     os.makedirs(output_dir, exist_ok=True)
@@ -325,8 +339,8 @@ def convert_to_webp(input_path, output_dir):
 def convert_to_webm(input_path, output_dir):
     """Convert video to VP9 WebM with no audio for smaller file sizes.
     Returns (success, output_path)."""
-    import subprocess, shutil, os
-    ffmpeg = shutil.which("ffmpeg")
+    import subprocess, os
+    ffmpeg = get_ffmpeg_path()
     if not ffmpeg:
         return False, "ffmpeg not found — install ffmpeg to convert videos"
     os.makedirs(output_dir, exist_ok=True)

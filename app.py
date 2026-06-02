@@ -113,7 +113,7 @@ class App(QtWidgets.QMainWindow):
         if os.path.exists(old_cfg) and not os.path.exists(new_cfg):
             with open(old_cfg, encoding="utf-8") as f:
                 old_data = json.load(f)
-            token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
+            token_keys = {"supabase_url", "sb_publishable_key", "git_remote_url",
                            "git_user_name", "git_user_email", "github_token"}
             tokens = {k: old_data[k] for k in token_keys if k in old_data and old_data[k]}
             settings = {k: v for k, v in old_data.items() if k not in token_keys}

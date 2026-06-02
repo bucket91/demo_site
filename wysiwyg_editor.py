@@ -151,7 +151,7 @@ class CkeditorTab(QtWidgets.QWidget):
 
         layout.addWidget(bar)
 
-        warning = QtWidgets.QLabel("⚠ Under construction — may not function properly")
+        warning = QtWidgets.QLabel("⚠ Under construction — may not function properly; Use .zip or .mht import instead")
         warning.setStyleSheet("color: #f0883e; background: #161b22; padding: 6px 12px; font-size: 12px;")
         layout.addWidget(warning)
 

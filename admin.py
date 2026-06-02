@@ -10,7 +10,7 @@ def _supabase_headers():
     from generate import load_config
     cfg = load_config()
     base = cfg.get("supabase_url", "").rstrip("/")
-    key = cfg.get("supabase_anon_key", "")
+    key = cfg.get("sb_publishable_key", "")
     return base, key, {
         "apikey": key,
         "Authorization": f"Bearer {key}",
@@ -313,7 +313,7 @@ class AdminWindow(QtWidgets.QMainWindow):
 def main():
     base, key, _headers = _supabase_headers()
     if not base or not key:
-        print("Error: supabase_url and supabase_anon_key must be set in config.json")
+        print("Error: supabase_url and sb_publishable_key must be set in config.json")
         sys.exit(1)
     app = QtWidgets.QApplication(sys.argv)
     w = AdminWindow()

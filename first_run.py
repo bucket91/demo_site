@@ -38,7 +38,7 @@ class FirstRunWizard(QtWidgets.QDialog):
              "ghp_...", True),
             ("Supabase URL", "supabase_url",
              "https://xxx.supabase.co", False),
-            ("Supabase Anon Key", "supabase_anon_key",
+            ("Supabase Publishable Key", "sb_publishable_key",
               "eyJhbGciOiJIUzI1NiIs...", False),
         ]
 
@@ -103,7 +103,7 @@ class FirstRunWizard(QtWidgets.QDialog):
         remote = self.inputs["git_remote_url"].text().strip()
         token = self.inputs["github_token"].text().strip()
         supabase_url = self.inputs["supabase_url"].text().strip()
-        supabase_key = self.inputs["supabase_anon_key"].text().strip()
+        supabase_key = self.inputs["sb_publishable_key"].text().strip()
 
         if not token:
             QtWidgets.QMessageBox.warning(

@@ -8,7 +8,7 @@ CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
 ROOT_CONFIG_FILE = os.path.join(_APP_DIR, "site_tools.config")
 
 
-def save_setup_config(url, token, supabase_url, supabase_anon_key,
+def save_setup_config(url, token, supabase_url, sb_publishable_key,
                        user_name="", user_email=""):
     os.makedirs(SETTINGS_DIR, exist_ok=True)
     cfg = {}
@@ -33,8 +33,8 @@ def save_setup_config(url, token, supabase_url, supabase_anon_key,
         tokens["github_token"] = token
     if supabase_url:
         tokens["supabase_url"] = supabase_url
-    if supabase_anon_key:
-        tokens["supabase_anon_key"] = supabase_anon_key
+    if sb_publishable_key:
+        tokens["sb_publishable_key"] = sb_publishable_key
     with open(ROOT_CONFIG_FILE, "w", encoding="utf-8") as f:
         json.dump(tokens, f, indent=2)
 
@@ -201,12 +201,12 @@ class PublishingWidget(QtWidgets.QWidget):
         sl.addLayout(su_row)
 
         sa_row = QtWidgets.QHBoxLayout()
-        sa_label = QtWidgets.QLabel("Anon Key:")
+        sa_label = QtWidgets.QLabel("Publishable Key:")
         sa_label.setStyleSheet("color: #6e7681;")
         sa_row.addWidget(sa_label)
         self.supabase_key = QtWidgets.QLineEdit()
         self.supabase_key.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
-        self.supabase_key.setPlaceholderText("anon public key")
+        self.supabase_key.setPlaceholderText("sb_publishable key")
         self.supabase_key.setStyleSheet("""
             QLineEdit { background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                         border-radius: 6px; padding: 8px 10px; }
@@ -228,7 +228,7 @@ class PublishingWidget(QtWidgets.QWidget):
         self.url_input.setText(cfg.get("git_remote_url", ""))
         self.token_input.setText(cfg.get("github_token", ""))
         self.supabase_url.setText(cfg.get("supabase_url", ""))
-        self.supabase_key.setText(cfg.get("supabase_anon_key", ""))
+        self.supabase_key.setText(cfg.get("sb_publishable_key", ""))
         self._update_visit_btn()
 
     def _update_visit_btn(self):

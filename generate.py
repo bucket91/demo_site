@@ -36,7 +36,7 @@ def load_config():
         "site_lang": "en",
         "site_dir": "ltr",
     }
-    token_keys = ["supabase_url", "supabase_anon_key", "git_remote_url",
+    token_keys = ["supabase_url", "sb_publishable_key", "git_remote_url",
                   "git_user_name", "git_user_email", "github_token"]
     for k in token_keys:
         default[k] = ""
@@ -69,7 +69,7 @@ def clear_sidebar_cache():
 
 def save_config(cfg):
     os.makedirs(SETTINGS_DIR, exist_ok=True)
-    token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
+    token_keys = {"supabase_url", "sb_publishable_key", "git_remote_url",
                   "git_user_name", "git_user_email", "github_token"}
     tokens = {k: cfg[k] for k in token_keys if k in cfg}
     settings = {k: v for k, v in cfg.items() if k not in token_keys}
@@ -159,7 +159,7 @@ def extract_title(html):
 
 def make_comments_block(filepath):
     url = CONFIG.get("supabase_url", "")
-    key = CONFIG.get("supabase_anon_key", "")
+    key = CONFIG.get("sb_publishable_key", "")
     if not url or not key:
         return '', ''
     rel = '/' + os.path.relpath(filepath, SITE_DIR).replace('\\', '/')

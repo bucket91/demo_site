@@ -45,6 +45,27 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
 
+      - name: Download FFmpeg (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          curl -sL -o ffmpeg-linux.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          mkdir -p ffmpeg
+          tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --strip-components=1 --wildcards '*/ffmpeg'
+          chmod +x ffmpeg/ffmpeg
+          rm ffmpeg-linux.tar.xz
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Download FFmpeg (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          curl -sL -o ffmpeg-win.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+          mkdir -p ffmpeg
+          unzip -j ffmpeg-win.zip "*/bin/ffmpeg.exe" -d ffmpeg
+          rm ffmpeg-win.zip
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
       - name: Download CKEditor
         run: |
           mkdir -p ckeditor
@@ -58,11 +79,11 @@ jobs:
           DATA_ARGS=""
           HIDDEN=""
           if [ "${{ runner.os }}" = "Windows" ]; then
-            DATA_ARGS="--add-data mingit;mingit --add-data ckeditor;ckeditor"
+            DATA_ARGS="--add-data mingit;mingit --add-data ckeditor;ckeditor --add-data ffmpeg;ffmpeg"
             [ -f logo.ico ] && ICON_ARGS="--icon logo.ico"
             [ -f version_info.txt ] && ICON_ARGS="$ICON_ARGS --version-file version_info.txt"
           else
-            DATA_ARGS="--add-data bundled-git:bundled-git --add-data ckeditor:ckeditor"
+            DATA_ARGS="--add-data bundled-git:bundled-git --add-data ckeditor:ckeditor --add-data ffmpeg:ffmpeg"
             ICON_ARGS="--icon logo.png"
           fi
           pyinstaller --onefile --name SiteTools \

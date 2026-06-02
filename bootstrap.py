@@ -181,7 +181,7 @@ def ensure_site_files(site_dir):
     if os.path.exists(old_cfg) and not os.path.exists(new_cfg):
         with open(old_cfg, encoding="utf-8") as f:
             old_data = json.load(f)
-        token_keys = {"supabase_url", "supabase_anon_key", "git_remote_url",
+        token_keys = {"supabase_url", "sb_publishable_key", "git_remote_url",
                        "git_user_name", "git_user_email", "github_token"}
         tokens = {k: old_data[k] for k in token_keys if k in old_data and old_data[k]}
         settings = {k: v for k, v in old_data.items() if k not in token_keys}
@@ -319,7 +319,7 @@ while IFS= read -r file; do
         fi
 
         # ── Secret scan ──
-        if grep -Eq '(github_token|supabase_anon_key|supabase_url)[[:space:]]*[:=]' "$file" 2>/dev/null; then
+        if grep -Eq '(github_token|sb_publishable_key|supabase_url)[[:space:]]*[:=]' "$file" 2>/dev/null; then
             echo "SECURITY BLOCKED: '$file' contains a secret pattern (github_token/supabase)."
             echo "  Remove the secret from the file or add the file to .gitignore."
             rm -f "$tmpf"

@@ -116,7 +116,7 @@ def _content_page():
         _section("Import",
                  "Supported file formats:",
                  "$ Google Docs export — Select a .zip file containing index.html and an images/ folder.",
-                 "$ MHT / MHTML — Single-file web archive (saved from a browser).",
+                 "$ MHT / MHTML — Single-file web archive (saved from MS Word → File → Save As → Web Page, Single File).",
                  "---",
                  "After selecting a file, you can preview the cleaned result before saving. Choose a category (folder) and a page title. The page is written to category/title-slug.html and registered in the sidebar automatically."),
         _section("Page Management",
@@ -131,6 +131,30 @@ def _content_page():
                  '$ "Delete Selected" — Removes the selected page or category.'),
         _section("Generate",
                  'Click "Generate" in the page manager (or "Save" in the Import section) to rebuild the static site with your changes.'),
+    ])
+
+
+def _ckeditor_page():
+    return _build_page("CKEditor", [
+        _section("Overview",
+                 "The CKEditor tab provides a rich text editor for creating and editing HTML content.",
+                 "You can type directly, paste formatted text, or import existing documents."),
+        _section("Import",  # changed this to provide guidance
+                 "Click Import and select a supported file.",
+                 "$ .zip — Google Docs / WordPress export containing index.html + images/ folder.",
+                 "$ .mht / .mhtml — Single-file web archive saved from a browser.",
+                 "---",
+                 "$ .html — Opens an existing page from your site for editing.",
+                 "After import, edit freely in the WYSIWYG editor then click Save."),
+        _section("Save & Export",
+                 'Click "Save" to write the edited content back:',
+                 "$ If the file was opened from your site, it saves in-place and regenerates the page.",
+                 "$ If you imported a new file, a file dialog lets you choose the destination.",
+                 "Pages saved inside the site folder are automatically wrapped with your theme (sidebar, header, CSS)."),
+        _section("Fonts & Languages",
+                 "The editor includes font families for CJK, Arabic, Devanagari, Bengali, Hebrew, Thai, Tamil, and Urdu scripts.",
+                 "Language and direction (LTR/RTL) are inherited from the Design tab settings.",
+                 "Custom uploaded fonts also appear in the editor font dropdown."),
     ])
 
 
@@ -214,7 +238,7 @@ class DocsWidget(QtWidgets.QWidget):
         tl.addSpacing(16)
         self.combo = QtWidgets.QComboBox()
         self.combo.setView(QtWidgets.QListView())
-        self.combo.addItems(["Design", "Advanced", "Content", "Settings", "Comments"])
+        self.combo.addItems(["Design", "Content", "CKEditor", "Settings", "Comments"])
         self.combo.setMinimumWidth(180)
         tl.addWidget(self.combo)
         tl.addStretch()
@@ -223,6 +247,7 @@ class DocsWidget(QtWidgets.QWidget):
         self.stack = QtWidgets.QStackedWidget()
         self.stack.addWidget(_design_page())
         self.stack.addWidget(_content_page())
+        self.stack.addWidget(_ckeditor_page())
         self.stack.addWidget(_settings_page())
         self.stack.addWidget(_comments_page())
         layout.addWidget(self.stack, 1)
