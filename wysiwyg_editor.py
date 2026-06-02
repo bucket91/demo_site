@@ -101,15 +101,46 @@ class CkeditorTab(QtWidgets.QWidget):
         except Exception:
             pass
 
+        # Inject site theme CSS variables + content.css for WYSIWYG content area
+        _wysiwyg_css = ""
+        _cfg_json_path = os.path.join(_APP_DIR, "settings", "config.json")
+        try:
+            with open(_cfg_json_path, encoding="utf-8") as _f:
+                _raw_cfg = json.load(_f)
+            _theme_key = _raw_cfg.get("selected_theme", "Dark")
+            from themes import THEMES
+            if _theme_key == "Custom":
+                _t = dict(THEMES.get("Dark", {}))
+                _t.update(_raw_cfg.get("custom_theme", {}))
+            else:
+                _t = dict(THEMES.get(_theme_key, THEMES.get("Dark", {})))
+            _vars = []
+            for _vk in ("body_bg", "text", "hero_bg", "card_bg", "card_border",
+                         "input_bg", "input_border", "label", "muted",
+                         "accent", "accent_hover", "accent_text"):
+                _css_key = _vk.replace("_", "-")
+                _vars.append(f"  --{_css_key}: {_t.get(_vk, 'inherit')};")
+            _wysiwyg_css = ":root {\n" + "\n".join(_vars) + "\n}\n"
+            _wysiwyg_css += ".ck.ck-editor__editable_inline { background-color: var(--body-bg); }\n"
+            _content_css_path = os.path.join(SITE_DIR, "content.css")
+            if os.path.exists(_content_css_path):
+                with open(_content_css_path, encoding="utf-8") as _f:
+                    _wysiwyg_css += _f.read()
+        except Exception:
+            pass
+
         config = {
             "lang": lang,
             "dir": dir_,
             "customFonts": custom_fonts + bundled_fonts,
         }
         config_js = f"<script>window.__ckEditorConfig = {json.dumps(config)};</script>\n"
+        inj = ""
         if font_face_css:
-            config_js += f"<style>\n{font_face_css}\n</style>\n"
-        html = html.replace("</head>", config_js + "</head>")
+            inj += f"<style>\n{font_face_css}\n</style>\n"
+        if _wysiwyg_css:
+            inj += f"<style>\n{_wysiwyg_css}\n</style>\n"
+        html = html.replace("</head>", config_js + inj + "</head>")
 
         self.view.setHtml(html, base_url)
 
