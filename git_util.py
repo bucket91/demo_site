@@ -182,3 +182,33 @@ def safe_pull_rebase(cwd, branch):
         git_run(["rebase", "--abort"], cwd=cwd, capture_output=True)
         return False
     return True
+
+
+def ensure_git_repo(site_dir, name="", email="", url=""):
+    """Initialize or verify a git repo exists. Safe to call repeatedly."""
+    if not is_valid_git_repo(site_dir):
+        git_dir = os.path.join(site_dir, ".git")
+        if os.path.exists(git_dir):
+            shutil.rmtree(git_dir)
+        git_run(["init"], cwd=site_dir)
+    if name:
+        git_run(["config", "user.name", name], cwd=site_dir)
+    if email:
+        git_run(["config", "user.email", email], cwd=site_dir)
+    if url:
+        r = git_run(["remote", "get-url", "origin"], cwd=site_dir, capture_output=True)
+        if r and r.returncode == 0:
+            git_run(["remote", "set-url", "origin", url], cwd=site_dir)
+        else:
+            git_run(["remote", "remove", "origin"], cwd=site_dir, capture_output=True)
+            git_run(["remote", "add", "origin", url], cwd=site_dir)
+    ensure_branch_exists(site_dir)
+    gi = os.path.join(site_dir, ".gitignore")
+    if not os.path.exists(gi):
+        with open(gi, "w", encoding="utf-8") as f:
+            f.write("__pycache__/\n")
+    try:
+        from bootstrap import _ensure_precommit_hook
+        _ensure_precommit_hook(site_dir)
+    except ImportError:
+        pass

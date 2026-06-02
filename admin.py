@@ -5,23 +5,26 @@ from PyQt6 import QtWidgets, QtCore, QtGui
 _APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
 
-from generate import load_config
 
-CFG = load_config()
-BASE = CFG.get("supabase_url", "").rstrip("/")
-KEY = CFG.get("supabase_anon_key", "")
-HEADERS = {
-    "apikey": KEY,
-    "Authorization": f"Bearer {KEY}",
-    "Content-Type": "application/json",
-    "Accept": "application/json",
-    "Prefer": "return=representation",
-}
+def _supabase_headers():
+    from generate import load_config
+    cfg = load_config()
+    base = cfg.get("supabase_url", "").rstrip("/")
+    key = cfg.get("supabase_anon_key", "")
+    return base, key, {
+        "apikey": key,
+        "Authorization": f"Bearer {key}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "Prefer": "return=representation",
+    }
+
 
 def req(method, path, data=None):
-    url = f"{BASE}/rest/v1/{path}"
+    base, _key, headers = _supabase_headers()
+    url = f"{base}/rest/v1/{path}"
     body = json.dumps(data).encode() if data else None
-    r = urllib.request.Request(url, data=body, method=method, headers=HEADERS)
+    r = urllib.request.Request(url, data=body, method=method, headers=headers)
     try:
         with urllib.request.urlopen(r) as resp:
             ct = resp.headers.get("Content-Type", "")
@@ -308,7 +311,8 @@ class AdminWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(CommentAdminWidget())
 
 def main():
-    if not BASE or not KEY:
+    base, key, _headers = _supabase_headers()
+    if not base or not key:
         print("Error: supabase_url and supabase_anon_key must be set in config.json")
         sys.exit(1)
     app = QtWidgets.QApplication(sys.argv)

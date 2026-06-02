@@ -85,14 +85,27 @@ class PublishingWidget(QtWidgets.QWidget):
         heading.setStyleSheet("font-size: 18px; font-weight: bold; color: #c9d1d9; margin: 0 0 8px 0;")
         cl.addWidget(heading)
 
+        # ── Status & Output side by side ──
+        log_row = QtWidgets.QHBoxLayout()
+        log_row.setSpacing(8)
+
         self.status_output = QtWidgets.QTextEdit()
         self.status_output.setReadOnly(True)
-        self.status_output.setMaximumHeight(120)
         self.status_output.setStyleSheet("""
             QTextEdit { background: #0d1117; color: #8b949e; border: 1px solid #30363d;
                         border-radius: 6px; padding: 8px; font-family: monospace; font-size: 12px; }
         """)
-        cl.addWidget(self.status_output)
+        log_row.addWidget(self.status_output, 1)
+
+        self.output_box = QtWidgets.QTextEdit()
+        self.output_box.setReadOnly(True)
+        self.output_box.setStyleSheet("""
+            QTextEdit { background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
+                        border-radius: 6px; padding: 8px; font-family: monospace; font-size: 12px; }
+        """)
+        log_row.addWidget(self.output_box, 1)
+
+        cl.addLayout(log_row)
 
         # ── Git group ──
         git_group = QtWidgets.QGroupBox("Git Repository")
@@ -114,6 +127,7 @@ class PublishingWidget(QtWidgets.QWidget):
             QLineEdit { background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
                         border-radius: 6px; padding: 8px 10px; }
         """)
+        self.url_input.textChanged.connect(self._update_visit_btn)
         url_row.addWidget(self.url_input, 1)
         gl.addLayout(url_row)
 
@@ -133,12 +147,19 @@ class PublishingWidget(QtWidgets.QWidget):
 
         gl.addSpacing(8)
         btn_row = QtWidgets.QHBoxLayout()
-        init_btn = QtWidgets.QPushButton("Init Repo")
-        init_btn.clicked.connect(self.init_repo)
-        btn_row.addWidget(init_btn)
         refresh_btn = QtWidgets.QPushButton("Refresh Status")
         refresh_btn.clicked.connect(self._refresh_status)
         btn_row.addWidget(refresh_btn)
+        self.visit_btn = QtWidgets.QPushButton("Visit Page")
+        self.visit_btn.setStyleSheet("""
+            QPushButton { background: #1f6feb; color: #fff; border: none; border-radius: 6px;
+                          padding: 8px 24px; font-weight: bold; font-size: 14px; }
+            QPushButton:hover { background: #388bfd; }
+            QPushButton:disabled { background: #21262d; color: #484f58; }
+        """)
+        self.visit_btn.clicked.connect(self._on_visit_page)
+        self.visit_btn.setEnabled(False)
+        btn_row.addWidget(self.visit_btn)
         btn_row.addStretch()
         self.publish_btn = QtWidgets.QPushButton("Publish")
         self.publish_btn.setStyleSheet("""
@@ -195,18 +216,6 @@ class PublishingWidget(QtWidgets.QWidget):
 
         cl.addWidget(supabase_group)
 
-        # ── Output ──
-        output_label = QtWidgets.QLabel("Output:")
-        output_label.setStyleSheet("color: #6e7681; margin-top: 8px;")
-        cl.addWidget(output_label)
-        self.output_box = QtWidgets.QTextEdit()
-        self.output_box.setReadOnly(True)
-        self.output_box.setStyleSheet("""
-            QTextEdit { background: #0d1117; color: #c9d1d9; border: 1px solid #30363d;
-                        border-radius: 6px; padding: 8px; font-family: monospace; font-size: 12px; }
-        """)
-        cl.addWidget(self.output_box, 1)
-
         scroll.setWidget(container)
         layout.addWidget(scroll)
 
@@ -220,60 +229,45 @@ class PublishingWidget(QtWidgets.QWidget):
         self.token_input.setText(cfg.get("github_token", ""))
         self.supabase_url.setText(cfg.get("supabase_url", ""))
         self.supabase_key.setText(cfg.get("supabase_anon_key", ""))
+        self._update_visit_btn()
+
+    def _update_visit_btn(self):
+        url = self.url_input.text().strip()
+        pages_url = self._github_pages_url(url)
+        self.visit_btn.setEnabled(bool(pages_url))
+
+    def _github_pages_url(self, remote_url):
+        if not remote_url:
+            return ""
+        url = remote_url.rstrip('.git').rstrip('/')
+        if 'github.com/' in url:
+            after = url.split('github.com/', 1)[1].rstrip('/')
+            parts = after.split('/')
+            if len(parts) >= 2:
+                user, repo = parts[0], parts[1]
+                return f"https://{user}.github.io/{repo}/"
+        if 'github.com:' in url:
+            after = url.split('github.com:', 1)[1].rstrip('/')
+            parts = after.split('/')
+            if len(parts) >= 2:
+                user, repo = parts[0], parts[1]
+                return f"https://{user}.github.io/{repo}/"
+        return ""
+
+    def _on_visit_page(self):
+        url = self.url_input.text().strip()
+        pages_url = self._github_pages_url(url)
+        if pages_url:
+            import webbrowser
+            webbrowser.open(pages_url)
 
     def _refresh_status(self):
         if not is_git_repo():
-            self.status_output.setText("No git repository. Click 'Init Repo' to create one.")
+            self.status_output.setText("No git repository. It will be auto-initialized on publish.")
             return
         lines = get_git_status()
         self.status_output.setText('\n'.join(lines))
-
-    def init_repo(self):
-        from git_util import git_run, is_valid_git_repo, ensure_branch_exists
-        url = self.url_input.text().strip()
-        token = self.token_input.text().strip()
-        su = self.supabase_url.text().strip()
-        sk = self.supabase_key.text().strip()
-
-        name = ""
-        email = ""
-        if url:
-            parts = url.rstrip('.git').split('/')
-            if len(parts) >= 2:
-                name = parts[-2]
-                if '/' in url:
-                    email = f"{name}@users.noreply.github.com"
-
-        save_setup_config(url, token, su, sk, name, email)
-
-        if not is_valid_git_repo(SITE_DIR):
-            git_dir = os.path.join(SITE_DIR, ".git")
-            if os.path.exists(git_dir):
-                import shutil
-                shutil.rmtree(git_dir)
-            git_run(["init"], cwd=SITE_DIR)
-
-        if name:
-            git_run(["config", "user.name", name], cwd=SITE_DIR)
-        if email:
-            git_run(["config", "user.email", email], cwd=SITE_DIR)
-        if url:
-            git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
-            git_run(["remote", "add", "origin", url], cwd=SITE_DIR)
-
-        ensure_branch_exists(SITE_DIR)
-
-        gi = os.path.join(SITE_DIR, ".gitignore")
-        if not os.path.exists(gi):
-            with open(gi, "w", encoding="utf-8") as f:
-                f.write("__pycache__/\n")
-
-        from bootstrap import _ensure_precommit_hook
-        _ensure_precommit_hook(SITE_DIR)
-
-        self.output_box.append("Repo initialized.")
-        self._refresh_status()
-
+ 
     def _on_publish(self):
         url = self.url_input.text().strip()
         token = self.token_input.text().strip()
@@ -281,9 +275,13 @@ class PublishingWidget(QtWidgets.QWidget):
         sk = self.supabase_key.text().strip()
         save_setup_config(url, token, su, sk)
 
-        if not is_git_repo():
-            self.output_box.append("No git repo. Click 'Init Repo' first.")
-            return
+        from git_util import ensure_git_repo
+        from generate import load_config
+        cfg = load_config()
+        ensure_git_repo(SITE_DIR,
+                        name=cfg.get("git_user_name", ""),
+                        email=cfg.get("git_user_email", ""),
+                        url=url)
 
         if hasattr(self, 'worker') and self.worker and self.worker.isRunning():
             return

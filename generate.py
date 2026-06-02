@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re, os, glob, json, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url, is_valid_git_repo, has_commits, ensure_branch_exists, ensure_on_branch, remote_branch_exists, get_remote_default_branch, histories_unrelated, safe_fetch, safe_pull_rebase, detect_push_error, NoGitRepo, NoCommits, UnrelatedHistories, AuthFailed, NetworkError, PushRejected
+from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url, is_valid_git_repo, has_commits, ensure_branch_exists, ensure_on_branch, remote_branch_exists, get_remote_default_branch, histories_unrelated, safe_fetch, safe_pull_rebase, detect_push_error, ensure_git_repo, NoGitRepo, NoCommits, UnrelatedHistories, AuthFailed, NetworkError, PushRejected
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -493,8 +493,8 @@ def git_commit_push(log_func=print, force_push=False):
 
     try:
         if not is_valid_git_repo(SITE_DIR):
-            log_func("No git repository found. Click 'Init Repo' first.")
-            return
+            log_func("Initializing git repository...")
+            ensure_git_repo(SITE_DIR, name=name, email=email, url=url)
 
         ensure_branch_exists(SITE_DIR)
         branch = ensure_on_branch(SITE_DIR)

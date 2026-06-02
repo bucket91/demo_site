@@ -29,7 +29,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     <aside class="sidebar" id="sidebar">
 {{SIDEBAR}}
     </aside>
-    <main style="padding-left: {{SITE_PADDING}}px !important; padding-right: {{SITE_PADDING}}px !important;">
+    <main class="ck-content" style="padding-left: {{SITE_PADDING}}px !important; padding-right: {{SITE_PADDING}}px !important;">
 {{CONTENT}}
     </main>
 {{COMMENTS}}

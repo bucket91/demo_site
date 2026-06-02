@@ -171,7 +171,7 @@ class App(QtWidgets.QMainWindow):
             self._auto_init_git()
 
     def _auto_init_git(self):
-        from git_util import git_run, is_valid_git_repo, ensure_branch_exists
+        from git_util import ensure_git_repo
         cfg = {}
         cfg_path = os.path.join(SETTINGS_DIR, "config.json")
         if os.path.exists(cfg_path):
@@ -185,30 +185,7 @@ class App(QtWidgets.QMainWindow):
         url = cfg.get("git_remote_url", "")
         if not name or not url:
             return
-        if not is_valid_git_repo(SITE_DIR):
-            git_dir = os.path.join(SITE_DIR, ".git")
-            if os.path.exists(git_dir):
-                import shutil
-                shutil.rmtree(git_dir)
-            git_run(["init"], cwd=SITE_DIR)
-        if name:
-            git_run(["config", "user.name", name], cwd=SITE_DIR)
-        if email:
-            git_run(["config", "user.email", email], cwd=SITE_DIR)
-        if url:
-            r = git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True)
-            if r and r.returncode == 0:
-                git_run(["remote", "set-url", "origin", url], cwd=SITE_DIR)
-            else:
-                git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
-                git_run(["remote", "add", "origin", url], cwd=SITE_DIR)
-        ensure_branch_exists(SITE_DIR)
-        gi = os.path.join(SITE_DIR, ".gitignore")
-        if not os.path.exists(gi):
-            with open(gi, "w", encoding="utf-8") as f:
-                f.write("__pycache__/\n")
-        from bootstrap import _ensure_precommit_hook
-        _ensure_precommit_hook(SITE_DIR)
+        ensure_git_repo(SITE_DIR, name=name, email=email, url=url)
 
     def _auto_generate(self):
         if self._gen_thread and self._gen_thread.isRunning():
