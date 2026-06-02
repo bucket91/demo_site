@@ -96,6 +96,10 @@ def _design_page():
                  "Upload a PNG, JPG, or GIF image. It is automatically cropped to a circle."),
         _section("UI Font Size",
                  "Adjust the application's interface text size (range 10–24). Changes apply immediately."),
+        _section("Language & Direction",
+                 "Set the site language (33 languages available) and text direction (LTR or RTL).",
+                 "This sets the lang and dir attributes on your site's HTML tag, affecting screen readers and browser rendering.",
+                 "The CKEditor also adapts to the selected language and direction."),
         _section("Theme",
                  "Pick a preset color theme from the dropdown. The swatches below show the key colors for the selected theme.",
                  "---",
@@ -134,15 +138,30 @@ def _content_page():
     ])
 
 
+def _preview_page():
+    return _build_page("Preview", [
+        _section("Overview",
+                 "The Preview tab shows what your site looks like in real time. It auto-generates when you switch to this tab.",
+                 "Use the device presets to see how your site looks on Desktop, Tablet, or Mobile."),
+        _section("Controls",
+                 "$ Device presets — Desktop (16:9), Tablet, Mobile. Click to switch aspect ratio.",
+                 "$ URL bar — Shows the current page path. You can type a different page URL to preview it.",
+                 "$ Zoom — Use − / + buttons to zoom from 30% to 300%. The percentage label shows current zoom level.",
+                 "$ Refresh — Rebuilds the site and reloads the preview."),
+        _section("Advanced Theme Effects",
+                 "Shadows, rounded corners, hover animations, and background effects are all visible in the preview. Apply them from the Advanced tab."),
+    ])
+
+
 def _ckeditor_page():
     return _build_page("CKEditor", [
         _section("Overview",
                  "The CKEditor tab provides a rich text editor for creating and editing HTML content.",
                  "You can type directly, paste formatted text, or import existing documents."),
-        _section("Import",  # changed this to provide guidance
+        _section("Import",
                  "Click Import and select a supported file.",
                  "$ .zip — Google Docs / WordPress export containing index.html + images/ folder.",
-                 "$ .mht / .mhtml — Single-file web archive saved from a browser.",
+                 "$ .mht / .mhtml — Single-file web archive (saved from MS Word → File → Save As → Web Page, Single File).",
                  "---",
                  "$ .html — Opens an existing page from your site for editing.",
                  "After import, edit freely in the WYSIWYG editor then click Save."),
@@ -158,22 +177,23 @@ def _ckeditor_page():
     ])
 
 
-def _settings_page():
-    return _build_page("Settings", [
-        _section("GitHub / Git",
-                 "Connect your site to a GitHub repository for publishing.",
+def _publishing_page():
+    return _build_page("Publishing", [
+        _section("Git Repository",
+                 "Connect your site to a GitHub repository for publishing via GitHub Pages.",
                  "$ Remote URL — e.g. https://github.com/username/repo.git",
                  "$ GitHub Token — A classic personal access token with repo scope. Create one at github.com/settings/tokens.",
                  "---",
-                 '$ "Initialize" — Sets up the local git repository and connects it to the remote.',
-                 '$ "Generate" — Builds the static site and pushes it to GitHub Pages.'),
+                 '$ Click "Publish" to initialize git (if needed), build the site, and push to GitHub Pages.',
+                 '$ "Force push" overwrites the remote history (use if the remote has unrelated history).',
+                 '$ "Visit Page" opens your live GitHub Pages URL in a browser.'),
         _section("Supabase (Comments)",
-                 "To enable comments on your site, enter your Supabase project URL and anon public key.",
+                 "To enable comments on your site, enter your Supabase project URL and publishable key.",
                  "---",
                  "See the Comments help tab for the one-time database setup (SQL table creation).",
                  "Comments are automatically enabled when both fields are filled."),
-        _section("Status",
-                 "The status panel shows: git availability, remote connectivity, and the last generation output. Use it to verify everything is working before publishing."),
+        _section("Status Logs",
+                 "Two side-by-side panels show status messages and detailed command output. Use them to verify git operations and diagnose issues."),
     ])
 
 
@@ -213,7 +233,7 @@ CREATE POLICY "anon_select" ON comments FOR SELECT TO anon USING (true);""")
                  "Comments are stored in a Supabase database table."),
         g,
         _section("Connect",
-                 "After running the SQL, go to the Settings tab and paste your Supabase project URL and anon public key.",
+                 "After running the SQL, go to the Publishing tab and paste your Supabase project URL and publishable key.",
                  "Comments appear automatically on all pages (except those with comments toggled off in the Content tab)."),
         _section("Manage Comments",
                  'Use the Comments tab in the main window to view, edit, search, and delete comments.',
@@ -238,7 +258,7 @@ class DocsWidget(QtWidgets.QWidget):
         tl.addSpacing(16)
         self.combo = QtWidgets.QComboBox()
         self.combo.setView(QtWidgets.QListView())
-        self.combo.addItems(["Design", "Content", "CKEditor", "Settings", "Comments"])
+        self.combo.addItems(["Design", "Content", "CKEditor", "Preview", "Publishing", "Comments"])
         self.combo.setMinimumWidth(180)
         tl.addWidget(self.combo)
         tl.addStretch()
@@ -248,7 +268,8 @@ class DocsWidget(QtWidgets.QWidget):
         self.stack.addWidget(_design_page())
         self.stack.addWidget(_content_page())
         self.stack.addWidget(_ckeditor_page())
-        self.stack.addWidget(_settings_page())
+        self.stack.addWidget(_preview_page())
+        self.stack.addWidget(_publishing_page())
         self.stack.addWidget(_comments_page())
         layout.addWidget(self.stack, 1)
 
