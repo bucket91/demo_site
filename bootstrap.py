@@ -29,7 +29,7 @@ TEMPLATE_HTML = """<!DOCTYPE html>
     <aside class="sidebar" id="sidebar">
 {{SIDEBAR}}
     </aside>
-    <main class="ck-content" style="padding-left: {{SITE_PADDING}}px !important; padding-right: {{SITE_PADDING}}px !important;">
+    <main class="ck-content" style="padding-left: 20px !important; padding-right: 20px !important;">
 {{CONTENT}}
     </main>
 {{COMMENTS}}
@@ -153,7 +153,6 @@ DEFAULT_CONFIG = {
     "owner_contacts": [],
     "site_title": "Placeholder",
     "gui_font_size": 14,
-    "site_padding": 20,
 }
 
 

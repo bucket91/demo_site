@@ -32,6 +32,7 @@ body.dark-mode {
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
+ul, ol { padding-left: 2.5em; }
 
 body {
   font-family: $font_family;
@@ -581,6 +582,7 @@ THEMES = {
 }
 
 FONTS = {
+    "Bengali": "'Noto Sans Bengali', 'Kalpurush', 'Siyam Rupali', sans-serif",
     "System UI": "system-ui, -apple-system, sans-serif",
     "Classic Serif": "Georgia, 'Times New Roman', serif",
     "Classic Sans": "Arial, Helvetica, sans-serif",
@@ -595,7 +597,6 @@ FONTS = {
     "Arabic": "'Noto Naskh Arabic', 'Traditional Arabic', 'Arabic Typesetting', 'Times New Roman', serif",
     "Hindi (Devanagari)": "'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', sans-serif",
     "Hebrew": "'Noto Sans Hebrew', 'Arial Hebrew', 'David', 'Times New Roman', serif",
-    "Bengali": "'Noto Sans Bengali', 'Kalpurush', 'Siyam Rupali', sans-serif",
     "Thai": "'Noto Sans Thai', 'Tahoma', sans-serif",
     "Tamil": "'Noto Sans Tamil', 'Nirmala UI', 'Latha', sans-serif",
     "Urdu": "'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Arial', sans-serif",
@@ -603,7 +604,28 @@ FONTS = {
 
 BUNDLED_FONTS = {
     "Noto Sans Bengali": {
-        "filename": "",
+        "filename": "NotoSansBengali.ttf",
         "format": "truetype",
+        "url": "https://github.com/google/fonts/raw/main/ofl/notosansbengali/NotoSansBengali%5Bwdth,wght%5D.ttf",
+    },
+    "SolaimanLipi": {
+        "filename": "SolaimanLipi.ttf",
+        "format": "truetype",
+        "url": "https://github.com/maateen/bangla-web-fonts/raw/main/fonts/solaiman-lipi/solaimanlipi-normal-v1.0.ttf",
+    },
+    "Kalpurush": {
+        "filename": "Kalpurush.ttf",
+        "format": "truetype",
+        "url": "https://github.com/maateen/bangla-web-fonts/raw/main/fonts/kalpurush/Kalpurush-v0.258.ttf",
+    },
+    "SutonnyMJ": {
+        "filename": "SutonnyMJ.ttf",
+        "format": "truetype",
+        "url": "https://db.onlinewebfonts.com/t/745d8457da8dec2e3477d0d4da431299.ttf",
+    },
+    "Siyam Rupali": {
+        "filename": "SiyamRupali.ttf",
+        "format": "truetype",
+        "url": "https://github.com/maateen/bangla-web-fonts/raw/main/fonts/siyam-rupali/siyam-rupali-v1.070.ttf",
     },
 }

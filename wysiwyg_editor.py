@@ -101,92 +101,17 @@ class CkeditorTab(QtWidgets.QWidget):
         except Exception:
             pass
 
-        theme_colors, chrome_theme = self._resolve_theme()
-        _wysiwyg_css = self._build_theme_css(theme_colors)
-
         config = {
             "lang": lang,
             "dir": dir_,
             "customFonts": custom_fonts + bundled_fonts,
-            "chromeTheme": chrome_theme,
         }
         config_js = f"<script>window.__ckEditorConfig = {json.dumps(config)};</script>\n"
-        inj = ""
         if font_face_css:
-            inj += f"<style>\n{font_face_css}\n</style>\n"
-        if _wysiwyg_css:
-            inj += f"<style>\n{_wysiwyg_css}\n</style>\n"
-        html = html.replace("</head>", config_js + inj + "</head>")
+            config_js += f"<style>\n{font_face_css}\n</style>\n"
+        html = html.replace("</head>", config_js + "</head>")
 
         self.view.setHtml(html, base_url)
-
-    def _resolve_theme(self):
-        _cfg_json_path = os.path.join(_APP_DIR, "settings", "config.json")
-        try:
-            with open(_cfg_json_path, encoding="utf-8") as _f:
-                _raw_cfg = json.load(_f)
-            _theme_key = _raw_cfg.get("selected_theme", "Dark")
-            from themes import THEMES
-            if _theme_key == "Custom":
-                _t = dict(THEMES.get("Dark", {}))
-                _t.update(_raw_cfg.get("custom_theme", {}))
-            else:
-                _t = dict(THEMES.get(_theme_key, THEMES.get("Dark", {})))
-            chrome = self._chrome_theme_for_theme(_t)
-            return _t, chrome
-        except Exception:
-            return {}, "dark"
-
-    def _chrome_theme_for_theme(self, theme_colors):
-        hb = theme_colors.get("header_bg", "").lstrip("#")
-        if len(hb) == 6:
-            try:
-                r, g, b = int(hb[0:2], 16), int(hb[2:4], 16), int(hb[4:6], 16)
-                luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
-                return "dark" if luminance < 0.5 else "light"
-            except ValueError:
-                pass
-        return "dark"
-
-    def _build_theme_css(self, theme_colors):
-        if not theme_colors:
-            return ""
-        _vars = []
-        for _vk in ("body_bg", "text", "hero_bg", "card_bg", "card_border",
-                     "input_bg", "input_border", "label", "muted",
-                     "accent", "accent_hover", "accent_text"):
-            _css_key = _vk.replace("_", "-")
-            _vars.append(f"  --{_css_key}: {theme_colors.get(_vk, 'inherit')};")
-        css = ":root {\n" + "\n".join(_vars) + "\n}\n"
-        css += ".ck.ck-editor__editable_inline { background-color: var(--body-bg); }\n"
-        _content_css_path = os.path.join(SITE_DIR, "content.css")
-        if os.path.exists(_content_css_path):
-            try:
-                with open(_content_css_path, encoding="utf-8") as _f:
-                    css += _f.read()
-            except Exception:
-                pass
-        return css
-
-    def update_theme(self):
-        try:
-            theme_colors, chrome_theme = self._resolve_theme()
-            css = self._build_theme_css(theme_colors)
-            if not css:
-                return
-            js = f"""
-(function() {{
-    var s = document.createElement('style');
-    s.textContent = {json.dumps(css)};
-    document.head.appendChild(s);
-    document.documentElement.dataset.theme = {json.dumps(chrome_theme)};
-    localStorage.setItem('ckeditor-theme', {json.dumps(chrome_theme)});
-    localStorage.setItem('theme', {json.dumps(chrome_theme)});
-}})();
-"""
-            self.view.page().runJavaScript(js)
-        except Exception:
-            pass
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -223,16 +148,6 @@ class CkeditorTab(QtWidgets.QWidget):
         save_btn.setStyleSheet("background: #3fb950; color: #fff; border: none; border-radius: 6px; padding: 8px 20px;")
         save_btn.clicked.connect(self._save)
         bl.addWidget(save_btn)
-
-        clear_btn = QtWidgets.QPushButton("Clear")
-        clear_btn.clicked.connect(self._clear)
-        bl.addWidget(clear_btn)
-
-        export_btn = QtWidgets.QPushButton("Export HTML")
-        export_btn.setProperty("class", "primary")
-        export_btn.setStyleSheet("background: #58a6ff; color: #fff; border: none; border-radius: 6px; padding: 8px 20px;")
-        export_btn.clicked.connect(self._export)
-        bl.addWidget(export_btn)
 
         layout.addWidget(bar)
 
@@ -342,6 +257,7 @@ class CkeditorTab(QtWidgets.QWidget):
 
     def _on_export_result(self, html):
         html = html.strip()
+        html = re.sub(r'(?:<p[^>]*>\s*</p>\s*|<br\s*/?>\s*)+$', '', html).rstrip()
         if not html:
             self.status_label.setText("Nothing to export")
             return
@@ -388,7 +304,7 @@ class CkeditorTab(QtWidgets.QWidget):
                         style_css += f"<style>\n{css}\n</style>\n"
                 lang = _cfg.get("site_lang", "en")
                 dir_attr = _cfg.get("site_dir", "ltr")
-                padding = _cfg.get("site_padding", 20)
+                padding = 20
                 result = f"""<!DOCTYPE html>
 <html lang="{lang}" dir="{dir_attr}">
 <head>

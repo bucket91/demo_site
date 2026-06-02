@@ -133,7 +133,7 @@ def regenerate_style_css(site_dir, settings_dir):
             cfg = json.load(f)
 
     theme_key = cfg.get("selected_theme", "Dark")
-    font_name = cfg.get("selected_font", "System UI")
+    font_name = cfg.get("selected_font", "Bengali")
 
     if theme_key == "Custom":
         t = dict(THEMES["Dark"])

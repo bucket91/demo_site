@@ -61,16 +61,6 @@ class DesignWidget(QtWidgets.QWidget):
         self.font_size_spin.valueChanged.connect(self._on_font_size_changed)
         opts_row.addWidget(self.font_size_spin)
 
-        pad_label = QtWidgets.QLabel("Site Padding:")
-        pad_label.setStyleSheet("color: #6e7681;")
-        opts_row.addWidget(pad_label)
-        self.padding_spin = QtWidgets.QSpinBox()
-        self.padding_spin.setRange(0, 80)
-        self.padding_spin.setSuffix(" px")
-        self.padding_spin.setValue(cfg.get("site_padding", 20))
-        self.padding_spin.valueChanged.connect(self._on_padding_changed)
-        opts_row.addWidget(self.padding_spin)
-
         opts_row.addStretch()
         cl.addLayout(opts_row)
 
@@ -178,11 +168,6 @@ class DesignWidget(QtWidgets.QWidget):
         self._save_cfg({"gui_font_size": size})
         import gui_theme
         gui_theme.apply()
-
-    @QtCore.pyqtSlot(int)
-    def _on_padding_changed(self, value):
-        self._save_cfg({"site_padding": value})
-        self.settings_changed.emit()
 
     def _on_lang_changed(self, idx):
         lang = self.lang_combo.currentData()

@@ -33,7 +33,6 @@ def load_config():
         "owner_contacts": [],
         "site_title": "Placeholder",
         "gui_font_size": 14,
-        "site_padding": 20,
         "site_lang": "en",
         "site_dir": "ltr",
     }
@@ -391,8 +390,7 @@ def build_page(filepath, categories):
     result = result.replace('{{SIDEBAR}}', sidebar)
     result = result.replace('{{CONTENT}}', content)
     result = result.replace('{{COMMENTS}}', comments_block)
-    padding = CONFIG.get("site_padding", 20)
-    result = result.replace('{{SITE_PADDING}}', str(padding))
+    result = result.replace('{{SITE_PADDING}}', '20')
     result = result.replace('{{SITE_LANG}}', CONFIG.get("site_lang", "en"))
     result = result.replace('{{SITE_DIR}}', CONFIG.get("site_dir", "ltr"))
 
