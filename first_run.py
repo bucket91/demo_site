@@ -39,7 +39,7 @@ class FirstRunWizard(QtWidgets.QDialog):
             ("Supabase URL", "supabase_url",
              "https://xxx.supabase.co", False),
             ("Supabase Publishable Key", "sb_publishable_key",
-              "eyJhbGciOiJIUzI1NiIs...", False),
+                             "sb_publishable_...", False),
         ]
 
         self.inputs = {}
