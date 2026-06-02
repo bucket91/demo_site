@@ -98,6 +98,7 @@ class App(QtWidgets.QMainWindow):
         self.content_widget.mgr_widget.content_changed.connect(self._on_content_changed)
         self.content_widget.mgr_widget.open_in_ckeditor.connect(self._on_open_in_ckeditor)
         self.design_widget.settings_changed.connect(self._on_content_changed)
+        self.design_widget.settings_changed.connect(self.ckeditor_tab.update_theme)
         self._auto_generate()
 
     def _migrate_old_configs(self):

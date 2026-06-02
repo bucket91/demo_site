@@ -232,8 +232,13 @@ var PHONE_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><p
 var FORMAT_ICON = '<svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path d="M2 5l6 5-6 5 1 1 7-6-7-6-1 1zm8 10h8v2H10v-2z" fill="currentColor"/></svg>';
 
 (function() {
-  var saved = localStorage.getItem('theme') || localStorage.getItem('ckeditor-theme');
-  if (saved) document.documentElement.dataset.theme = saved;
+  var extras = window.__ckEditorConfig || {};
+  var theme = extras.chromeTheme;
+  if (theme !== 'dark' && theme !== 'light') {
+    theme = localStorage.getItem('ckeditor-theme') || localStorage.getItem('theme');
+    if (theme !== 'dark' && theme !== 'light') theme = 'dark';
+  }
+  document.documentElement.dataset.theme = theme;
 })();
 
 class WebPUploadAdapter {
