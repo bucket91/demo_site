@@ -817,6 +817,16 @@ def generate_css(data):
                 lines.append("  animation: advSlideUp 0.6s ease;")
             elif page_load == "scale":
                 lines.append("  animation: advScaleIn 0.5s ease;")
+            elif page_load == "slide-down":
+                lines.append("  animation: advSlideDown 0.6s ease;")
+            elif page_load == "slide-left":
+                lines.append("  animation: advSlideLeft 0.6s ease;")
+            elif page_load == "slide-right":
+                lines.append("  animation: advSlideRight 0.6s ease;")
+            elif page_load == "flip":
+                lines.append("  animation: advFlipIn 0.6s ease;")
+            elif page_load == "blur":
+                lines.append("  animation: advBlurIn 0.6s ease;")
             lines.append("}")
             lines.append("")
 
@@ -824,6 +834,11 @@ def generate_css(data):
                 "fade": ("@keyframes advFadeIn { from { opacity: 0; } to { opacity: 1; } }", ""),
                 "slide": ("@keyframes advSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }", ""),
                 "scale": ("@keyframes advScaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }", ""),
+                "slide-down": ("@keyframes advSlideDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }", ""),
+                "slide-left": ("@keyframes advSlideLeft { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }", ""),
+                "slide-right": ("@keyframes advSlideRight { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }", ""),
+                "flip": ("@keyframes advFlipIn { from { opacity: 0; transform: perspective(400px) rotateX(10deg); } to { opacity: 1; transform: perspective(400px) rotateX(0); } }", ""),
+                "blur": ("@keyframes advBlurIn { from { opacity: 0; filter: blur(4px); } to { opacity: 1; filter: blur(0); } }", ""),
             }
             if page_load in anim_css:
                 lines.append(anim_css[page_load][0])
@@ -836,6 +851,9 @@ def generate_css(data):
                 "border": ".home-card:hover, .comment:hover { border-color: var(--accent); }",
                 "scale": ".home-card:hover, .comment:hover { transform: scale(1.02); }",
                 "shadow": ".home-card:hover, .comment:hover { box-shadow: var(--adv-shadow); }",
+                "rotate": ".home-card:hover, .comment:hover { transform: rotate(1deg) scale(1.01); }",
+                "tilt": ".home-card:hover, .comment:hover { transform: perspective(600px) rotateX(2deg) rotateY(2deg); }",
+                "outline": ".home-card:hover, .comment:hover { outline: 2px solid var(--accent); outline-offset: 2px; }",
             }
             if card_hover in effects:
                 lines.append(effects[card_hover])
@@ -847,6 +865,10 @@ def generate_css(data):
                 "lift": "#comment-form button:hover { transform: translateY(-2px); box-shadow: var(--adv-shadow); }",
                 "fill": "#comment-form button:hover { transform: scale(1.03); }",
                 "glow": "#comment-form button:hover { box-shadow: 0 0 12px var(--accent); }",
+                "slide": "#comment-form button:hover { background-position: right center; background-image: linear-gradient(120deg, transparent 50%, var(--accent) 50%); background-size: 250% 100%; transition: background-position 0.3s; } #comment-form button:hover { color: var(--accent-text); }",
+                "pulse": "@keyframes advBtnPulse { 0% { box-shadow: 0 0 0 0 var(--accent); } 70% { box-shadow: 0 0 0 6px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } } #comment-form button:hover { animation: advBtnPulse 1.2s infinite; }",
+                "shine": "#comment-form button { overflow: hidden; position: relative; } #comment-form button::after { content: ''; position: absolute; top: -50%; left: -60%; width: 40%; height: 200%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent); transform: skewX(-20deg); transition: left 0.5s; } #comment-form button:hover::after { left: 120%; }",
+                "radius": "#comment-form button:hover { border-radius: 20px; }",
             }
             if button_hover in effects:
                 lines.append(effects[button_hover])
@@ -857,6 +879,9 @@ def generate_css(data):
                 "underline": ".sub-links li a:hover, .home-card a:hover { text-decoration: underline; }",
                 "color": ".sub-links li a:hover, .home-card a:hover { color: var(--accent-hover) !important; }",
                 "animated": ".sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }",
+                "slide-underline": ".sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; }",
+                "marker": ".sub-links li a, .home-card a { background-image: linear-gradient(transparent 60%, var(--accent) 60%); background-size: 0 100%; background-repeat: no-repeat; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 100%; }",
+                "grow": ".sub-links li a:hover, .home-card a:hover { font-size: 1.05em; }",
             }
             if link_hover in effects:
                 lines.append(effects[link_hover])
@@ -866,7 +891,12 @@ def generate_css(data):
             effects = {
                 "zoom": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: scale(1.03); }",
                 "overlay": ".ck-content img:not([style*=\"float\"]) { position: relative; } .ck-content img:not([style*=\"float\"]):hover { filter: brightness(1.1); }",
-                "grayscale": ".ck-content img:not([style*=\"float\"]) { filter: grayscale(0); transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: grayscale(0); }",
+                "grayscale": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: grayscale(1); }",
+                "rotate": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: rotate(3deg) scale(1.02); }",
+                "sepia": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: sepia(0.5); }",
+                "blur": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: blur(1px); }",
+                "tilt": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: perspective(600px) rotateX(3deg) rotateY(-3deg); }",
+                "shadow": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s, transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); transform: scale(1.01); }",
             }
             if image_hover in effects:
                 lines.append(effects[image_hover])

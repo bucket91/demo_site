@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import re, os, glob, json, sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url
+from git_util import git_run as _git_run, get_git_path as _get_git_path, _make_push_url, is_valid_git_repo, has_commits, ensure_branch_exists, ensure_on_branch, remote_branch_exists, get_remote_default_branch, histories_unrelated, safe_fetch, safe_pull_rebase, detect_push_error, NoGitRepo, NoCommits, UnrelatedHistories, AuthFailed, NetworkError, PushRejected
 
 _APP_DIR = os.path.dirname(os.path.abspath(sys.executable)) if getattr(sys, 'frozen', False) else os.path.dirname(os.path.abspath(__file__))
 SITE_DIR = os.path.join(_APP_DIR, "site")
@@ -34,6 +34,8 @@ def load_config():
         "site_title": "Placeholder",
         "gui_font_size": 14,
         "site_padding": 20,
+        "site_lang": "en",
+        "site_dir": "ltr",
     }
     token_keys = ["supabase_url", "supabase_anon_key", "git_remote_url",
                   "git_user_name", "git_user_email", "github_token"]
@@ -391,6 +393,8 @@ def build_page(filepath, categories):
     result = result.replace('{{COMMENTS}}', comments_block)
     padding = CONFIG.get("site_padding", 20)
     result = result.replace('{{SITE_PADDING}}', str(padding))
+    result = result.replace('{{SITE_LANG}}', CONFIG.get("site_lang", "en"))
+    result = result.replace('{{SITE_DIR}}', CONFIG.get("site_dir", "ltr"))
 
     with open(filepath, 'w', encoding="utf-8") as f:
         f.write(result)
@@ -400,8 +404,10 @@ def build_page(filepath, categories):
 def generate_404(categories, log_func=print):
     path = os.path.join(SITE_DIR, "404.html")
     with open(path, "w", encoding="utf-8") as f:
-        f.write("""<!DOCTYPE html>
-<html lang="en">
+        lang = CONFIG.get("site_lang", "en")
+        dir_attr = CONFIG.get("site_dir", "ltr")
+        f.write(f"""<!DOCTYPE html>
+<html lang="{lang}" dir="{dir_attr}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -476,17 +482,7 @@ def generate_all(log_func=print, max_workers=None):
         clear_sidebar_cache()
 
 
-def _get_current_branch():
-    """Robust branch acquisition targeted directly inside the user's SITE_DIR."""
-    r = _git_run(["rev-parse", "--abbrev-ref", "HEAD"], cwd=SITE_DIR, capture_output=True, text=True)
-    if r.returncode == 0:
-        branch = r.stdout.strip()
-        if branch and branch != "HEAD":
-            return branch
-    return "main"
-
-
-def git_commit_push(log_func=print):
+def git_commit_push(log_func=print, force_push=False):
     msg = "update site via generator"
     url = CONFIG.get("git_remote_url", "")
     token = CONFIG.get("github_token", "")
@@ -494,11 +490,20 @@ def git_commit_push(log_func=print):
     name = CONFIG.get("git_user_name", "")
     email = CONFIG.get("git_user_email", "")
     orig_remote = None
+
     try:
+        if not is_valid_git_repo(SITE_DIR):
+            log_func("No git repository found. Click 'Init Repo' first.")
+            return
+
+        ensure_branch_exists(SITE_DIR)
+        branch = ensure_on_branch(SITE_DIR)
+
         if name:
             _git_run(["config", "user.name", name], cwd=SITE_DIR, capture_output=True)
         if email:
             _git_run(["config", "user.email", email], cwd=SITE_DIR, capture_output=True)
+
         if url:
             r = _git_run(["remote", "get-url", "origin"], cwd=SITE_DIR, capture_output=True, text=True)
             if r.returncode == 0:
@@ -506,11 +511,9 @@ def git_commit_push(log_func=print):
             if orig_remote != push_url:
                 _git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
                 _git_run(["remote", "add", "origin", push_url], cwd=SITE_DIR, capture_output=True)
-        
-        # Track all new and existing assets/HTML safely
-        _git_run(["add", "-A"], cwd=SITE_DIR, check=True, capture_output=True)
-        
-        # Safely capture non-zero statuses like 'nothing to commit' without causing executable crashes
+
+        _git_run(["add", "-A"], cwd=SITE_DIR, capture_output=True)
+
         r = _git_run(["commit", "-m", msg], cwd=SITE_DIR, capture_output=True, text=True)
         if r.returncode == 0:
             log_func(r.stdout.strip())
@@ -519,22 +522,74 @@ def git_commit_push(log_func=print):
                 log_func("No structural updates or changes to commit.")
             else:
                 log_func(r.stderr.strip())
-                
-        if url:
-            # Force branch convergence to match Remote 'main' ecosystems across varying local git configurations
-            current_branch = _get_current_branch()
-            if current_branch == "master":
-                _git_run(["branch", "-m", "master", "main"], cwd=SITE_DIR, capture_output=True)
-                branch = "main"
-            else:
-                branch = current_branch
 
-            # Rebase cleanly. Swallows tracking warnings if origin branch is uninitialized
-            _git_run(["pull", "--rebase", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
-            
+        if not url:
+            return
+
+        remote_branch = get_remote_default_branch(SITE_DIR)
+        if remote_branch != branch:
+            if branch == "master":
+                _git_run(["branch", "-m", "master", remote_branch], cwd=SITE_DIR, capture_output=True)
+                branch = remote_branch
+            elif remote_branch == "main":
+                pass
+            else:
+                branch = remote_branch
+
+        if not remote_branch_exists("origin", branch, cwd=SITE_DIR):
             r2 = _git_run(["push", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
-            log_func(r2.stdout.strip() or r2.stderr.strip())
-            
+            if r2.returncode == 0:
+                log_func(r2.stdout.strip() or "Pushed successfully.")
+            else:
+                err = detect_push_error(r2.stderr)
+                if err:
+                    log_func(str(err))
+                else:
+                    log_func(r2.stderr.strip())
+            return
+
+        try:
+            safe_fetch(SITE_DIR)
+        except (AuthFailed, NetworkError) as e:
+            log_func(str(e))
+            return
+
+        if histories_unrelated(SITE_DIR):
+            if force_push:
+                log_func("Remote has unrelated history — force pushing...")
+                r2 = _git_run(["push", "--force", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+                if r2.returncode == 0:
+                    log_func(r2.stdout.strip() or "Force push succeeded.")
+                else:
+                    err = detect_push_error(r2.stderr)
+                    log_func(str(err) if err else r2.stderr.strip())
+            else:
+                log_func("Remote has unrelated history. Enable 'Force push' to overwrite.")
+            return
+
+        if not safe_pull_rebase(SITE_DIR, branch):
+            log_func("Rebase had conflicts — auto-resolved favoring local changes.")
+            _git_run(["push", "--force", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+
+        r2 = _git_run(["push", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+        if r2.returncode == 0:
+            log_func(r2.stdout.strip() or "Pushed successfully.")
+        else:
+            err = detect_push_error(r2.stderr)
+            if isinstance(err, PushRejected):
+                if force_push:
+                    log_func("Push rejected — retrying with force push...")
+                    r3 = _git_run(["push", "--force", "-u", "origin", branch], cwd=SITE_DIR, capture_output=True, text=True)
+                    if r3.returncode == 0:
+                        log_func(r3.stdout.strip() or "Force push succeeded.")
+                    else:
+                        e2 = detect_push_error(r3.stderr)
+                        log_func(str(e2) if e2 else r3.stderr.strip())
+                else:
+                    log_func(str(err) + ". Enable 'Force push' to overwrite.")
+            else:
+                log_func(str(err) if err else r2.stderr.strip())
+
     except Exception as e:
         log_func(f"Git execution failure: {e}")
     finally:

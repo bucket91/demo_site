@@ -370,6 +370,21 @@ footer {
     margin-right: auto;
   }
 }
+
+[dir="rtl"] .layout { flex-direction: row-reverse; }
+[dir="rtl"] header h1 {
+  left: auto;
+  right: 50%;
+  transform: translateX(50%);
+}
+[dir="rtl"] .sidebar { left: auto; right: -250px; }
+[dir="rtl"] .sidebar.open { left: auto; right: 0; }
+[dir="rtl"] .sub-links li a { padding: 0.6rem 2rem 0.6rem 1rem; }
+[dir="rtl"] .category-header { text-align: right; }
+[dir="rtl"] .category-header .arrow { transform: rotate(180deg); }
+[dir="rtl"] .category-header .arrow.open { transform: rotate(90deg); }
+[dir="rtl"] main { text-align: right; }
+[dir="rtl"] #comment-form button { align-self: flex-end; }
 """)
 
 THEMES = {
@@ -576,4 +591,19 @@ FONTS = {
     "Trebuchet": "'Trebuchet MS', 'Lucida Grande', sans-serif",
     "Palatino": "Palatino, 'Palatino Linotype', serif",
     "Tahoma": "Tahoma, Geneva, Verdana, sans-serif",
+    "CJK (Chinese/Japanese/Korean)": "'Noto Sans SC', 'Noto Sans JP', 'Noto Sans KR', 'Microsoft YaHei', 'Hiragino Sans', 'Malgun Gothic', sans-serif",
+    "Arabic": "'Noto Naskh Arabic', 'Traditional Arabic', 'Arabic Typesetting', 'Times New Roman', serif",
+    "Hindi (Devanagari)": "'Noto Sans Devanagari', 'Nirmala UI', 'Mangal', sans-serif",
+    "Hebrew": "'Noto Sans Hebrew', 'Arial Hebrew', 'David', 'Times New Roman', serif",
+    "Bengali": "'Noto Sans Bengali', 'Kalpurush', 'Siyam Rupali', sans-serif",
+    "Thai": "'Noto Sans Thai', 'Tahoma', sans-serif",
+    "Tamil": "'Noto Sans Tamil', 'Nirmala UI', 'Latha', sans-serif",
+    "Urdu": "'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', 'Arial', sans-serif",
+}
+
+BUNDLED_FONTS = {
+    "Noto Sans Bengali": {
+        "filename": "",
+        "format": "truetype",
+    },
 }

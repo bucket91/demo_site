@@ -85,6 +85,38 @@ def download_linux_git():
     os.remove(LINUX_GIT_TGZ)
     print(f"Static git extracted to {LINUX_GIT_DIR}")
 
+def download_fonts():
+    """Download bundled fonts defined in themes.BUNDLED_FONTS.
+    Font .ttf files should be placed in site/fonts/ matching BUNDLED_FONTS filename keys.
+    This function verifies they exist; the actual download URLs depend on the font source
+    and can be customized per font in the BUNDLED_FONTS dict.
+    """
+    fonts_dir = os.path.join(SITE_DIR, "fonts")
+    os.makedirs(fonts_dir, exist_ok=True)
+    try:
+        sys.path.insert(0, SITE_DIR)
+        from themes import BUNDLED_FONTS
+    except Exception:
+        print("Warning: could not import BUNDLED_FONTS, skipping font download")
+        return
+    for name, info in BUNDLED_FONTS.items():
+        fn = info.get("filename", "")
+        if not fn:
+            continue
+        dst = os.path.join(fonts_dir, fn)
+        if os.path.exists(dst):
+            continue
+        url = info.get("url", "")
+        if url:
+            print(f"Downloading {name} from {url}...")
+            try:
+                urllib.request.urlretrieve(url, dst)
+                print(f"  Saved: {dst}")
+            except Exception as e:
+                print(f"  Error downloading {name}: {e}")
+        else:
+            print(f"  No download URL for {name}. Place {fn} in site/fonts/ manually.")
+
 def download_ckeditor():
     ckeditor_dir = os.path.join(SITE_DIR, "ckeditor")
     os.makedirs(ckeditor_dir, exist_ok=True)
@@ -142,6 +174,7 @@ def build():
         cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
         cmd.extend(["--icon", "logo.png"])
     download_ckeditor()
+    download_fonts()
 
     print("Running PyInstaller...")
     subprocess.run(cmd, check=True)

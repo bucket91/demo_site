@@ -404,8 +404,12 @@ class RefManagerWidget(QtWidgets.QWidget):
             rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(file_path))).replace('\\', '/')
         else:
             rel = os.path.relpath(SITE_DIR, os.path.join(SITE_DIR, "pages")).replace('\\', '/')
+        from generate import load_config as _load_cfg
+        _cfg = _load_cfg()
+        lang = _cfg.get("site_lang", "en")
+        dir_attr = _cfg.get("site_dir", "ltr")
         return f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}" dir="{dir_attr}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

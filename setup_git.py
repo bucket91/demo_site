@@ -151,6 +151,13 @@ class PublishingWidget(QtWidgets.QWidget):
         btn_row.addWidget(self.publish_btn)
         gl.addLayout(btn_row)
 
+        fp_row = QtWidgets.QHBoxLayout()
+        self.force_push_cb = QtWidgets.QCheckBox("Force push (overwrite remote)")
+        self.force_push_cb.setStyleSheet("color: #8b949e;")
+        fp_row.addWidget(self.force_push_cb)
+        fp_row.addStretch()
+        gl.addLayout(fp_row)
+
         cl.addWidget(git_group)
 
         # ── Supabase group ──
@@ -222,7 +229,7 @@ class PublishingWidget(QtWidgets.QWidget):
         self.status_output.setText('\n'.join(lines))
 
     def init_repo(self):
-        from git_util import git_run
+        from git_util import git_run, is_valid_git_repo, ensure_branch_exists
         url = self.url_input.text().strip()
         token = self.token_input.text().strip()
         su = self.supabase_url.text().strip()
@@ -239,7 +246,13 @@ class PublishingWidget(QtWidgets.QWidget):
 
         save_setup_config(url, token, su, sk, name, email)
 
-        git_run(["init"], cwd=SITE_DIR)
+        if not is_valid_git_repo(SITE_DIR):
+            git_dir = os.path.join(SITE_DIR, ".git")
+            if os.path.exists(git_dir):
+                import shutil
+                shutil.rmtree(git_dir)
+            git_run(["init"], cwd=SITE_DIR)
+
         if name:
             git_run(["config", "user.name", name], cwd=SITE_DIR)
         if email:
@@ -247,6 +260,8 @@ class PublishingWidget(QtWidgets.QWidget):
         if url:
             git_run(["remote", "remove", "origin"], cwd=SITE_DIR, capture_output=True)
             git_run(["remote", "add", "origin", url], cwd=SITE_DIR)
+
+        ensure_branch_exists(SITE_DIR)
 
         gi = os.path.join(SITE_DIR, ".gitignore")
         if not os.path.exists(gi):
@@ -275,7 +290,7 @@ class PublishingWidget(QtWidgets.QWidget):
         self.publish_btn.setEnabled(False)
         self.publish_btn.setText("Publishing...")
         self.output_box.append("Publishing...")
-        self.worker = _PublishWorker()
+        self.worker = _PublishWorker(force_push=self.force_push_cb.isChecked())
         self.worker.log_msg.connect(self.output_box.append)
         self.worker.finished.connect(self._on_publish_done)
         self.worker.start()
@@ -290,13 +305,17 @@ class PublishingWidget(QtWidgets.QWidget):
 class _PublishWorker(QtCore.QThread):
     log_msg = QtCore.pyqtSignal(str)
 
+    def __init__(self, force_push=False):
+        super().__init__()
+        self._force_push = force_push
+
     def run(self):
         import generate
         import error_log
         try:
             generate.CONFIG.update(generate.load_config())
             generate.generate_all(log_func=lambda m: self.log_msg.emit(m))
-            generate.git_commit_push(log_func=lambda m: self.log_msg.emit(m))
+            generate.git_commit_push(log_func=lambda m: self.log_msg.emit(m), force_push=self._force_push)
         except Exception:
             msg = traceback.format_exc()
             error_log.error("Publish failed:\n" + msg)

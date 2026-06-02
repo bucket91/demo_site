@@ -11,7 +11,7 @@ FONTS_JSON = os.path.join(FONTS_DIR, "fonts.json")
 CONFIG_FILE = os.path.join(SETTINGS_DIR, "config.json")
 TEMPLATE_FILE = os.path.join(SITE_DIR, "template.html")
 
-from themes import THEMES, FONTS, CSS_TEMPLATE
+from themes import THEMES, FONTS, CSS_TEMPLATE, BUNDLED_FONTS
 
 NAME_MAP = {
     "Dark": "Dark (default)",
@@ -155,6 +155,18 @@ def regenerate_style_css(site_dir, settings_dir):
         t["font_face_rules"] = ""
 
     css = CSS_TEMPLATE.substitute(**t)
+    bundle_css = ""
+    for bf_name, bf_info in BUNDLED_FONTS.items():
+        bf_fn = bf_info.get("filename", "")
+        if not bf_fn:
+            continue
+        bf_path = os.path.join(site_dir, "fonts", bf_fn)
+        if os.path.exists(bf_path):
+            ext = os.path.splitext(bf_fn)[1].lower()
+            fmt = {"ttf": "truetype", "otf": "opentype", "woff": "woff", "woff2": "woff2"}.get(ext.lstrip("."), "truetype")
+            bundle_css += f"@font-face {{\n  font-family: '{bf_name}';\n  src: url('fonts/{bf_fn}') format('{fmt}');\n}}\n"
+    if bundle_css:
+        css += "\n" + bundle_css
     style_path = os.path.join(site_dir, "style.css")
     with open(style_path, "w", encoding="utf-8") as f:
         f.write(css)
@@ -698,6 +710,18 @@ class ThemeCustomizerWidget(QtWidgets.QWidget):
         self._log(f"Applying {name} with {font_name}...")
 
         css = CSS_TEMPLATE.substitute(**t)
+        bundle_css = ""
+        for bf_name, bf_info in BUNDLED_FONTS.items():
+            bf_fn = bf_info.get("filename", "")
+            if not bf_fn:
+                continue
+            bf_path = os.path.join(SITE_DIR, "fonts", bf_fn)
+            if os.path.exists(bf_path):
+                ext = os.path.splitext(bf_fn)[1].lower()
+                fmt = {"ttf": "truetype", "otf": "opentype", "woff": "woff", "woff2": "woff2"}.get(ext.lstrip("."), "truetype")
+                bundle_css += f"@font-face {{\n  font-family: '{bf_name}';\n  src: url('fonts/{bf_fn}') format('{fmt}');\n}}\n"
+        if bundle_css:
+            css += "\n" + bundle_css
         try:
             with open(STYLE_FILE, "w", encoding="utf-8") as f:
                 f.write(css)

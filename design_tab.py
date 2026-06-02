@@ -74,6 +74,50 @@ class DesignWidget(QtWidgets.QWidget):
         opts_row.addStretch()
         cl.addLayout(opts_row)
 
+        lang_dir_row = QtWidgets.QHBoxLayout()
+        lang_dir_row.setContentsMargins(16, 4, 16, 12)
+        lang_dir_row.setSpacing(16)
+
+        lang_label = QtWidgets.QLabel("Language:")
+        lang_label.setStyleSheet("color: #6e7681;")
+        lang_dir_row.addWidget(lang_label)
+        self.lang_combo = QtWidgets.QComboBox()
+        self.lang_combo.setView(QtWidgets.QListView())
+        _langs = [
+            ("en", "English"), ("bn", "Bengali"), ("ar", "Arabic"), ("zh-CN", "Chinese (Simplified)"),
+            ("zh-TW", "Chinese (Traditional)"), ("da", "Danish"), ("nl", "Dutch"), ("fi", "Finnish"),
+            ("fr", "French"), ("de", "German"), ("el", "Greek"), ("he", "Hebrew"),
+            ("hi", "Hindi"), ("hu", "Hungarian"), ("id", "Indonesian"), ("it", "Italian"),
+            ("ja", "Japanese"), ("ko", "Korean"), ("ms", "Malay"), ("no", "Norwegian"),
+            ("pl", "Polish"), ("pt", "Portuguese"), ("ro", "Romanian"), ("ru", "Russian"),
+            ("es", "Spanish"), ("sv", "Swedish"), ("ta", "Tamil"), ("te", "Telugu"),
+            ("th", "Thai"), ("tr", "Turkish"), ("uk", "Ukrainian"), ("ur", "Urdu"),
+            ("vi", "Vietnamese"),
+        ]
+        for code, name in _langs:
+            self.lang_combo.addItem(f"{name} ({code})", code)
+        idx = self.lang_combo.findData(cfg.get("site_lang", "en"))
+        if idx >= 0:
+            self.lang_combo.setCurrentIndex(idx)
+        self.lang_combo.currentIndexChanged.connect(self._on_lang_changed)
+        lang_dir_row.addWidget(self.lang_combo)
+
+        dir_label = QtWidgets.QLabel("Direction:")
+        dir_label.setStyleSheet("color: #6e7681;")
+        lang_dir_row.addWidget(dir_label)
+        self.dir_combo = QtWidgets.QComboBox()
+        self.dir_combo.setView(QtWidgets.QListView())
+        self.dir_combo.addItem("LTR (left-to-right)", "ltr")
+        self.dir_combo.addItem("RTL (right-to-left)", "rtl")
+        idx2 = self.dir_combo.findData(cfg.get("site_dir", "ltr"))
+        if idx2 >= 0:
+            self.dir_combo.setCurrentIndex(idx2)
+        self.dir_combo.currentIndexChanged.connect(self._on_dir_changed)
+        lang_dir_row.addWidget(self.dir_combo)
+
+        lang_dir_row.addStretch()
+        cl.addLayout(lang_dir_row)
+
         # ── Owner ──
         import owner_tab
         owner_tab.SITE_DIR = SITE_DIR
@@ -138,6 +182,16 @@ class DesignWidget(QtWidgets.QWidget):
     @QtCore.pyqtSlot(int)
     def _on_padding_changed(self, value):
         self._save_cfg({"site_padding": value})
+        self.settings_changed.emit()
+
+    def _on_lang_changed(self, idx):
+        lang = self.lang_combo.currentData()
+        self._save_cfg({"site_lang": lang})
+        self.settings_changed.emit()
+
+    def _on_dir_changed(self, idx):
+        dir_val = self.dir_combo.currentData()
+        self._save_cfg({"site_dir": dir_val})
         self.settings_changed.emit()
 
     def _save_all(self):

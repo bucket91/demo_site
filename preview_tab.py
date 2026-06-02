@@ -76,6 +76,21 @@ class PreviewTab(QtWidgets.QWidget):
         """)
         tl.addWidget(self.url_input, 1)
 
+        self._zoom = 1.0
+        zoom_out_btn = QtWidgets.QPushButton("−")
+        zoom_out_btn.setFixedWidth(28)
+        zoom_out_btn.clicked.connect(self._zoom_out)
+        tl.addWidget(zoom_out_btn)
+
+        self.zoom_label = QtWidgets.QLabel("100%")
+        self.zoom_label.setStyleSheet("color: #8b949e; padding: 0 4px;")
+        tl.addWidget(self.zoom_label)
+
+        zoom_in_btn = QtWidgets.QPushButton("+")
+        zoom_in_btn.setFixedWidth(28)
+        zoom_in_btn.clicked.connect(self._zoom_in)
+        tl.addWidget(zoom_in_btn)
+
         refresh_btn = QtWidgets.QPushButton("Refresh")
         refresh_btn.clicked.connect(self._refresh)
         tl.addWidget(refresh_btn)
@@ -149,3 +164,13 @@ class PreviewTab(QtWidgets.QWidget):
         self._regen_thread.done.disconnect(self._on_regen_done)
         self._regen_thread = None
         self.load_site()
+
+    def _zoom_in(self):
+        self._zoom = min(self._zoom + 0.1, 3.0)
+        self.view.setZoomFactor(self._zoom)
+        self.zoom_label.setText(f"{int(self._zoom * 100)}%")
+
+    def _zoom_out(self):
+        self._zoom = max(self._zoom - 0.1, 0.3)
+        self.view.setZoomFactor(self._zoom)
+        self.zoom_label.setText(f"{int(self._zoom * 100)}%")

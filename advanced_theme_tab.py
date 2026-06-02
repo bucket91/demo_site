@@ -393,19 +393,29 @@ class AdvancedThemeTab(QtWidgets.QWidget):
         d = self._data.get("hover_effects", {})
         self._add_checkbox(sec.content_layout, "Enable hover effects", "hover_effects", "enabled", d.get("enabled", False))
         self._add_combo(sec.content_layout, "Page load animation", "hover_effects", "page_load",
-                        [("none", "None"), ("fade", "Fade In"), ("slide", "Slide Up"), ("scale", "Scale In")],
+                        [("none", "None"), ("fade", "Fade In"), ("slide", "Slide Up"), ("scale", "Scale In"),
+                         ("slide-down", "Slide Down"), ("slide-left", "Slide Left"), ("slide-right", "Slide Right"),
+                         ("flip", "Flip"), ("blur", "Blur In")],
                         default=d.get("page_load", "none"))
         self._add_combo(sec.content_layout, "Card hover effect", "hover_effects", "card_hover",
-                        [("none", "None"), ("lift", "Lift"), ("glow", "Glow"), ("border", "Border"), ("scale", "Scale")],
+                        [("none", "None"), ("lift", "Lift"), ("glow", "Glow"), ("border", "Border"),
+                         ("scale", "Scale"), ("shadow", "Shadow"), ("rotate", "Rotate"), ("tilt", "Tilt"),
+                         ("outline", "Outline")],
                         default=d.get("card_hover", "lift"))
         self._add_combo(sec.content_layout, "Button hover effect", "hover_effects", "button_hover",
-                        [("none", "None"), ("darken", "Darken"), ("lift", "Lift"), ("fill", "Fill"), ("glow", "Glow")],
+                        [("none", "None"), ("darken", "Darken"), ("lift", "Lift"), ("fill", "Fill"),
+                         ("glow", "Glow"), ("slide", "Slide"), ("pulse", "Pulse"), ("shine", "Shine"),
+                         ("radius", "Radius")],
                         default=d.get("button_hover", "darken"))
         self._add_combo(sec.content_layout, "Link hover effect", "hover_effects", "link_hover",
-                        [("none", "None"), ("underline", "Underline"), ("color", "Color shift"), ("animated", "Animated underline")],
+                        [("none", "None"), ("underline", "Underline"), ("color", "Color shift"),
+                         ("animated", "Animated underline"), ("slide-underline", "Slide underline"),
+                         ("marker", "Marker"), ("grow", "Grow")],
                         default=d.get("link_hover", "underline"))
         self._add_combo(sec.content_layout, "Image hover effect", "hover_effects", "image_hover",
-                        [("none", "None"), ("zoom", "Zoom"), ("overlay", "Brighten"), ("grayscale", "Grayscale")],
+                        [("none", "None"), ("zoom", "Zoom"), ("overlay", "Brighten"), ("grayscale", "Grayscale"),
+                         ("rotate", "Rotate"), ("sepia", "Sepia"), ("blur", "Blur"), ("tilt", "Tilt"),
+                         ("shadow", "Shadow")],
                         default=d.get("image_hover", "zoom"))
 
         extra_row = QtWidgets.QHBoxLayout()

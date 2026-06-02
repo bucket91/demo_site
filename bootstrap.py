@@ -9,7 +9,7 @@ def _path(*parts):
 
 
 TEMPLATE_HTML = """<!DOCTYPE html>
-<html lang="en">
+<html lang="{{SITE_LANG}}" dir="{{SITE_DIR}}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

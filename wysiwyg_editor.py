@@ -53,6 +53,66 @@ class CkeditorTab(QtWidgets.QWidget):
             cls._profile.setHttpCacheType(QtWebEngineCore.QWebEngineProfile.HttpCacheType.DiskHttpCache)
         return cls._profile
 
+    def _load_editor_with_config(self):
+        editor_path = os.path.join(_APP_DIR, "ckeditor", "editor.html")
+        base_url = QtCore.QUrl.fromLocalFile(os.path.join(_APP_DIR, "ckeditor") + "/")
+        try:
+            with open(editor_path, encoding="utf-8") as f:
+                html = f.read()
+        except Exception as e:
+            self.status_label.setText(f"Error reading editor.html: {e}")
+            return
+
+        from generate import load_config as _load_cfg
+        _cfg = _load_cfg()
+        lang = _cfg.get("site_lang", "en")
+        dir_ = _cfg.get("site_dir", "ltr")
+
+        custom_fonts = []
+        bundled_fonts = []
+        font_face_css = ""
+
+        fonts_file = os.path.join(SITE_DIR, "fonts", "fonts.json")
+        if os.path.exists(fonts_file):
+            try:
+                with open(fonts_file, encoding="utf-8") as f:
+                    customs = json.load(f)
+                for cf in customs:
+                    custom_fonts.append(cf["name"])
+                    fp = os.path.join(SITE_DIR, cf["file"])
+                    if os.path.exists(fp):
+                        ext = os.path.splitext(cf["file"])[1].lower()
+                        fmt = {"ttf": "truetype", "otf": "opentype", "woff": "woff", "woff2": "woff2"}.get(ext.lstrip('.'), "truetype")
+                        fu = QtCore.QUrl.fromLocalFile(fp).toString()
+                        font_face_css += f"@font-face {{ font-family: '{cf['name']}'; src: url('{fu}') format('{fmt}'); }}\n"
+            except Exception:
+                pass
+
+        try:
+            from themes import BUNDLED_FONTS
+            for bf_name, bf_info in BUNDLED_FONTS.items():
+                bf_path = os.path.join(SITE_DIR, "fonts", bf_info.get("filename", ""))
+                if os.path.exists(bf_path):
+                    bundled_fonts.append(bf_name)
+                    ext = os.path.splitext(bf_path)[1].lower()
+                    fmt = {"ttf": "truetype", "otf": "opentype", "woff": "woff", "woff2": "woff2"}.get(ext.lstrip('.'), "truetype")
+                    fu = QtCore.QUrl.fromLocalFile(bf_path).toString()
+                    font_face_css += f"@font-face {{ font-family: '{bf_name}'; src: url('{fu}') format('{fmt}'); }}\n"
+        except Exception:
+            pass
+
+        config = {
+            "lang": lang,
+            "dir": dir_,
+            "customFonts": custom_fonts + bundled_fonts,
+        }
+        config_js = f"<script>window.__ckEditorConfig = {json.dumps(config)};</script>\n"
+        if font_face_css:
+            config_js += f"<style>\n{font_face_css}\n</style>\n"
+        html = html.replace("</head>", config_js + "</head>")
+
+        self.view.setHtml(html, base_url)
+
     def __init__(self, parent=None):
         super().__init__(parent)
         _ensure_ckeditor()
@@ -68,8 +128,7 @@ class CkeditorTab(QtWidgets.QWidget):
         s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalContentCanAccessFileUrls, True)
         s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.JavascriptEnabled, True)
         s.setAttribute(QtWebEngineCore.QWebEngineSettings.WebAttribute.LocalStorageEnabled, True)
-        editor_path = os.path.join(_APP_DIR, "ckeditor", "editor.html")
-        self.view.setUrl(QtCore.QUrl.fromLocalFile(editor_path))
+        self._load_editor_with_config()
         layout.addWidget(self.view, 1)
 
         bar = QtWidgets.QWidget()
@@ -147,7 +206,7 @@ class CkeditorTab(QtWidgets.QWidget):
         if not path:
             return
         self._export_path = path
-        self.view.page().runJavaScript("getEditorContentClean()", self._on_export_result)
+        self.view.page().runJavaScript("getEditorContent()", self._on_export_result)
 
     def _on_export_result(self, html):
         html = html.strip()
@@ -158,23 +217,34 @@ class CkeditorTab(QtWidgets.QWidget):
         if not path:
             self.status_label.setText("No export path set")
             return
+        from generate import load_config as _load_cfg
+        _cfg = _load_cfg()
         try:
-            if self._current_file and os.path.exists(self._current_file):
-                with open(self._current_file, encoding="utf-8") as f:
-                    orig = f.read()
-            else:
-                orig = None
+            export_in_site = os.path.commonpath(
+                [os.path.abspath(path), os.path.abspath(SITE_DIR)]
+            ) == os.path.abspath(SITE_DIR)
         except Exception:
-            orig = None
+            export_in_site = False
+
         try:
-            if orig is not None and re.search(r'<main[^>]*>', orig, re.DOTALL | re.IGNORECASE):
-                result = re.sub(
-                    r'(<main[^>]*>).*?(</main>)',
-                    lambda m: m.group(1) + '\n' + html + '\n' + m.group(2),
-                    orig, count=1, flags=re.DOTALL | re.IGNORECASE
-                )
+            if export_in_site:
+                title_match = re.search(r'<h1[^>]*>(.*?)</h1>', html, re.DOTALL)
+                title = title_match.group(1).strip() if title_match else "Page"
+                minimal = f"""<!DOCTYPE html>
+<html><head><title>{title}</title></head>
+<body><main>
+{html}
+</main></body></html>"""
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(minimal)
+                from generate import build_page as _build_page, scan_categories as _scan_cats, clear_config_cache as _clear_cache
+                _clear_cache()
+                import generate as _gen
+                _gen.CONFIG.update(_gen.load_config())
+                cats = _scan_cats()
+                _build_page(path, cats)
             else:
-                style_css = content_css = ""
+                style_css = ""
                 for fn in ("style.css", "content.css"):
                     fp = os.path.join(SITE_DIR, fn)
                     try:
@@ -184,21 +254,24 @@ class CkeditorTab(QtWidgets.QWidget):
                         css = ""
                     if css:
                         style_css += f"<style>\n{css}\n</style>\n"
+                lang = _cfg.get("site_lang", "en")
+                dir_attr = _cfg.get("site_dir", "ltr")
+                padding = _cfg.get("site_padding", 20)
                 result = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}" dir="{dir_attr}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Page</title>
 {style_css}</head>
 <body>
-  <main>
+  <main class="ck-content" style="padding-left:{padding}px;padding-right:{padding}px;">
 {html}
   </main>
 </body>
 </html>"""
-            with open(path, "w", encoding="utf-8") as f:
-                f.write(result)
+                with open(path, "w", encoding="utf-8") as f:
+                    f.write(result)
             self.status_label.setText(f"Exported to {os.path.basename(path)}")
         except Exception as e:
             self.status_label.setText(f"Error writing file: {e}")

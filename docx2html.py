@@ -396,8 +396,12 @@ class ImportWidget(QtWidgets.QWidget):
             fname = slug + '.html'
             fpath = os.path.join(target_dir, fname)
             rel = os.path.relpath(SITE_DIR, target_dir).replace('\\', '/')
+            from generate import load_config as _load_cfg
+            _cfg = _load_cfg()
+            lang = _cfg.get("site_lang", "en")
+            dir_attr = _cfg.get("site_dir", "ltr")
             full = f"""<!DOCTYPE html>
-<html lang="en">
+<html lang="{lang}" dir="{dir_attr}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">

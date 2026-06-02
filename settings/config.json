@@ -1,7 +1,7 @@
 {
   "site_title": "Placeholder",
   "gui_font_size": 14,
-  "selected_theme": "Midnight",
+  "selected_theme": "Dracula",
   "selected_font": "Classic Sans",
   "owner_name": "name",
   "owner_title": "site",
@@ -12,5 +12,6 @@
       "url": "https://x.com/"
     }
   ],
-  "site_padding": 24
+  "site_padding": 17,
+  "site_dir": "ltr"
 }

@@ -27,16 +27,16 @@
     "enabled": false,
     "type": "gradient",
     "light_colors": [
-      "#e8ecf0",
+      "#f8f0fc",
       "#ffffff",
-      "#1f6feb",
-      "#0d1117"
+      "#8a5ab5",
+      "#282a36"
     ],
     "dark_colors": [
-      "#0d1117",
-      "#161b22",
-      "#58a6ff",
-      "#c9d1d9"
+      "#1e1e2e",
+      "#32304a",
+      "#bd93f9",
+      "#e0d6f0"
     ],
     "gradient_subtype": "linear",
     "direction": "to bottom",

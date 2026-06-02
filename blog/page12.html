@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Page</title>
+<style>
+
+:root {
+  --body-bg: #e8ecf0;
+  --text: #0d1117;
+  --hero-bg: #dce0e8;
+  --card-bg: #ffffff;
+  --card-border: #c8ced8;
+  --input-bg: #ffffff;
+  --input-border: #b0b8c8;
+  --label: #0d1117;
+  --muted: #6e7681;
+  --accent: #1f6feb;
+  --accent-hover: #1858c8;
+  --accent-text: #ffffff;
+}
+body.dark-mode {
+  --body-bg: #0d1117;
+  --text: #c9d1d9;
+  --hero-bg: #161b22;
+  --card-bg: #161b22;
+  --card-border: #30363d;
+  --input-bg: #0d1117;
+  --input-border: #30363d;
+  --label: #c9d1d9;
+  --muted: #6e7681;
+  --accent: #58a6ff;
+  --accent-hover: #79c0ff;
+  --accent-text: #0d1117;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--body-bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s;
+}
+
+header {
+  background: #0d1117;
+  color: #c9d1d9;
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+}
+header h1 {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+header h1 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.theme-toggle {
+  background: none;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.3rem 0.6rem;
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.layout {
+  display: flex;
+  flex: 1;
+}
+main {
+  padding: 0 1.25rem;
+  width: 100%;
+}
+.ck-content img, .ck-content table, .ck-content pre, .ck-content div {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.sidebar {
+  width: 250px;
+  background: #161b22;
+  color: #c9d1d9;
+  display: flex;
+  flex-direction: column;
+  left: -250px;
+  transition: left 0.3s ease;
+  position: fixed;
+  top: 0;
+  height: 100%;
+  z-index: 1000;
+  overflow-y: auto;
+}
+
+.sidebar-owner {
+  padding: 1.25rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid #30363d;
+}
+.owner-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-bottom: 0.6rem;
+  border: 2px solid #30363d;
+}
+.owner-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #c9d1d9;
+  margin-bottom: 0.25rem;
+}
+.owner-title {
+  font-size: 0.85rem;
+  color: var(--accent);
+  margin-bottom: 0.25rem;
+}
+.owner-bio {
+  font-size: 0.8rem;
+  color: #6e7681;
+}
+.sidebar.open { left: 0; }
+
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #30363d;
+}
+.sidebar-top h2 { font-size: 1.2rem; }
+
+.category { border-bottom: 1px solid #30363d; }
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  color: #c9d1d9;
+  font-weight: 600;
+  transition: background 0.2s;
+  user-select: none;
+}
+.category-header:hover { background: #21262d; }
+.category-header .arrow {
+  transition: transform 0.2s;
+  font-size: 0.8rem;
+}
+.category-header .arrow.open { transform: rotate(90deg); }
+.sub-links {
+  list-style: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+.sub-links.open { max-height: 300px; }
+.sub-links li a {
+  display: block;
+  color: #6e7681;
+  text-decoration: none;
+  padding: 0.6rem 1rem 0.6rem 2rem;
+  transition: background 0.2s;
+}
+.sub-links li a:hover { background: #21262d; color: #c9d1d9; }
+
+.sidebar-toggle, .close-btn {
+  background: none;
+  border: none;
+  color: #c9d1d9;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.hero {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: var(--hero-bg);
+  transition: background 0.3s;
+}
+
+.owner-card {
+  text-align: center;
+}
+.owner-card-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #30363d;
+  margin-bottom: 0.75rem;
+}
+.owner-card-name {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--label);
+}
+.owner-card-title {
+  font-size: 0.95rem;
+  color: var(--accent);
+  margin-top: 0.2rem;
+}
+.owner-card-bio {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 0.3rem;
+  line-height: 1.4;
+}
+.owner-card-contacts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem 1rem;
+  margin-top: 0.6rem;
+}
+.owner-contact-link {
+  color: var(--accent);
+  font-size: 0.85rem;
+  text-decoration: none;
+  padding: 0.2rem 0.4rem;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.owner-contact-link:hover {
+  background: var(--card-border);
+  text-decoration: underline;
+}
+
+.home-hero {
+  text-align: center;
+  padding: 1rem 1rem 1.5rem;
+}
+.home-hero h1 {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+}
+.home-tagline {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.home-sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  max-width: 800px;
+  margin: 1.5rem auto;
+  padding: 0 1rem;
+}
+.home-card {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 1.25rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+.home-card h2 {
+  font-size: 1.1rem;
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--accent);
+  color: var(--label);
+}
+.home-card ul { list-style: none; }
+.home-card li { margin-bottom: 0.4rem; }
+.home-card a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.9rem;
+}
+.home-card a:hover {
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.home-demo {
+  text-align: center;
+  padding: 1rem 1rem 2rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.home-demo a { color: var(--accent); }
+
+footer {
+  background: #0d1117;
+  color: #c9d1d9;
+  text-align: center;
+  padding: 1rem;
+}
+
+#comments-section {
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+#comments-section h3 {
+  margin-bottom: 1rem;
+  color: var(--label);
+  border-bottom: 2px solid var(--label);
+  padding-bottom: 0.5rem;
+  transition: color 0.3s, border-color 0.3s;
+}
+.comment {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: background 0.3s, border-color 0.3s;
+}
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+.comment-date { color: var(--muted); font-size: 0.85rem; }
+.no-comments { color: var(--muted); font-style: italic; }
+#comment-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 1.5rem;
+}
+#comment-form input,
+#comment-form textarea {
+  padding: 0.75rem;
+  border: 1px solid var(--input-border);
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  background: var(--input-bg);
+  color: var(--text);
+  transition: background 0.3s, color 0.3s, border-color 0.3s;
+}
+#comment-form textarea { min-height: 100px; resize: vertical; }
+#comment-form button {
+  background: var(--accent);
+  color: var(--accent-text);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+#comment-form button:hover { background: var(--accent-hover); }
+#comment-form button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+@media (max-aspect-ratio: 1/1) {
+  .layout { flex-direction: column; }
+  #comments-section {
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+</style>
+<style>
+/* CKEditor content styles — mirrors .ck-content appearance in generated site */
+.ck-content { color: var(--text); font-size: 14px; line-height: 1.7; padding: 0 0.5rem; }
+.ck-content h1, .ck-content h2, .ck-content h3, .ck-content h4, .ck-content h5, .ck-content h6 { color: var(--label); }
+.ck-content a { color: var(--accent); }
+.ck-content blockquote { border-left: 3px solid var(--card-border); padding-left: 12px; color: var(--muted); }
+.ck-content pre { background: var(--card-bg); padding: 10px; border-radius: 6px; }
+.ck-content table { border-collapse: collapse; }
+.ck-content td, .ck-content th { border: 1px solid var(--card-border); padding: 6px 10px; }
+.ck-content img, .ck-content table, .ck-content pre, .ck-content div { max-width: 100%; overflow-x: auto; }
+
+</style>
+</head>
+<body>
+  <main>
+<h3>1. The "Fresh Machine" Crash (Missing Git Identity)</h3><p>If a user runs your tool on a computer that has never used Git before, the <code>ensure_branch_exists</code> function will fail. Git refuses to create the <code>initial</code> commit unless <code>user.name</code> and <code>user.email</code> are configured globally or locally.</p><p><strong>The Fix:</strong> Temporarily inject a dummy identity for the initial commit.</p><p>Python</p><p>&nbsp;</p><pre><code class="language-plaintext">def ensure_branch_exists(path, branch="main"):
+    if not has_commits(path):
+        git_run(["add", "-A"], cwd=path, capture_output=True)
+        # Inject config directly into the commit command for fresh environments
+        cmd = [
+            "-c", "user.name='Auto Builder'", 
+            "-c", "user.email='auto@builder.local'", 
+            "commit", "--allow-empty", "-m", "initial"
+        ]
+        r = git_run(cmd, cwd=path, capture_output=True, text=True)
+        if r.returncode != 0 and "nothing to commit" not in r.stdout and "nothing to commit" not in r.stderr:
+            git_run(cmd, cwd=path, capture_output=True)
+</code></pre><h3>2. Unicode Decode Errors on Windows</h3><p>In <code>is_valid_git_repo</code>, <code>ensure_on_branch</code>, and other functions, you are passing <code>text=True</code> to <code>subprocess.run</code>. On Windows, Python defaults to the system's local encoding (like <code>cp1252</code>), not UTF-8. If a user's system language is set to something non-English, Git will output localized error messages. Python will hit an unknown character, throw a <code>UnicodeDecodeError</code>, and crash the entire <code>.exe</code>.</p><p><strong>The Fix:</strong> Force UTF-8 and replace bad characters in your <code>git_run</code> wrapper.</p><p>Python</p><p>&nbsp;</p><pre><code class="language-plaintext">def git_run(args, cwd=None, **kwargs):
+    try:
+        # If the caller wants text/string output, enforce safe UTF-8 decoding
+        if kwargs.get('text') or kwargs.get('universal_newlines'):
+            kwargs['encoding'] = 'utf-8'
+            kwargs['errors'] = 'replace' # Prevents crashes on weird characters
+            
+        return subprocess.run([get_git_path()] + args, cwd=cwd, **kwargs)
+    except FileNotFoundError:
+        return _dummy_result()
+</code></pre><h3>3. Missing Push Rejections (Large Files &amp; Protected Branches)</h3><p>Your <code>detect_push_error</code> function looks for authentication and network errors, but misses two very common GitHub blocks:</p><ul><li><strong>Large Files:</strong> GitHub rejects files over 100MB. If a user accidentally stages a massive <code>.zip</code> or <code>.exe</code>, the push will fail, but your script won't catch the specific reason.</li><li><strong>Protected Branches:</strong> If they are pushing to a repository where <code>main</code> requires a pull request, Git returns a specific decline message.</li></ul><p><strong>The Fix:</strong> Add these checks to <code>detect_push_error</code>.</p><p>Python</p><p>&nbsp;</p><pre><code class="language-plaintext">def detect_push_error(stderr):
+    if not stderr:
+        return None
+    if "Authentication failed" in stderr or "403" in stderr or "401" in stderr:
+        return AuthFailed("Authentication failed — check your GitHub token")
+    if "GH001" in stderr or "large files" in stderr:
+        return PushRejected("GitHub rejected the push because a file exceeds the 100MB limit.")
+    if "protected branch" in stderr or "hook declined" in stderr:
+        return PushRejected("Push rejected — branch is protected.")
+    if "Could not read from remote" in stderr or "resolve host" in stderr or "Connection refused" in stderr or "Network is unreachable" in stderr:
+        return NetworkError("Network error — check your internet connection")
+    if "rejected" in stderr and "fetch first" in stderr:
+        return PushRejected("Remote has commits you don't have locally")
+    if "rejected" in stderr or "failed to push" in stderr:
+        return PushRejected("Push was rejected")
+    return None
+</code></pre><h3>4. <code>_extract_github_user</code> Index Out of Range Bug</h3><p>If the user passes exactly <code>https://github.com/username</code> (without a trailing slash or repository name), your extraction logic fails silently.</p><p>Python</p><p>&nbsp;</p><pre><code class="language-plaintext"># CURRENT LOGIC:
+if '/' in after:
+    return after.split('/')[0]
+return "" # Returns empty string if no slash exists!
+</code></pre><p><strong>The Fix:</strong> Let it return the remainder of the string if there are no slashes.</p><p>Python</p><p>&nbsp;</p><pre><code class="language-plaintext">def _extract_github_user(url):
+    url = url.strip()
+    if 'github.com/' in url:
+        after = url.split('github.com/', 1)[1]
+        return after.split('/')[0] if '/' in after else after
+    if 'github.com:' in url:
+        after = url.split('github.com:', 1)[1]
+        return after.split('/')[0] if '/' in after else after
+    return ""</code></pre>
+  </main>
+</body>
+</html>
