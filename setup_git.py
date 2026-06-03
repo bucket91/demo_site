@@ -330,6 +330,18 @@ class PublishingWidget(QtWidgets.QWidget):
         self.init_btn.setText("Re-initialize")
         self.publish_btn.setEnabled(True)
 
+    def _extract_user_from_url(self, url):
+        if not url:
+            return ""
+        url = url.rstrip('.git').rstrip('/')
+        for sep in ('github.com/', 'github.com:'):
+            if sep in url:
+                after = url.split(sep, 1)[1].rstrip('/')
+                parts = after.split('/')
+                if parts:
+                    return parts[0]
+        return ""
+
     def _init_git(self):
         if hasattr(self, '_init_worker') and self._init_worker and self._init_worker.isRunning():
             return
@@ -342,6 +354,12 @@ class PublishingWidget(QtWidgets.QWidget):
         from generate import load_config
         cfg = load_config()
 
+        user = self._extract_user_from_url(url)
+        name = cfg.get("git_user_name", "") or user
+        email = cfg.get("git_user_email", "") or (f"{user}@users.noreply.github.com" if user else "")
+
+        save_setup_config(url, token, su, sk, user_name=name, user_email=email)
+
         self.init_btn.setEnabled(False)
         self.publish_btn.setEnabled(False)
         self.init_btn.setText("Initializing...")
@@ -349,8 +367,8 @@ class PublishingWidget(QtWidgets.QWidget):
 
         self._init_worker = _GitInitWorker(
             url=url,
-            name=cfg.get("git_user_name", ""),
-            email=cfg.get("git_user_email", ""),
+            name=name,
+            email=email,
         )
         self._init_worker.log_msg.connect(self.output_box.append)
         self._init_worker.finished.connect(self._on_init_done)
