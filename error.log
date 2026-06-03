@@ -783,3 +783,4 @@ Init Parameters:
 2026-06-03 11:22:54 [INFO] UI ready, entering event loop
 2026-06-03 11:22:55 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)
 2026-06-03 12:11:53 [INFO] === Site Tools started ===
+2026-06-03 12:13:02 [INFO] === Site Tools started ===
