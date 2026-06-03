@@ -83,7 +83,7 @@ main {
   padding: 0 1.25rem;
   width: 100%;
 }
-.ck-content img, .ck-content table, .ck-content pre, .ck-content div {
+.ck-content img, .ck-content table, .ck-content pre {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -268,6 +268,8 @@ main {
   border: 1px solid var(--card-border);
   border-radius: 10px;
   padding: 1.25rem;
+  overflow: hidden;
+  overflow-wrap: break-word;
   transition: background 0.3s, border-color 0.3s;
 }
 .home-card h2 {
@@ -277,7 +279,7 @@ main {
   border-bottom: 2px solid var(--accent);
   color: var(--label);
 }
-.home-card ul { list-style: none; }
+.home-card ul { list-style: none; padding-left: 0; }
 .home-card li { margin-bottom: 0.4rem; }
 .home-card a {
   color: var(--accent);

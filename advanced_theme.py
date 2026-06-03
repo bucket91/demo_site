@@ -852,6 +852,25 @@ def generate_css(data):
         image_hover = hover_effects.get("image_hover", "zoom")
         scroll_reveal = hover_effects.get("scroll_reveal", False)
 
+        lines.append("""/* Layout fixes to prevent clipping & scrollbars from CSS transforms */
+.home-sections {
+  overflow: visible !important;
+  padding: 2rem 1.5rem !important;
+  perspective: 1200px;
+}
+.home-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+main, .layout {
+  overflow: visible !important;
+}
+html, body {
+  overflow-x: hidden;
+}
+""")
+
         if page_load != "none":
             lines.append("body {")
             if page_load == "fade":

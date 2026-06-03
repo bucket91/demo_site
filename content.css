@@ -29,7 +29,7 @@
   border: 1px solid var(--card-border);
   padding: 6px 10px;
 }
-.ck-content img, .ck-content table, .ck-content pre, .ck-content div {
+.ck-content img, .ck-content table, .ck-content pre {
   max-width: 100%;
   overflow-x: auto;
 }

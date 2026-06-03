@@ -114,7 +114,7 @@ header h1 a:hover { text-decoration: none; }
 .sub-links li a:hover { color: var(--link-hover-text); background: var(--sidebar-hover); }
 main { flex: 1; padding: 1.25rem; max-width: 860px; margin: 0 auto; width: 100%; }
 .ck-content { padding: 0 0.5rem; }
-.ck-content img, .ck-content table, .ck-content pre, .ck-content div { max-width: 100%; overflow-x: auto; }
+.ck-content img, .ck-content table, .ck-content pre { max-width: 100%; overflow-x: auto; }
 .owner-card { text-align: center; }
 .owner-card-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--avatar-border); margin-bottom: 0.75rem; }
 .owner-card-name { font-size: 1.2rem; font-weight: 700; color: var(--label); }
@@ -127,9 +127,9 @@ main { flex: 1; padding: 1.25rem; max-width: 860px; margin: 0 auto; width: 100%;
 .home-hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
 .home-tagline { color: var(--muted); font-size: 1rem; }
 .home-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; max-width: 800px; margin: 1.5rem auto; padding: 0 1rem; overflow: visible; }
-.home-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem 1.25rem; }
+.home-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem 1.25rem; overflow: hidden; overflow-wrap: break-word; }
 .home-card h2 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--label); }
-.home-card ul { list-style: none; }
+.home-card ul { list-style: none; padding-left: 0; }
 .home-card li { margin: 4px 0; }
 .home-card li a { font-size: 0.9rem; }
 footer { text-align: center; padding: 1rem; color: var(--footer-text); font-size: 0.8rem; border-top: 1px solid var(--card-border); margin-top: auto; }
@@ -219,7 +219,7 @@ def ensure_site_files(site_dir):
 .ck-content pre { background: var(--card-bg); padding: 10px; border-radius: 6px; }
 .ck-content table { border-collapse: collapse; }
 .ck-content td, .ck-content th { border: 1px solid var(--card-border); padding: 6px 10px; }
-.ck-content img, .ck-content table, .ck-content pre, .ck-content div { max-width: 100%; overflow-x: auto; }
+.ck-content img, .ck-content table, .ck-content pre { max-width: 100%; overflow-x: auto; }
 """
     check(_path("content.css"), content_css)
 

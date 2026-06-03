@@ -408,6 +408,8 @@ class RefManagerWidget(QtWidgets.QWidget):
         _cfg = _load_cfg()
         lang = _cfg.get("site_lang", "en")
         dir_attr = _cfg.get("site_dir", "ltr")
+        adv_css_path = os.path.join(SITE_DIR, "advanced.css")
+        adv_link = f'  <link rel="stylesheet" href="{rel}/advanced.css">\n' if os.path.exists(adv_css_path) else ""
         return f"""<!DOCTYPE html>
 <html lang="{lang}" dir="{dir_attr}">
 <head>
@@ -415,7 +417,7 @@ class RefManagerWidget(QtWidgets.QWidget):
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{html_mod.escape(title)}</title>
   <link rel="stylesheet" href="{rel}/style.css">
-</head>
+{adv_link}</head>
 <body>
   <header>
     <button class="sidebar-toggle" onclick="toggleSidebar()">&#9776;</button>

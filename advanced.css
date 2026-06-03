@@ -1,7 +1,7 @@
 /* Advanced Theme — auto-generated. Do not edit directly. */
 
 :root {
-  --adv-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  --adv-shadow: 0 4px 12px rgba(0,0,0,0.1);
   --adv-transition: 0.3s;
   --adv-hover-lift: 6px;
   --adv-radius-card: 10px;
@@ -11,14 +11,10 @@
   --adv-radius-avatar: 50px;
   --adv-radius-header: 0px;
   --adv-radius-sidebar: 0px;
-  --adv-animation-speed: 1s;
-  --adv-animation-easing: ease-in-out;
-  --adv-bg: transparent;
-  --adv-video-opacity: 1.0;
 }
 
 body.dark-mode {
-  --adv-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  --adv-shadow: 0 4px 12px rgba(0,0,0,0.45);
 }
 
 .home-card, .comment, .sidebar-owner, header, .ck-content img:not([style*="float"]) {
@@ -26,7 +22,7 @@ body.dark-mode {
   transition: box-shadow 0.3s, transform 0.3s;
 }
 
-.home-card:hover, .comment:hover, .ck-content img:hover {
+.home-card:hover, .comment:hover {
   transform: translateY(-6px);
   box-shadow: var(--adv-shadow);
 }
@@ -59,70 +55,30 @@ header {
   border-radius: var(--adv-radius-sidebar);
 }
 
-body {
-  background-image: linear-gradient(to bottom right, #f5f5e8, #ffffff, #a6a61a), url('images/DSC04587.jpg') !important;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-attachment: scroll;
-  background-blend-mode: overlay;
-  transition: background 0.3s;
+/* Layout fixes to prevent clipping & scrollbars from CSS transforms */
+.home-sections {
+  overflow: visible !important;
+  padding: 2rem 1.5rem !important;
+  perspective: 1200px;
+}
+.home-card {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  will-change: transform;
+}
+main, .layout {
+  overflow: visible !important;
+}
+html, body {
+  overflow-x: hidden;
 }
 
-body.dark-mode {
-  background-image: linear-gradient(to bottom right, #1e1f1c, #3e3f3a, #a6e22e), url('images/DSC04587.jpg') !important;
-}
+.home-card:hover, .comment:hover { transform: translateY(var(--adv-hover-lift, -6px)); box-shadow: var(--adv-shadow); }
 
-#bg-video-container {
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: -1;
-  overflow: hidden;
-}
+#comment-form button:hover { filter: brightness(1.1); }
 
-#bg-video {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  opacity: var(--adv-video-opacity, 1);
-}
+a:hover { text-decoration: underline; }
 
-#bg-video-container::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  z-index: 1;
-  background: rgba(5,17,0,0.73);
-}
-
-body {
-  animation: advSlideUp 0.6s ease;
-}
-
-@keyframes advSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-
-.home-card:hover, .comment:hover, .ck-content img:hover { box-shadow: 0 0 20px var(--accent); }
-.home-card:hover, .comment:hover { border-color: var(--accent); }
-
-#comment-form button:hover { box-shadow: 0 0 12px var(--accent); }
-
-a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }
-
-.ck-content img:not([style*="float"]) { filter: grayscale(0); transition: filter 0.3s; } .ck-content img:not([style*="float"]):hover { filter: grayscale(0); }
+.ck-content img:not([style*="float"]) { transition: transform 0.3s; } .ck-content img:not([style*="float"]):hover { transform: scale(1.03); }
 
 html { scroll-behavior: smooth; }
-
-.home-card, .comment, .ck-content img, .ck-content blockquote {
-  opacity: 0;
-  transform: translateY(20px);
-  animation: advReveal 0.6s ease forwards;
-}
-.home-card:nth-child(2) { animation-delay: 0.1s; }
-.home-card:nth-child(3) { animation-delay: 0.2s; }
-.home-card:nth-child(4) { animation-delay: 0.3s; }
-@keyframes advReveal {
-  to { opacity: 1; transform: translateY(0); }
-}
-
