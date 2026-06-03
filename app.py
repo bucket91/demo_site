@@ -30,6 +30,8 @@ class App(QtWidgets.QMainWindow):
         super().__init__()
         self._gen_thread = None
         self._first_run = False
+        self._ckeditor_initialized = False
+        self._preview_initialized = False
         self._migrate_old_configs()
 
         import bootstrap
@@ -39,10 +41,7 @@ class App(QtWidgets.QMainWindow):
             from theme_customizer import regenerate_style_css
             regenerate_style_css(SITE_DIR, SETTINGS_DIR)
 
-        self._check_secrets_in_site_dir()
-
-        from wysiwyg_editor import _ensure_ckeditor
-        _ensure_ckeditor()
+        QtCore.QTimer.singleShot(500, self._check_secrets_in_site_dir)
 
         self._check_first_run()
 
@@ -62,14 +61,6 @@ class App(QtWidgets.QMainWindow):
         content_tab._APP_DIR = _APP_DIR
         self.content_widget = content_tab.ContentWidget()
         tabs.addTab(self.content_widget, "Content")
-
-        from wysiwyg_editor import CkeditorTab
-        self.ckeditor_tab = CkeditorTab()
-        tabs.addTab(self.ckeditor_tab, "CKeditor")
-
-        from preview_tab import PreviewTab
-        self.preview_tab = PreviewTab()
-        tabs.addTab(self.preview_tab, "Preview")
 
         import advanced_theme
         advanced_theme.SITE_DIR = SITE_DIR
@@ -109,7 +100,7 @@ class App(QtWidgets.QMainWindow):
         self.content_widget.mgr_widget.content_changed.connect(self._on_content_changed)
         self.content_widget.mgr_widget.open_in_ckeditor.connect(self._on_open_in_ckeditor)
         self.design_widget.settings_changed.connect(self._on_content_changed)
-        self._auto_generate()
+        QtCore.QTimer.singleShot(2000, self._auto_generate)
 
     def _migrate_old_configs(self):
         old_cfg = os.path.join(SITE_DIR, "config.json")
@@ -176,6 +167,23 @@ class App(QtWidgets.QMainWindow):
                 return
         self._first_run = True
 
+    def _init_ckeditor(self):
+        if self._ckeditor_initialized:
+            return
+        from wysiwyg_editor import _ensure_ckeditor, CkeditorTab
+        _ensure_ckeditor()
+        self.ckeditor_tab = CkeditorTab()
+        self.centralWidget().insertTab(2, self.ckeditor_tab, "CKeditor")
+        self._ckeditor_initialized = True
+
+    def _init_preview(self):
+        if self._preview_initialized:
+            return
+        from preview_tab import PreviewTab
+        self.preview_tab = PreviewTab()
+        self.centralWidget().insertTab(3, self.preview_tab, "Preview")
+        self._preview_initialized = True
+
     def _on_supabase_updated(self):
         self.comments_widget.refresh()
         self._on_content_changed()
@@ -202,6 +210,7 @@ class App(QtWidgets.QMainWindow):
         self._debounce_timer.start(1500)
 
     def _on_open_in_ckeditor(self, file_path):
+        self._init_ckeditor()
         self.ckeditor_tab.load_file(file_path)
         tabs = self.centralWidget()
         for i in range(tabs.count()):
@@ -211,8 +220,14 @@ class App(QtWidgets.QMainWindow):
 
     def _on_tab_changed(self, idx):
         sender = self.sender()
-        if sender and sender.tabText(idx) == "Preview":
+        if not sender:
+            return
+        tab_text = sender.tabText(idx)
+        if tab_text == "Preview":
+            self._init_preview()
             self.preview_tab.load_site()
+        elif tab_text == "CKeditor":
+            self._init_ckeditor()
 
 
 def main():

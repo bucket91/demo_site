@@ -95,12 +95,24 @@ jobs:
       - name: Download FFmpeg (Linux)
         if: runner.os == 'Linux'
         run: |
-          curl -sL --retry 5 --retry-delay 15 --max-time 600 -o ffmpeg-linux.tar.xz \
-            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz || \
-          curl -sL --retry 3 --retry-delay 10 --max-time 600 -o ffmpeg-linux.tar.xz \
-            https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz
           mkdir -p ffmpeg
-          if tar -tJf ffmpeg-linux.tar.xz >/dev/null 2>&1; then
+          # Try primary source — -f makes curl fail on HTTP errors
+          if curl -fsL --retry 5 --retry-delay 15 --max-time 600 -o ffmpeg-linux.tar.xz \
+            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz && \
+            file ffmpeg-linux.tar.xz | grep -q "XZ compressed"; then
+            echo "→ johnvansickle.com"
+            TAR_LAYOUT=1
+          else
+            echo "Primary source failed, trying BtbN/FFmpeg-Builds..."
+            curl -fsL --retry 3 --retry-delay 10 --max-time 600 -o ffmpeg-linux.tar.xz \
+              https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz
+            TAR_LAYOUT=2
+          fi
+          # Verify it's actually xz
+          file ffmpeg-linux.tar.xz | grep -q "XZ compressed" || {
+            echo "ERROR: downloaded file is not XZ:"; file ffmpeg-linux.tar.xz; exit 1
+          }
+          if [ "$TAR_LAYOUT" = "1" ]; then
             tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --strip-components=1 --wildcards '*/ffmpeg'
           else
             tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --wildcards '*/ffmpeg' --strip-components=2
