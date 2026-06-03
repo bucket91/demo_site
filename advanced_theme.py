@@ -1,4 +1,4 @@
-import os, json, sys
+import os, json, sys, shutil
 
 SITE_DIR = None
 SETTINGS_DIR = None

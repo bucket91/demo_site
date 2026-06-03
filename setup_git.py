@@ -176,6 +176,7 @@ class PublishingWidget(QtWidgets.QWidget):
 
         fp_row = QtWidgets.QHBoxLayout()
         self.force_push_cb = QtWidgets.QCheckBox("Force push (overwrite remote)")
+        self.force_push_cb.setChecked(True)
         self.force_push_cb.setStyleSheet("color: #8b949e;")
         fp_row.addWidget(self.force_push_cb)
         fp_row.addStretch()

@@ -661,3 +661,124 @@ Init Parameters:
  (line 0, None)
 2026-06-03 10:39:24 [INFO] UI ready, entering event loop
 2026-06-03 10:39:41 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)
+2026-06-03 10:48:06 [INFO] === Site Tools started ===
+2026-06-03 10:48:06 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-03 10:48:07 [INFO] UI ready, entering event loop
+2026-06-03 10:59:15 [INFO] === Site Tools started ===
+2026-06-03 10:59:17 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-03 10:59:18 [INFO] UI ready, entering event loop
+2026-06-03 11:04:29 [INFO] === Site Tools started ===
+2026-06-03 11:04:30 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-03 11:04:31 [INFO] UI ready, entering event loop
+2026-06-03 11:15:16 [CRITICAL] Unhandled exception:
+Traceback (most recent call last):
+  File "/home/mhd/site/ref_manager.py", line 733, in run
+    src = re.sub(r'<img\s+src="([^"]+)"', replace_img, src)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/re/__init__.py", line 186, in sub
+    return _compile(pattern, flags).sub(repl, string, count)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mhd/site/ref_manager.py", line 702, in replace_img
+    ok, result = convert_to_webp(abs_path, media_dir)
+                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/mhd/site/advanced_theme.py", line 312, in convert_to_webp
+    ffmpeg = get_ffmpeg_path()
+             ^^^^^^^^^^^^^^^^^
+  File "/home/mhd/site/advanced_theme.py", line 305, in get_ffmpeg_path
+    return shutil.which("ffmpeg")
+           ^^^^^^
+NameError: name 'shutil' is not defined. Did you forget to import 'shutil'
+
+2026-06-03 11:20:47 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)
+2026-06-03 11:22:53 [INFO] === Site Tools started ===
+2026-06-03 11:22:53 [INFO] Qt: 
+
+GL Type: desktop
+Surface Type: OpenGL
+Surface Profile: CompatibilityProfile
+Surface Version: 4.2
+QSG RHI Backend: OpenGL
+Using Supported QSG Backend: yes
+Using Software Dynamic GL: no
+Using Multithreaded OpenGL: yes
+
+Init Parameters:
+  *  application-name app.py 
+  *  browser-subprocess-path /usr/lib/qt6/libexec/QtWebEngineProcess 
+  *  create-default-gl-context  
+  *  disable-features ConsolidatedMovementXY,InstalledApp,BackgroundFetch,WebOTP,WebPayments,WebUSB,PictureInPicture 
+  *  disable-setuid-sandbox  
+  *  disable-speech-api  
+  *  enable-features NetworkServiceInProcess,TracingServiceInProcess 
+  *  enable-threaded-compositing  
+  *  in-process-gpu  
+  *  use-gl desktop 
+ (line 0, None)
+2026-06-03 11:22:54 [INFO] UI ready, entering event loop
+2026-06-03 11:22:55 [WARNING] Qt: Release of profile requested but WebEnginePage still not deleted. Expect troubles ! (line 0, None)

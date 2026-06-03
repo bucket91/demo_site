@@ -26,7 +26,7 @@ body.dark-mode {
   transition: box-shadow 0.3s, transform 0.3s;
 }
 
-.home-card:hover, .comment:hover {
+.home-card:hover, .comment:hover, .ck-content img:hover {
   transform: translateY(-6px);
   box-shadow: var(--adv-shadow);
 }
@@ -103,7 +103,8 @@ body {
 
 @keyframes advSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
 
-.home-card:hover, .comment:hover { box-shadow: 0 0 20px var(--accent); border-color: var(--accent); }
+.home-card:hover, .comment:hover, .ck-content img:hover { box-shadow: 0 0 20px var(--accent); }
+.home-card:hover, .comment:hover { border-color: var(--accent); }
 
 #comment-form button:hover { box-shadow: 0 0 12px var(--accent); }
 

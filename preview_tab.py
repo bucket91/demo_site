@@ -77,8 +77,9 @@ class PreviewTab(QtWidgets.QWidget):
         tl.addWidget(self.url_input, 1)
 
         self._zoom = 1.0
-        zoom_out_btn = QtWidgets.QPushButton("−")
+        zoom_out_btn = QtWidgets.QPushButton("-")
         zoom_out_btn.setFixedWidth(28)
+        zoom_out_btn.setStyleSheet("QPushButton { color: #c9d1d9; font-size: 16px; font-weight: bold; } QPushButton:hover { color: #ffffff; }")
         zoom_out_btn.clicked.connect(self._zoom_out)
         tl.addWidget(zoom_out_btn)
 
@@ -88,6 +89,7 @@ class PreviewTab(QtWidgets.QWidget):
 
         zoom_in_btn = QtWidgets.QPushButton("+")
         zoom_in_btn.setFixedWidth(28)
+        zoom_in_btn.setStyleSheet("QPushButton { color: #c9d1d9; font-size: 16px; font-weight: bold; } QPushButton:hover { color: #ffffff; }")
         zoom_in_btn.clicked.connect(self._zoom_in)
         tl.addWidget(zoom_in_btn)
 

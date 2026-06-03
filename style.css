@@ -82,7 +82,7 @@ main {
 .ck-content {
   padding: 0 0.5rem;
 }
-.ck-content img, .ck-content table, .ck-content pre, .ck-content div {
+.ck-content img, .ck-content table, .ck-content pre {
   max-width: 100%;
   overflow-x: auto;
 }
@@ -260,7 +260,8 @@ main {
   gap: 1.25rem;
   max-width: 800px;
   margin: 1.5rem auto;
-  padding: 0 1rem;
+  padding: 1.25rem 1rem;
+  overflow: visible;
 }
 .home-card {
   background: var(--card-bg);
@@ -371,3 +372,9 @@ footer {
     margin-right: auto;
   }
 }
+
+@font-face { font-family: 'Noto Sans Bengali'; src: url('fonts/NotoSansBengali.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'SolaimanLipi'; src: url('fonts/SolaimanLipi.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'Kalpurush'; src: url('fonts/Kalpurush.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'SutonnyMJ'; src: url('fonts/SutonnyMJ.ttf') format('truetype'); font-weight: normal; font-style: normal; }
+@font-face { font-family: 'Siyam Rupali'; src: url('fonts/SiyamRupali.ttf') format('truetype'); font-weight: normal; font-style: normal; }

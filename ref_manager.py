@@ -704,6 +704,9 @@ class RefManagerWidget(QtWidgets.QWidget):
                             webp_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
                             converted += 1
                             changed = True
+                            removed_dir = os.path.join(SITE_DIR, "removed", "media")
+                            os.makedirs(removed_dir, exist_ok=True)
+                            shutil.move(abs_path, os.path.join(removed_dir, os.path.basename(abs_path)))
                             return f'<img src="{webp_rel}"'
                         else:
                             errors.append(f"{rel}: {result}")
@@ -725,6 +728,9 @@ class RefManagerWidget(QtWidgets.QWidget):
                             webm_rel = os.path.relpath(result, os.path.dirname(fp)).replace('\\', '/')
                             converted += 1
                             changed = True
+                            removed_dir = os.path.join(SITE_DIR, "removed", "media")
+                            os.makedirs(removed_dir, exist_ok=True)
+                            shutil.move(abs_path, os.path.join(removed_dir, os.path.basename(abs_path)))
                             return f'<source src="{webm_rel}"'
                         else:
                             errors.append(f"{rel}: {result}")
