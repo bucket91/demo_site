@@ -919,12 +919,12 @@ def generate_css(data):
 
         if link_hover != "none":
             effects = {
-                "underline": ".sub-links li a:hover, .home-card a:hover { text-decoration: underline; }",
-                "color": ".sub-links li a:hover, .home-card a:hover { color: var(--accent-hover) !important; }",
-                "animated": ".sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }",
-                "slide-underline": ".sub-links li a, .home-card a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 2px; }",
-                "marker": ".sub-links li a, .home-card a { background-image: linear-gradient(transparent 60%, var(--accent) 60%); background-size: 0 100%; background-repeat: no-repeat; transition: background-size 0.3s; } .sub-links li a:hover, .home-card a:hover { background-size: 100% 100%; }",
-                "grow": ".sub-links li a:hover, .home-card a:hover { font-size: 1.05em; }",
+                "underline": "a:hover { text-decoration: underline; }",
+                "color": "a:hover { color: var(--accent-hover) !important; }",
+                "animated": "a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } a:hover { background-size: 100% 2px; color: var(--accent-hover) !important; }",
+                "slide-underline": "a { background-image: linear-gradient(var(--accent), var(--accent)); background-size: 0 2px; background-repeat: no-repeat; background-position: left bottom; transition: background-size 0.3s; } a:hover { background-size: 100% 2px; }",
+                "marker": "a { background-image: linear-gradient(transparent 60%, var(--accent) 60%); background-size: 0 100%; background-repeat: no-repeat; transition: background-size 0.3s; } a:hover { background-size: 100% 100%; }",
+                "grow": "a:hover { font-size: 1.05em; }",
             }
             if link_hover in effects:
                 lines.append(effects[link_hover])
