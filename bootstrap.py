@@ -1,5 +1,5 @@
 """Creates default site files when running in an empty directory."""
-import os, json
+import os, sys, json
 
 SITE_DIR = None
 

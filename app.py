@@ -199,7 +199,7 @@ class App(QtWidgets.QMainWindow):
         event.accept()
 
     def _on_content_changed(self):
-        self._debounce_timer.start(400)
+        self._debounce_timer.start(1500)
 
     def _on_open_in_ckeditor(self, file_path):
         self.ckeditor_tab.load_file(file_path)

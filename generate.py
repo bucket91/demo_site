@@ -320,7 +320,7 @@ def make_homepage_content(categories, current_file):
     
     return '\n'.join(parts)
 
-def build_page(filepath, categories):
+def build_page(filepath, categories, template_content=None):
     with open(filepath, encoding="utf-8") as f:
         src = f.read()
 
@@ -373,8 +373,11 @@ def build_page(filepath, categories):
         except Exception:
             video_html = ""
 
-    with open(TEMPLATE_FILE, encoding="utf-8") as f:
-        tmpl = f.read()
+    if template_content is not None:
+        tmpl = template_content
+    else:
+        with open(TEMPLATE_FILE, encoding="utf-8") as f:
+            tmpl = f.read()
 
     site_title = CONFIG.get("site_title", "Placeholder")
     home_rel = os.path.relpath(SITE_DIR, os.path.dirname(os.path.abspath(filepath)))
@@ -427,13 +430,13 @@ def generate_404(categories, log_func=print):
 
 
 def _process_html_file(args):
-    filepath, categories, skip_dirs, skip_files = args
+    filepath, categories, skip_dirs, skip_files, template_content = args
     rel = os.path.relpath(filepath, SITE_DIR)
     if any(part in skip_dirs for part in rel.split(os.sep)):
         return None
     if os.path.basename(filepath) in skip_files:
         return None
-    if build_page(filepath, categories):
+    if build_page(filepath, categories, template_content=template_content):
         return (rel, True)
     return None
 
@@ -446,12 +449,17 @@ def generate_all(log_func=print, max_workers=None):
         categories = scan_categories()
         log_func(f"Found {len(categories)} section{'s' if len(categories)!=1 else ''} from folders")
 
+        template_content = None
+        if os.path.exists(TEMPLATE_FILE):
+            with open(TEMPLATE_FILE, encoding="utf-8") as f:
+                template_content = f.read()
+
         html_files = glob.glob(os.path.join(SITE_DIR, "**/*.html"), recursive=True)
         updated = 0
         
         with ThreadPoolExecutor(max_workers=max_workers) as executor:
             futures = {
-                executor.submit(_process_html_file, (fp, categories, _SKIP_DIRS, _SKIP_FILES)): fp
+                executor.submit(_process_html_file, (fp, categories, _SKIP_DIRS, _SKIP_FILES, template_content)): fp
                 for fp in sorted(html_files)
             }
             
