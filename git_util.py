@@ -37,7 +37,7 @@ def get_git_path():
         meipass = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
         candidates = [
             os.path.join(meipass, "bundled-git", "git"),
-            os.path.join(meipass, "mingit", "cmd", "git.exe"),
+            os.path.join(meipass, "mingit", "mingw64", "bin", "git.exe"),
         ]
         for c in candidates:
             if os.path.exists(c):
