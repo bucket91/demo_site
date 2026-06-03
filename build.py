@@ -100,6 +100,83 @@ def download_mingit():
     print(f"MinGit extracted to {MINGIT_DIR}")
 
 
+def _strip_mingit():
+    """Remove bloat from MinGit to reduce executable size."""
+    if not os.path.exists(MINGIT_DIR):
+        return
+    mingit_bin = os.path.join(MINGIT_DIR, "mingw64", "bin")
+    if not os.path.exists(mingit_bin):
+        return
+
+    removed_bytes = 0
+    def _rm(path):
+        nonlocal removed_bytes
+        if not os.path.exists(path):
+            return
+        if os.path.isfile(path):
+            removed_bytes += os.path.getsize(path)
+            os.remove(path)
+        elif os.path.isdir(path):
+            for dp, dn, fn in os.walk(path):
+                for f in fn:
+                    fp = os.path.join(dp, f)
+                    try:
+                        removed_bytes += os.path.getsize(fp)
+                        os.remove(fp)
+                    except OSError:
+                        pass
+            shutil.rmtree(path, ignore_errors=True)
+
+    # Remove GCM (Git Credential Manager) — ~28 MB
+    for f in list(os.listdir(mingit_bin)):
+        if f.startswith("git-credential-manager"):
+            _rm(os.path.join(mingit_bin, f))
+
+    # Remove GCM-related DLLs (Avalonia, SkiaSharp, MSAL, etc.)
+    gcm_prefixes = ("Avalonia", "SkiaSharp", "HarfBuzzSharp", "Microsoft.",
+                    "System.", "gcmcore", "GitHub.", "GitLab.", "Atlassian.",
+                    "MicroCom.", "msalruntime", "MSAL")
+    for f in list(os.listdir(mingit_bin)):
+        if any(f.startswith(p) for p in gcm_prefixes):
+            _rm(os.path.join(mingit_bin, f))
+
+    # Remove scalar.exe (14.6 MB) and headless-git.exe
+    _rm(os.path.join(mingit_bin, "scalar.exe"))
+    _rm(os.path.join(mingit_bin, "headless-git.exe"))
+    _rm(os.path.join(MINGIT_DIR, "cmd", "scalar.exe"))
+    _rm(os.path.join(MINGIT_DIR, "cmd", "tig.exe"))
+
+    # Remove cmd/ wrappers (we use mingw64/bin/git.exe directly)
+    _rm(os.path.join(MINGIT_DIR, "cmd"))
+
+    # Remove MSYS2 usr/ (not needed for git builtins on Windows)
+    _rm(os.path.join(MINGIT_DIR, "usr"))
+
+    # Remove etc/ssh (not needed for HTTPS)
+    _rm(os.path.join(MINGIT_DIR, "etc", "ssh"))
+
+    # Remove libexec/git-core scripts and mergetools
+    _rm(os.path.join(MINGIT_DIR, "mingw64", "libexec"))
+
+    # Remove docs, licenses, share
+    for d in ("doc", "share"):
+        _rm(os.path.join(MINGIT_DIR, "mingw64", d))
+    _rm(os.path.join(MINGIT_DIR, "LICENSE.txt"))
+
+    # Remove non-essential standalone utilities
+    for f in ("brotli.exe", "psl.exe", "proxy-lookup.exe",
+              "blocked-file-util.exe", "c_rehash",
+              "git-update-git-for-windows", "git-askpass.exe",
+              "git-askyesno.exe",
+              "git-credential-helper-selector.exe"):
+        _rm(os.path.join(mingit_bin, f))
+
+    remaining = sum(os.path.getsize(os.path.join(dp, f))
+                    for dp, dn, fn in os.walk(MINGIT_DIR) for f in fn)
+    print(f"  Stripped MinGit: removed ~{removed_bytes / 1024 / 1024:.0f} MB, "
+          f"{remaining / 1024 / 1024:.0f} MB remaining")
+
+
 def download_linux_git():
     if os.path.exists(LINUX_GIT_DIR):
         return
@@ -120,6 +197,24 @@ def download_linux_git():
                     os.chmod(dst, st.st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     os.remove(LINUX_GIT_TGZ)
     print(f"Static git extracted to {LINUX_GIT_DIR}")
+
+
+def _strip_linux_git():
+    """Keep only the git binary from bundled static git; remove the rest."""
+    if not os.path.exists(LINUX_GIT_DIR):
+        return
+    keep = {"git"}
+    removed_bytes = 0
+    for f in list(os.listdir(LINUX_GIT_DIR)):
+        if f not in keep:
+            fp = os.path.join(LINUX_GIT_DIR, f)
+            if os.path.isfile(fp):
+                removed_bytes += os.path.getsize(fp)
+                os.remove(fp)
+    remaining = sum(os.path.getsize(os.path.join(LINUX_GIT_DIR, f))
+                    for f in os.listdir(LINUX_GIT_DIR) if os.path.isfile(os.path.join(LINUX_GIT_DIR, f)))
+    print(f"  Stripped Linux git: removed ~{removed_bytes / 1024 / 1024:.0f} MB, "
+          f"{remaining / 1024 / 1024:.0f} MB remaining")
 
 
 def download_fonts():
@@ -224,6 +319,7 @@ def build():
         "--distpath", dist_dir,
         "--workpath", os.path.join(SITE_DIR, "build"),
         "--specpath", SITE_DIR,
+        "--optimize", "2",
         "--hidden-import", "PyQt6.sip",
         "--hidden-import", "PyQt6.QtWebEngineWidgets",
         "--hidden-import", "PyQt6.QtWebEngineCore",
@@ -236,8 +332,14 @@ def build():
         "app.py",
     ]
 
+    for mod in ("tkinter", "test", "distutils", "idlelib", "ensurepip",
+                "lib2to3", "unittest", "pydoc", "xmlrpc",
+                "turtledemo", "zipapp", "http.server"):
+        cmd.extend(["--exclude-module", mod])
+
     if IS_WINDOWS:
         download_mingit()
+        _strip_mingit()
         cmd.extend(["--add-data", f"mingit{os.pathsep}mingit"])
         cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
         ico = os.path.join(SITE_DIR, "logo.ico")
@@ -248,6 +350,7 @@ def build():
             cmd.extend(["--version-file", "version_info.txt"])
     else:
         download_linux_git()
+        _strip_linux_git()
         cmd.extend(["--add-data", f"bundled-git{os.pathsep}bundled-git"])
         cmd.extend(["--add-data", f"ckeditor{os.pathsep}ckeditor"])
         cmd.extend(["--icon", "logo.png"])

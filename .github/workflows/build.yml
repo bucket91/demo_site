@@ -36,12 +36,57 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
 
+      - name: Strip Linux git
+        if: runner.os == 'Linux'
+        run: |
+          echo "Before stripping:"
+          du -sh bundled-git/
+          for f in bundled-git/*; do
+            [ "$(basename "$f")" = "git" ] || rm -f "$f"
+          done
+          echo "After stripping:"
+          du -sh bundled-git/
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
       - name: Download MinGit (Windows)
         if: runner.os == 'Windows'
         run: |
           curl -sL -o mingit.zip https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/MinGit-2.48.1-64-bit.zip
           unzip -q mingit.zip -d mingit
           rm mingit.zip
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
+      - name: Strip MinGit (Windows)
+        if: runner.os == 'Windows'
+        run: |
+          echo "Before stripping:"
+          du -sh mingit/
+
+          # Remove GCM — ~28 MB
+          rm -rf mingit/mingw64/bin/git-credential-manager*
+          for prefix in Avalonia SkiaSharp HarfBuzzSharp Microsoft. System. gcmcore GitHub. GitLab. Atlassian. MicroCom. msalruntime MSAL; do
+            rm -f mingit/mingw64/bin/"${prefix}"*
+          done
+
+          # Remove scalar.exe + headless-git.exe
+          rm -f mingit/mingw64/bin/scalar.exe mingit/mingw64/bin/headless-git.exe
+          rm -f mingit/cmd/scalar.exe mingit/cmd/tig.exe
+
+          # Remove cmd/ wrappers, usr/ (MSYS2), etc/ssh, libexec/, docs/licenses
+          rm -rf mingit/cmd mingit/usr mingit/etc/ssh mingit/mingw64/libexec
+          rm -rf mingit/mingw64/doc mingit/mingw64/share mingit/LICENSE.txt
+
+          # Remove non-essential standalone utilities
+          for f in brotli.exe psl.exe proxy-lookup.exe blocked-file-util.exe \
+                   c_rehash git-update-git-for-windows git-askpass.exe \
+                   git-askyesno.exe git-credential-helper-selector.exe; do
+            rm -f mingit/mingw64/bin/"$f"
+          done
+
+          echo "After stripping:"
+          du -sh mingit/
         shell: bash
         working-directory: ${{ github.workspace }}
 
@@ -74,10 +119,23 @@ jobs:
         shell: bash
         working-directory: ${{ github.workspace }}
 
+      - name: Install UPX
+        run: |
+          if [ "${{ runner.os }}" = "Linux" ]; then
+            sudo apt-get install -y upx-ucl
+          else
+            curl -sL -o upx.zip https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
+            unzip -q upx.zip -d upx-bin
+            UPX_DIR=$(find upx-bin -name upx.exe -exec dirname {} \;)
+            echo "$UPX_DIR" >> $GITHUB_PATH
+            rm upx.zip
+          fi
+        shell: bash
+        working-directory: ${{ github.workspace }}
+
       - name: Build executable
         run: |
           DATA_ARGS=""
-          HIDDEN=""
           if [ "${{ runner.os }}" = "Windows" ]; then
             DATA_ARGS="--add-data mingit;mingit --add-data ckeditor;ckeditor --add-data ffmpeg;ffmpeg"
             [ -f logo.ico ] && ICON_ARGS="--icon logo.ico"
@@ -86,7 +144,11 @@ jobs:
             DATA_ARGS="--add-data bundled-git:bundled-git --add-data ckeditor:ckeditor --add-data ffmpeg:ffmpeg"
             ICON_ARGS="--icon logo.png"
           fi
-          pyinstaller --onefile --name SiteTools \
+          EXCLUDE=""
+          for mod in tkinter test distutils idlelib ensurepip lib2to3 unittest pydoc xmlrpc turtledemo zipapp http.server; do
+            EXCLUDE="$EXCLUDE --exclude-module $mod"
+          done
+          pyinstaller --onefile --name SiteTools --optimize 2 \
             --hidden-import PyQt6.sip \
             --hidden-import PyQt6.QtWebEngineWidgets \
             --hidden-import PyQt6.QtWebEngineCore \
@@ -96,7 +158,7 @@ jobs:
             --hidden-import advanced_theme \
             --hidden-import git_util \
             --hidden-import bootstrap \
-            $DATA_ARGS $ICON_ARGS app.py
+            $DATA_ARGS $EXCLUDE $ICON_ARGS app.py
         shell: bash
         working-directory: ${{ github.workspace }}
 
