@@ -296,6 +296,8 @@ def _ensure_gitignore(site_dir):
 
 
 def _ensure_precommit_hook(site_dir):
+    if sys.platform.startswith('win'):
+        return
     git_hooks = os.path.join(site_dir, ".git", "hooks")
     hook_path = os.path.join(git_hooks, "pre-commit")
     os.makedirs(git_hooks, exist_ok=True)

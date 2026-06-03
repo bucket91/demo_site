@@ -305,8 +305,27 @@ def get_ffmpeg_path():
     return shutil.which("ffmpeg")
 
 
+def _is_animated_gif(path, ffmpeg):
+    ext = os.path.splitext(path)[1].lower()
+    if ext != '.gif':
+        return False
+    try:
+        r = subprocess.run(
+            [ffmpeg, "-v", "error", "-select_streams", "v:0",
+             "-show_entries", "stream=nb_frames", "-of", "csv=p=0", path],
+            capture_output=True, text=True, timeout=10
+        )
+        frames = r.stdout.strip()
+        if frames and frames != 'N/A':
+            return int(frames) > 1
+    except Exception:
+        pass
+    return False
+
+
 def convert_to_webp(input_path, output_dir):
     """Convert image to WebP using ffmpeg libwebp encoder.
+    Animated GIFs are converted to animated WebP via libwebp_anim.
     Returns (success, output_path)."""
     import subprocess, os
     ffmpeg = get_ffmpeg_path()
@@ -315,14 +334,24 @@ def convert_to_webp(input_path, output_dir):
     os.makedirs(output_dir, exist_ok=True)
     basename = os.path.splitext(os.path.basename(input_path))[0]
     output_path = os.path.join(output_dir, f"{basename}.webp")
-    cmd = [
-        ffmpeg, "-y",
-        "-i", input_path,
-        "-c:v", "libwebp",
-        "-lossless", "0",
-        "-q:v", "85",
-        output_path
-    ]
+    if _is_animated_gif(input_path, ffmpeg):
+        cmd = [
+            ffmpeg, "-y",
+            "-i", input_path,
+            "-c:v", "libwebp_anim",
+            "-lossless", "1",
+            "-q:v", "85",
+            output_path
+        ]
+    else:
+        cmd = [
+            ffmpeg, "-y",
+            "-i", input_path,
+            "-c:v", "libwebp",
+            "-lossless", "0",
+            "-q:v", "85",
+            output_path
+        ]
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, encoding='utf-8', errors='replace', timeout=120)
         if result.returncode == 0 and os.path.exists(output_path):

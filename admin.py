@@ -26,7 +26,7 @@ def req(method, path, data=None):
     body = json.dumps(data).encode() if data else None
     r = urllib.request.Request(url, data=body, method=method, headers=headers)
     try:
-        with urllib.request.urlopen(r) as resp:
+        with urllib.request.urlopen(r, timeout=15) as resp:
             ct = resp.headers.get("Content-Type", "")
             if "json" in ct:
                 return json.loads(resp.read())

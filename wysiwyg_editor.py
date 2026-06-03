@@ -25,7 +25,7 @@ def _ensure_ckeditor():
         else:
             src = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ckeditor")
         if os.path.isdir(src):
-            shutil.copytree(src, target)
+            shutil.copytree(src, target, dirs_exist_ok=True)
 
 
 class _EditorPage(QtWebEngineCore.QWebEnginePage):
@@ -55,7 +55,7 @@ class CkeditorTab(QtWidgets.QWidget):
 
     def _load_editor_with_config(self):
         editor_path = os.path.join(_APP_DIR, "ckeditor", "editor.html")
-        base_url = QtCore.QUrl.fromLocalFile(os.path.join(_APP_DIR, "ckeditor") + "/")
+        base_url = QtCore.QUrl.fromLocalFile(os.path.join(_APP_DIR, "ckeditor", ""))
         try:
             with open(editor_path, encoding="utf-8") as f:
                 html = f.read()
