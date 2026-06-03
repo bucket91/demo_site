@@ -126,7 +126,7 @@ main { flex: 1; padding: 1.25rem; max-width: 860px; margin: 0 auto; width: 100%;
 .home-hero { text-align: center; padding: 1rem 1rem 1.5rem; }
 .home-hero h1 { font-size: 2rem; margin-bottom: 0.5rem; }
 .home-tagline { color: var(--muted); font-size: 1rem; }
-.home-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; max-width: 800px; margin: 1.5rem auto; padding: 0 1rem; }
+.home-sections { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; max-width: 800px; margin: 1.5rem auto; padding: 0 1rem; overflow: visible; }
 .home-card { background: var(--card-bg); border: 1px solid var(--card-border); border-radius: 8px; padding: 1rem 1.25rem; }
 .home-card h2 { font-size: 1rem; margin-bottom: 0.5rem; color: var(--label); }
 .home-card ul { list-style: none; }

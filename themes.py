@@ -261,6 +261,7 @@ main {
   max-width: 800px;
   margin: 1.5rem auto;
   padding: 0 1rem;
+  overflow: visible;
 }
 .home-card {
   background: var(--card-bg);
