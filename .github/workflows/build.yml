@@ -28,7 +28,8 @@ jobs:
       - name: Download git (Linux)
         if: runner.os == 'Linux'
         run: |
-          curl -sL -o git-linux.tar.gz https://github.com/darkvertex/static-git/releases/latest/download/git-binaries.linux-64bit.tar.gz
+          curl -sL --retry 5 --retry-delay 15 --max-time 300 -o git-linux.tar.gz \
+            https://github.com/darkvertex/static-git/releases/latest/download/git-binaries.linux-64bit.tar.gz
           mkdir -p bundled-git
           tar -xzf git-linux.tar.gz -C bundled-git
           chmod +x bundled-git/*
@@ -52,7 +53,8 @@ jobs:
       - name: Download MinGit (Windows)
         if: runner.os == 'Windows'
         run: |
-          curl -sL -o mingit.zip https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/MinGit-2.48.1-64-bit.zip
+          curl -sL --retry 5 --retry-delay 15 --max-time 300 -o mingit.zip \
+            https://github.com/git-for-windows/git/releases/download/v2.48.1.windows.1/MinGit-2.48.1-64-bit.zip
           unzip -q mingit.zip -d mingit
           rm mingit.zip
         shell: bash
@@ -93,9 +95,16 @@ jobs:
       - name: Download FFmpeg (Linux)
         if: runner.os == 'Linux'
         run: |
-          curl -sL -o ffmpeg-linux.tar.xz https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz
+          curl -sL --retry 5 --retry-delay 15 --max-time 600 -o ffmpeg-linux.tar.xz \
+            https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd64-static.tar.xz || \
+          curl -sL --retry 3 --retry-delay 10 --max-time 600 -o ffmpeg-linux.tar.xz \
+            https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz
           mkdir -p ffmpeg
-          tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --strip-components=1 --wildcards '*/ffmpeg'
+          if tar -tJf ffmpeg-linux.tar.xz >/dev/null 2>&1; then
+            tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --strip-components=1 --wildcards '*/ffmpeg'
+          else
+            tar -xJf ffmpeg-linux.tar.xz -C ffmpeg --wildcards '*/ffmpeg' --strip-components=2
+          fi
           chmod +x ffmpeg/ffmpeg
           rm ffmpeg-linux.tar.xz
         shell: bash
@@ -104,7 +113,8 @@ jobs:
       - name: Download FFmpeg (Windows)
         if: runner.os == 'Windows'
         run: |
-          curl -sL -o ffmpeg-win.zip https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
+          curl -sL --retry 5 --retry-delay 15 --max-time 600 -o ffmpeg-win.zip \
+            https://www.gyan.dev/ffmpeg/builds/ffmpeg-release-essentials.zip
           mkdir -p ffmpeg
           unzip -j ffmpeg-win.zip "*/bin/ffmpeg.exe" -d ffmpeg
           rm ffmpeg-win.zip
@@ -114,8 +124,10 @@ jobs:
       - name: Download CKEditor
         run: |
           mkdir -p ckeditor
-          curl -sL -o ckeditor/ckeditor5.umd.js https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.umd.js
-          curl -sL -o ckeditor/ckeditor5.css https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.css
+          curl -sL --retry 5 --retry-delay 10 --max-time 120 -o ckeditor/ckeditor5.umd.js \
+            https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.umd.js
+          curl -sL --retry 5 --retry-delay 10 --max-time 120 -o ckeditor/ckeditor5.css \
+            https://cdn.ckeditor.com/ckeditor5/42.0.0/ckeditor5.css
         shell: bash
         working-directory: ${{ github.workspace }}
 
@@ -124,7 +136,8 @@ jobs:
           if [ "${{ runner.os }}" = "Linux" ]; then
             sudo apt-get install -y upx-ucl
           else
-            curl -sL -o upx.zip https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
+            curl -sL --retry 5 --retry-delay 10 --max-time 120 -o upx.zip \
+              https://github.com/upx/upx/releases/download/v4.2.4/upx-4.2.4-win64.zip
             unzip -q upx.zip -d upx-bin
             UPX_DIR=$(find upx-bin -name upx.exe -exec dirname {} \;)
             echo "$UPX_DIR" >> $GITHUB_PATH

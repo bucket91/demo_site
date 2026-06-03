@@ -38,7 +38,7 @@ FFMPEG_LINUX_URL = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-amd
 FFMPEG_LINUX_TAR = os.path.join(SITE_DIR, "ffmpeg-linux.tar.xz")
 FFMPEG_LINUX_DIR = os.path.join(SITE_DIR, "ffmpeg")
 
-_RETRY_DELAYS = [1, 3, 8]
+_RETRY_DELAYS = [2, 5, 15, 30]
 
 
 def _download_with_retry(url, dst, label=""):
@@ -287,7 +287,17 @@ def download_ffmpeg():
         if os.path.exists(os.path.join(FFMPEG_LINUX_DIR, "ffmpeg")):
             return
         print("Downloading FFmpeg for Linux bundling...")
-        if not _download_with_retry(FFMPEG_LINUX_URL, FFMPEG_LINUX_TAR, "FFmpeg"):
+        ok = _download_with_retry(FFMPEG_LINUX_URL, FFMPEG_LINUX_TAR, "FFmpeg (johnvansickle)")
+        if not ok:
+            print("  Primary URL failed, trying fallback (BtbN GitHub)...")
+            FFMPEG_LINUX_FALLBACK = "https://github.com/BtbN/FFmpeg-Builds/releases/download/latest/ffmpeg-n7.1-latest-linux64-gpl-7.1.tar.xz"
+            FFMPEG_LINUX_TAR_ALT = os.path.join(SITE_DIR, "ffmpeg-linux-btbn.tar.xz")
+            ok = _download_with_retry(FFMPEG_LINUX_FALLBACK, FFMPEG_LINUX_TAR_ALT, "FFmpeg (BtbN)")
+            if ok:
+                if os.path.exists(FFMPEG_LINUX_TAR):
+                    os.remove(FFMPEG_LINUX_TAR)
+                os.rename(FFMPEG_LINUX_TAR_ALT, FFMPEG_LINUX_TAR)
+        if not ok:
             print("WARNING: FFmpeg download failed — image/video conversion will require system ffmpeg")
             return
         os.makedirs(FFMPEG_LINUX_DIR, exist_ok=True)
