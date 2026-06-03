@@ -29,6 +29,7 @@ class App(QtWidgets.QMainWindow):
     def __init__(self):
         super().__init__()
         self._gen_thread = None
+        self._first_run = False
         self._migrate_old_configs()
 
         import bootstrap
@@ -78,17 +79,27 @@ class App(QtWidgets.QMainWindow):
 
         import setup_git
         setup_git.SITE_DIR = SITE_DIR
-        tabs.addTab(setup_git.PublishingWidget(), "Publishing")
+        self.publishing_widget = setup_git.PublishingWidget()
+        tabs.addTab(self.publishing_widget, "Publishing")
 
         import admin
-        tabs.addTab(admin.CommentAdminWidget(), "Comments")
+        self.comments_widget = admin.CommentAdminWidget()
+        tabs.addTab(self.comments_widget, "Comments")
 
         import docs
         tabs.addTab(docs.DocsWidget(), "Help")
 
+        self.publishing_widget.supabase_updated.connect(self._on_supabase_updated)
+
         self.statusBar().showMessage(
             "Ready. Customize your site in Design, add content in Content, preview in Preview.")
-        tabs.setCurrentIndex(0)
+        if self._first_run:
+            for i in range(tabs.count()):
+                if tabs.tabText(i) == "Publishing":
+                    tabs.setCurrentIndex(i)
+                    break
+        else:
+            tabs.setCurrentIndex(0)
         tabs.currentChanged.connect(self._on_tab_changed)
 
         self._debounce_timer = QtCore.QTimer(self)
@@ -163,29 +174,11 @@ class App(QtWidgets.QMainWindow):
                 tokens = json.load(f)
             if tokens.get("github_token", ""):
                 return
+        self._first_run = True
 
-        import first_run
-        first_run.SITE_DIR = SITE_DIR
-        wizard = first_run.FirstRunWizard(self)
-        if wizard.exec() == QtWidgets.QDialog.DialogCode.Accepted:
-            self._auto_init_git()
-
-    def _auto_init_git(self):
-        from git_util import ensure_git_repo
-        cfg = {}
-        cfg_path = os.path.join(SETTINGS_DIR, "config.json")
-        if os.path.exists(cfg_path):
-            with open(cfg_path, encoding="utf-8") as f:
-                cfg.update(json.load(f))
-        if os.path.exists(ROOT_CONFIG_FILE):
-            with open(ROOT_CONFIG_FILE, encoding="utf-8") as f:
-                cfg.update(json.load(f))
-        name = cfg.get("git_user_name", "")
-        email = cfg.get("git_user_email", "")
-        url = cfg.get("git_remote_url", "")
-        if not name or not url:
-            return
-        ensure_git_repo(SITE_DIR, name=name, email=email, url=url)
+    def _on_supabase_updated(self):
+        self.comments_widget.refresh()
+        self._on_content_changed()
 
     def _auto_generate(self):
         if self._gen_thread and self._gen_thread.isRunning():

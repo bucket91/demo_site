@@ -65,6 +65,8 @@ def get_git_status():
 
 
 class PublishingWidget(QtWidgets.QWidget):
+    supabase_updated = QtCore.pyqtSignal()
+
     def __init__(self):
         super().__init__()
         layout = QtWidgets.QVBoxLayout(self)
@@ -214,6 +216,18 @@ class PublishingWidget(QtWidgets.QWidget):
         sa_row.addWidget(self.supabase_key, 1)
         sl.addLayout(sa_row)
 
+        update_row = QtWidgets.QHBoxLayout()
+        update_row.addStretch()
+        self.supabase_update_btn = QtWidgets.QPushButton("Update Comments")
+        self.supabase_update_btn.setStyleSheet("""
+            QPushButton { background: #1f6feb; color: #fff; border: none; border-radius: 6px;
+                          padding: 8px 20px; font-weight: bold; }
+            QPushButton:hover { background: #388bfd; }
+        """)
+        self.supabase_update_btn.clicked.connect(self._on_supabase_update)
+        update_row.addWidget(self.supabase_update_btn)
+        sl.addLayout(update_row)
+
         cl.addWidget(supabase_group)
 
         scroll.setWidget(container)
@@ -261,12 +275,28 @@ class PublishingWidget(QtWidgets.QWidget):
             import webbrowser
             webbrowser.open(pages_url)
 
+    def _on_supabase_update(self):
+        url = self.url_input.text().strip()
+        token = self.token_input.text().strip()
+        su = self.supabase_url.text().strip()
+        sk = self.supabase_key.text().strip()
+        save_setup_config(url, token, su, sk)
+        self.supabase_updated.emit()
+
+    def _update_publish_btn_text(self):
+        if is_git_repo():
+            self.publish_btn.setText("Publish")
+        else:
+            self.publish_btn.setText("Initialize")
+
     def _refresh_status(self):
         if not is_git_repo():
             self.status_output.setText("No git repository. It will be auto-initialized on publish.")
+            self._update_publish_btn_text()
             return
         lines = get_git_status()
         self.status_output.setText('\n'.join(lines))
+        self._update_publish_btn_text()
  
     def _on_publish(self):
         url = self.url_input.text().strip()
@@ -295,7 +325,7 @@ class PublishingWidget(QtWidgets.QWidget):
 
     def _on_publish_done(self):
         self.publish_btn.setEnabled(True)
-        self.publish_btn.setText("Publish")
+        self._update_publish_btn_text()
         self.worker = None
         self._refresh_status()
 
