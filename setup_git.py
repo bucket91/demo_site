@@ -64,6 +64,30 @@ def get_git_status():
     return lines
 
 
+class _GitInitWorker(QtCore.QThread):
+    finished = QtCore.pyqtSignal(bool, str)
+    log_msg = QtCore.pyqtSignal(str)
+
+    def __init__(self, url, name, email):
+        super().__init__()
+        self._url = url
+        self._name = name
+        self._email = email
+
+    def run(self):
+        from git_util import ensure_git_repo, is_valid_git_repo
+        try:
+            self.log_msg.emit("Initializing git repository...")
+            ensure_git_repo(SITE_DIR, name=self._name, email=self._email, url=self._url)
+            if is_valid_git_repo(SITE_DIR):
+                self.log_msg.emit("Git repository is ready.")
+                self.finished.emit(True, "")
+            else:
+                self.finished.emit(False, "Git repository could not be created.")
+        except Exception as e:
+            self.finished.emit(False, str(e))
+
+
 class PublishingWidget(QtWidgets.QWidget):
     supabase_updated = QtCore.pyqtSignal()
 
@@ -163,6 +187,15 @@ class PublishingWidget(QtWidgets.QWidget):
         self.visit_btn.setEnabled(False)
         btn_row.addWidget(self.visit_btn)
         btn_row.addStretch()
+        self.init_btn = QtWidgets.QPushButton("Initialize Git")
+        self.init_btn.setStyleSheet("""
+            QPushButton { background: #1f6feb; color: #fff; border: none; border-radius: 6px;
+                          padding: 8px 24px; font-weight: bold; font-size: 14px; }
+            QPushButton:hover { background: #388bfd; }
+            QPushButton:disabled { background: #21262d; color: #484f58; }
+        """)
+        self.init_btn.clicked.connect(self._init_git)
+        btn_row.addWidget(self.init_btn)
         self.publish_btn = QtWidgets.QPushButton("Publish")
         self.publish_btn.setStyleSheet("""
             QPushButton { background: #3fb950; color: #fff; border: none; border-radius: 6px;
@@ -171,6 +204,7 @@ class PublishingWidget(QtWidgets.QWidget):
             QPushButton:disabled { background: #21262d; color: #484f58; }
         """)
         self.publish_btn.clicked.connect(self._on_publish)
+        self.publish_btn.setEnabled(False)
         btn_row.addWidget(self.publish_btn)
         gl.addLayout(btn_row)
 
@@ -284,21 +318,57 @@ class PublishingWidget(QtWidgets.QWidget):
         save_setup_config(url, token, su, sk)
         self.supabase_updated.emit()
 
-    def _update_publish_btn_text(self):
-        if is_git_repo():
-            self.publish_btn.setText("Publish")
-        else:
-            self.publish_btn.setText("Initialize")
-
     def _refresh_status(self):
         if not is_git_repo():
-            self.status_output.setText("No git repository. It will be auto-initialized on publish.")
-            self._update_publish_btn_text()
+            self.status_output.setText("No git repository. Click 'Initialize Git' to set one up.")
+            self.init_btn.setEnabled(True)
+            self.init_btn.setText("Initialize Git")
+            self.publish_btn.setEnabled(False)
             return
         lines = get_git_status()
         self.status_output.setText('\n'.join(lines))
-        self._update_publish_btn_text()
- 
+        self.init_btn.setText("Re-initialize")
+        self.publish_btn.setEnabled(True)
+
+    def _init_git(self):
+        if hasattr(self, '_init_worker') and self._init_worker and self._init_worker.isRunning():
+            return
+        url = self.url_input.text().strip()
+        token = self.token_input.text().strip()
+        su = self.supabase_url.text().strip()
+        sk = self.supabase_key.text().strip()
+        save_setup_config(url, token, su, sk)
+
+        from generate import load_config
+        cfg = load_config()
+
+        self.init_btn.setEnabled(False)
+        self.publish_btn.setEnabled(False)
+        self.init_btn.setText("Initializing...")
+        self.output_box.append("Initializing git repository...")
+
+        self._init_worker = _GitInitWorker(
+            url=url,
+            name=cfg.get("git_user_name", ""),
+            email=cfg.get("git_user_email", ""),
+        )
+        self._init_worker.log_msg.connect(self.output_box.append)
+        self._init_worker.finished.connect(self._on_init_done)
+        self._init_worker.start()
+
+    def _on_init_done(self, success, msg):
+        if success:
+            self.output_box.append("Git repository initialized successfully.")
+            self.init_btn.setText("Re-initialize")
+            self.publish_btn.setEnabled(True)
+        else:
+            self.output_box.append(f"Initialization failed: {msg}")
+            self.init_btn.setText("Initialize Git")
+            self.init_btn.setEnabled(True)
+            self.publish_btn.setEnabled(False)
+        self.init_btn.setEnabled(True)
+        self._refresh_status()
+
     def _on_publish(self):
         url = self.url_input.text().strip()
         token = self.token_input.text().strip()
@@ -306,16 +376,9 @@ class PublishingWidget(QtWidgets.QWidget):
         sk = self.supabase_key.text().strip()
         save_setup_config(url, token, su, sk)
 
-        from git_util import ensure_git_repo
-        from generate import load_config
-        cfg = load_config()
-        ensure_git_repo(SITE_DIR,
-                        name=cfg.get("git_user_name", ""),
-                        email=cfg.get("git_user_email", ""),
-                        url=url)
-
         if hasattr(self, 'worker') and self.worker and self.worker.isRunning():
             return
+        self.init_btn.setEnabled(False)
         self.publish_btn.setEnabled(False)
         self.publish_btn.setText("Publishing...")
         self.output_box.append("Publishing...")
@@ -325,8 +388,9 @@ class PublishingWidget(QtWidgets.QWidget):
         self.worker.start()
 
     def _on_publish_done(self):
+        self.init_btn.setEnabled(True)
         self.publish_btn.setEnabled(True)
-        self._update_publish_btn_text()
+        self.publish_btn.setText("Publish")
         self.worker = None
         self._refresh_status()
 
