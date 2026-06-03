@@ -1,9 +1,14 @@
 """Bundled git helper — prefers system git (has HTTPS support)."""
-import os, sys, subprocess, shutil
+import os, sys, subprocess, shutil, stat
 
 
 class GitError(Exception):
     pass
+
+
+def _remove_readonly(func, path, excinfo):
+    os.chmod(path, stat.S_IWRITE)
+    func(path)
 
 class NoGitRepo(GitError):
     pass
@@ -189,7 +194,7 @@ def ensure_git_repo(site_dir, name="", email="", url=""):
     if not is_valid_git_repo(site_dir):
         git_dir = os.path.join(site_dir, ".git")
         if os.path.exists(git_dir):
-            shutil.rmtree(git_dir)
+            shutil.rmtree(git_dir, onerror=_remove_readonly)
         git_run(["init"], cwd=site_dir)
     if name:
         git_run(["config", "user.name", name], cwd=site_dir)
