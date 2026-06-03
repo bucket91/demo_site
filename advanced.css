@@ -79,6 +79,6 @@ html, body {
 
 a:hover { text-decoration: underline; }
 
-.ck-content img:not([style*="float"]) { transition: transform 0.3s; } .ck-content img:not([style*="float"]):hover { transform: scale(1.03); }
+img { transition: transform 0.3s; } img:hover { transform: scale(1.03); }
 
 html { scroll-behavior: smooth; }

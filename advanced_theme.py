@@ -951,14 +951,14 @@ html, body {
 
         if image_hover != "none":
             effects = {
-                "zoom": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: scale(1.03); }",
-                "overlay": ".ck-content img:not([style*=\"float\"]) { position: relative; } .ck-content img:not([style*=\"float\"]):hover { filter: brightness(1.1); }",
-                "grayscale": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: grayscale(1); }",
-                "rotate": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: rotate(3deg) scale(1.02); }",
-                "sepia": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: sepia(0.5); }",
-                "blur": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: blur(1px); }",
-                "tilt": ".ck-content img:not([style*=\"float\"]) { transition: transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { transform: perspective(600px) rotateX(3deg) rotateY(-3deg); }",
-                "shadow": ".ck-content img:not([style*=\"float\"]) { transition: filter 0.3s, transform 0.3s; } .ck-content img:not([style*=\"float\"]):hover { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); transform: scale(1.01); }",
+                "zoom": "img { transition: transform 0.3s; } img:hover { transform: scale(1.03); }",
+                "overlay": "img { position: relative; } img:hover { filter: brightness(1.1); }",
+                "grayscale": "img { transition: filter 0.3s; } img:hover { filter: grayscale(1); }",
+                "rotate": "img { transition: transform 0.3s; } img:hover { transform: rotate(3deg) scale(1.02); }",
+                "sepia": "img { transition: filter 0.3s; } img:hover { filter: sepia(0.5); }",
+                "blur": "img { transition: filter 0.3s; } img:hover { filter: blur(1px); }",
+                "tilt": "img { transition: transform 0.3s; } img:hover { transform: perspective(600px) rotateX(3deg) rotateY(-3deg); }",
+                "shadow": "img { transition: filter 0.3s, transform 0.3s; } img:hover { filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3)); transform: scale(1.01); }",
             }
             if image_hover in effects:
                 lines.append(effects[image_hover])
